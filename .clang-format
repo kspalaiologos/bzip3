@@ -1,0 +1,9 @@
+﻿---
+BasedOnStyle: Google
+IndentPPDirectives: BeforeHash
+IndentWidth: '4'
+PointerAlignment: Middle
+TabWidth: '4'
+UseTab: Never
+
+...
