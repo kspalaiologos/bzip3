@@ -161,4 +161,7 @@ int main(int argc, char *argv[]) {
         free(output);
         free(sais_array);
     }
+
+    close(input_des);
+    close(output_des);
 }
