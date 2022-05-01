@@ -12,8 +12,8 @@ static int mrlec(unsigned char *in, int inlen, unsigned char *out) {
     unsigned char *ip = in, *in_ = in + inlen, *op = out;
     int i;
     int c, pc = -1;
-    long long t[256] = {0};
-    long long run = 0;
+    long t[256] = {0};
+    long run = 0;
     while ((c = _getc(ip, in_)) != -1) {
         if (c == pc)
             t[c] += (++run % 255) != 0;
@@ -52,8 +52,8 @@ static int mrled(unsigned char *in, unsigned char *out, int outlen) {
     int i;
 
     int c, pc = -1;
-    long long t[256] = {0};
-    long long run = 0;
+    long t[256] = {0};
+    long run = 0;
 
     for (i = 0; i < 32; ++i) {
         int j;
