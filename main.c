@@ -15,7 +15,7 @@
 int main(int argc, char *argv[]) {
     int mode = 0;  // -1: encode, 0: unspecified, 1: encode
     char *input = NULL, *output = NULL;  // input and output file names
-    uint32_t block_size = 400 * 1024; // the block size
+    uint32_t block_size = 8 * 1024 * 1024; // the block size
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
             } else if (argv[i][1] == 'd') {
                 mode = -1;
             } else if (argv[i][1] == 'b') {
-                block_size = 1024 * atoi(argv[i + 1]);
+                block_size = 1024 * 1024 * atoi(argv[i + 1]);
                 i++;
             }
         } else {
@@ -76,6 +76,8 @@ int main(int argc, char *argv[]) {
         int32_t *sais_array = malloc(block_size * sizeof(int32_t) + 16);
         int32_t bytes_read;
 
+        state s;
+
         write(output_des, "BZ3v1", 5);
         write(output_des, &block_size, sizeof(uint32_t));
 
@@ -88,13 +90,12 @@ int main(int argc, char *argv[]) {
             mtf_encode(&mtf_state, output, buffer, new_size);
             int32_t new_size2 = mrlec(buffer, new_size, output);
 
-            state *s = begin();
-            s->out_queue = buffer;
-            s->output_ptr = 0;
-            for (int32_t i = 0; i < new_size2; i++) encode_bit(s, output[i]);
-            flush(s);
-            int32_t new_size3 = s->output_ptr;
-            free(s);
+            begin(&s);
+            s.out_queue = buffer;
+            s.output_ptr = 0;
+            for (int32_t i = 0; i < new_size2; i++) encode_bit(&s, output[i]);
+            flush(&s);
+            int32_t new_size3 = s.output_ptr;
 
             write(output_des, &crc32, sizeof(uint32_t));
             write(output_des, &bytes_read, sizeof(int32_t));
@@ -121,6 +122,8 @@ int main(int argc, char *argv[]) {
         uint8_t *output = malloc(block_size + block_size / 2);
         int32_t *sais_array = malloc(block_size * sizeof(int32_t) + 16);
 
+        state s;
+
         while (1) {
             #define safe_read(fd, buf, size) \
                 if (read(fd, buf, size) != size) break;
@@ -136,13 +139,12 @@ int main(int argc, char *argv[]) {
             safe_read(input_des, &new_size3, sizeof(int32_t));
             safe_read(input_des, buffer, new_size3);
 
-            state *s = begin();
-            s->in_queue = buffer;
-            s->input_ptr = 0;
-            s->input_max = new_size3;
-            init(s);
-            for (int32_t i = 0; i < new_size2; i++) output[i] = decode_bit(s);
-            free(s);
+            begin(&s);
+            s.in_queue = buffer;
+            s.input_ptr = 0;
+            s.input_max = new_size3;
+            init(&s);
+            for (int32_t i = 0; i < new_size2; i++) output[i] = decode_bit(&s);
             mrled(output, buffer, new_size);
             mtf_decode(&mtf_state, buffer, output, new_size);
             libsais_unbwt(output, buffer, sais_array, new_size, NULL,
@@ -154,5 +156,9 @@ int main(int argc, char *argv[]) {
             }
             write(output_des, output, bytes_read);
         }
+
+        free(buffer);
+        free(output);
+        free(sais_array);
     }
 }

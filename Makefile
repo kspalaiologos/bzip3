@@ -1,6 +1,6 @@
 
 CC=clang
-CFLAGS=-O3 -march=native -mtune=native -flto -g3
+CFLAGS=-O3 -march=native -mtune=native -flto
 
 .PHONY: all clean
 

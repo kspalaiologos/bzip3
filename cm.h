@@ -70,8 +70,7 @@ static void init(state *s) {
 #define update0(p, x) ((p) - ((p) >> x))
 #define update1(p, x) ((p) + (((p) ^ 65535) >> x))
 
-static state *begin() {
-    state *s = malloc(sizeof(state));
+static void begin(state * s) {
     s->c1 = s->c2 = 0;
     s->run = 0;
     s->low = 0;
@@ -83,7 +82,6 @@ static state *begin() {
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 256; j++)
             for (int k = 0; k < 17; k++) s->C2[i][j][k] = (k << 12) - (k == 16);
-    return s;
 }
 
 static void encode_bit(state *s, uint8_t c) {
