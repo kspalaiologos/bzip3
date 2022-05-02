@@ -156,7 +156,7 @@ int main(int argc, char * argv[]) {
             }
             struct encoding_result r = decode_block(block_encoder_state);
             if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to encode the block: %s\n",
+                fprintf(stderr, "Failed to decode the block: %s\n",
                         str_last_error(block_encoder_state));
                 return 1;
             }
