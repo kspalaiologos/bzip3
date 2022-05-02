@@ -14,10 +14,10 @@ typedef struct {
     int64_t input_ptr, output_ptr, input_max;
 } state;
 
-void flush(state *s);
-void init(state *s);
+void flush(state * s);
+void init(state * s);
 void begin(state * s);
-void encode_byte(state *s, uint8_t c);
-uint8_t decode_byte(state *s);
+void encode_byte(state * s, uint8_t c);
+uint8_t decode_byte(state * s);
 
 #endif

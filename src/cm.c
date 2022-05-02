@@ -1,16 +1,16 @@
 
 #include "cm.h"
 
-static void write_out(state *s, uint8_t c) {
+static void write_out(state * s, uint8_t c) {
     s->out_queue[s->output_ptr++] = c;
 }
 
-static uint8_t read_in(state *s) {
+static uint8_t read_in(state * s) {
     if (s->input_ptr < s->input_max) return s->in_queue[s->input_ptr++];
     return -1;
 }
 
-static void encodebit0(state *s, uint32_t p) {
+static void encodebit0(state * s, uint32_t p) {
     s->low += (((uint64_t)(s->high - s->low) * p) >> 18) + 1;
     while ((s->low ^ s->high) < (1 << 24)) {
         write_out(s, s->low >> 24);
@@ -19,7 +19,7 @@ static void encodebit0(state *s, uint32_t p) {
     }
 }
 
-static void encodebit1(state *s, uint32_t p) {
+static void encodebit1(state * s, uint32_t p) {
     s->high = s->low + (((uint64_t)(s->high - s->low) * p) >> 18);
     while ((s->low ^ s->high) < (1 << 24)) {
         write_out(s, s->low >> 24);
@@ -28,7 +28,7 @@ static void encodebit1(state *s, uint32_t p) {
     }
 }
 
-static uint8_t decodebit(state *s, uint32_t p) {
+static uint8_t decodebit(state * s, uint32_t p) {
     const uint32_t mid = s->low + (((uint64_t)(s->high - s->low) * p) >> 18);
     const uint8_t bit = s->code <= mid;
     if (bit)
@@ -43,14 +43,18 @@ static uint8_t decodebit(state *s, uint32_t p) {
     return bit;
 }
 
-void flush(state *s) {
-    write_out(s, s->low >> 24); s->low <<= 8;
-    write_out(s, s->low >> 24); s->low <<= 8;
-    write_out(s, s->low >> 24); s->low <<= 8;
-    write_out(s, s->low >> 24); s->low <<= 8;
+void flush(state * s) {
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
 }
 
-void init(state *s) {
+void init(state * s) {
     s->code = (s->code << 8) + read_in(s);
     s->code = (s->code << 8) + read_in(s);
     s->code = (s->code << 8) + read_in(s);
@@ -74,7 +78,7 @@ void begin(state * s) {
             for (int k = 0; k < 17; k++) s->C2[i][j][k] = (k << 12) - (k == 16);
 }
 
-void encode_byte(state *s, uint8_t c) {
+void encode_byte(state * s, uint8_t c) {
     if (s->c1 == s->c2)
         ++s->run;
     else
@@ -118,7 +122,7 @@ void encode_byte(state *s, uint8_t c) {
     s->c1 = ctx & 255;
 }
 
-uint8_t decode_byte(state *s) {
+uint8_t decode_byte(state * s) {
     if (s->c1 == s->c2)
         ++s->run;
     else

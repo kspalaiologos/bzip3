@@ -2,8 +2,10 @@
 BasedOnStyle: Google
 IndentPPDirectives: BeforeHash
 IndentWidth: '4'
+DerivePointerAlignment: false
 PointerAlignment: Middle
 TabWidth: '4'
 UseTab: Never
+Cpp11BracedListStyle: false
 
 ...

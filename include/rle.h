@@ -2,7 +2,10 @@
 #ifndef _RLE_H
 #define _RLE_H
 
-int mrlec(unsigned char *in, int inlen, unsigned char *out);
-int mrled(unsigned char *in, unsigned char *out, int outlen);
+#include <stddef.h>
+#include <stdint.h>
+
+int32_t mrlec(uint8_t * in, int32_t inlen, uint8_t * out);
+int32_t mrled(uint8_t * in, uint8_t * out, int32_t outlen);
 
 #endif

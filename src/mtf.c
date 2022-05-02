@@ -19,7 +19,8 @@
 
 #include "mtf.h"
 
-void mtf_encode(struct mtf_state * mtf, uint8_t *src, uint8_t *dst, uint32_t count) {
+void mtf_encode(struct mtf_state * mtf, uint8_t * src, uint8_t * dst,
+                uint32_t count) {
     for (uint32_t i = 0; i < 256; i++) {
         mtf->prev[i] = mtf->curr[i] = 0;
         mtf->symbols[i] = mtf->ranks[i] = i;
@@ -41,7 +42,8 @@ void mtf_encode(struct mtf_state * mtf, uint8_t *src, uint8_t *dst, uint32_t cou
     }
 }
 
-void mtf_decode(struct mtf_state * mtf, uint8_t *src, uint8_t *dst, uint32_t count) {
+void mtf_decode(struct mtf_state * mtf, uint8_t * src, uint8_t * dst,
+                uint32_t count) {
     for (uint32_t i = 0; i < 256; i++) {
         mtf->prev[i] = mtf->curr[i] = 0;
         mtf->ranks[i] = i;

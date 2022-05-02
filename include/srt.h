@@ -32,7 +32,9 @@ struct srt_state {
     uint32_t bucket_ends[256];
 };
 
-uint32_t srt_encode(struct srt_state * mtf, uint8_t *src, uint8_t *dst, uint32_t count);
-uint32_t srt_decode(struct srt_state * mtf, uint8_t *src, uint8_t *dst, uint32_t count);
+uint32_t srt_encode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
+                    uint32_t count);
+uint32_t srt_decode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
+                    uint32_t count);
 
 #endif

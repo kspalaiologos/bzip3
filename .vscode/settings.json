@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "srt.h": "c"
+        "srt.h": "c",
+        "rle.h": "c"
     }
 }
