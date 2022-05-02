@@ -19,19 +19,19 @@
 
 #include "srt.h"
 
-static const int32_t MAX_HDR_SIZE = 4 * 256;
+static const s32 MAX_HDR_SIZE = 4 * 256;
 
-static int32_t preprocess(const uint32_t * freqs, uint8_t * symbols) {
-    int32_t nb_symbols = 0;
-    for (int32_t i = 0; i < 256; i++)
+static s32 preprocess(const u32 * freqs, u8 * symbols) {
+    s32 nb_symbols = 0;
+    for (s32 i = 0; i < 256; i++)
         if (freqs[i] > 0) symbols[nb_symbols++] = i;
-    uint32_t h = 4;
+    u32 h = 4;
     while (h < nb_symbols) h = h * 3 + 1;
     while (1) {
         h /= 3;
-        for (uint32_t i = h; i < nb_symbols; i++) {
-            const int32_t t = symbols[i] & 0xFF;
-            int32_t b = i - h;
+        for (u32 i = h; i < nb_symbols; i++) {
+            const s32 t = symbols[i] & 0xFF;
+            s32 b = i - h;
             while ((b >= 0) && freqs[symbols[b]] < freqs[t] ||
                    (freqs[t] == freqs[symbols[b]]) && t < symbols[b]) {
                 symbols[b + h] = symbols[b];
@@ -44,25 +44,25 @@ static int32_t preprocess(const uint32_t * freqs, uint8_t * symbols) {
     return nb_symbols;
 }
 
-static int32_t encode_header(uint32_t * freqs, uint8_t * dst) {
-    uint32_t idx = 0;
-    for (int32_t i = 0; i < 256; i++) {
-        uint32_t f = freqs[i];
+static s32 encode_header(u32 * freqs, u8 * dst) {
+    u32 idx = 0;
+    for (s32 i = 0; i < 256; i++) {
+        u32 f = freqs[i];
         while (f >= 128) {
-            dst[idx++] = (uint8_t)(f | 0x80);
+            dst[idx++] = (u8)(f | 0x80);
             f >>= 7;
         }
-        dst[idx++] = (uint8_t)f;
+        dst[idx++] = (u8)f;
     }
     return idx;
 }
 
-static int32_t decode_header(uint8_t * src, uint32_t * freqs) {
-    uint32_t idx = 0;
-    for (int32_t i = 0; i < 256; i++) {
-        int32_t val = src[idx++] & 0xFF;
-        int32_t res = val & 0x7F;
-        int32_t shift = 7;
+static s32 decode_header(u8 * src, u32 * freqs) {
+    u32 idx = 0;
+    for (s32 i = 0; i < 256; i++) {
+        s32 val = src[idx++] & 0xFF;
+        s32 res = val & 0x7F;
+        s32 shift = 7;
         while (val >= 128) {
             val = src[idx++] & 0xFF;
             res |= (val & 0x7F) << shift;
@@ -74,34 +74,34 @@ static int32_t decode_header(uint8_t * src, uint32_t * freqs) {
     return idx;
 }
 
-uint32_t srt_encode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
-                    uint32_t count) {
+u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst,
+                    u32 count) {
     // Find first symbols and build a histogram.
-    for (int32_t i = 0; i < 256; i++) mtf->freqs[i] = 0;
-    for (uint32_t i = 0, b = 0; i < count;) {
+    for (s32 i = 0; i < 256; i++) mtf->freqs[i] = 0;
+    for (u32 i = 0, b = 0; i < count;) {
         if (mtf->freqs[src[i]] == 0) {
             mtf->r2s[b] = src[i];
             mtf->s2r[src[i]] = b;
             b++;
         }
-        uint32_t j = i + 1;
+        u32 j = i + 1;
         while (j < count && src[j] == src[i]) j++;
         mtf->freqs[src[i]] += j - i;
         i = j;
     }
 
-    int32_t n_symbols = preprocess(mtf->freqs, mtf->symbols);
-    for (uint32_t i = 0, bucket_pos = 0; i < n_symbols; i++) {
+    s32 n_symbols = preprocess(mtf->freqs, mtf->symbols);
+    for (u32 i = 0, bucket_pos = 0; i < n_symbols; i++) {
         mtf->buckets[mtf->symbols[i]] = bucket_pos;
         bucket_pos += mtf->freqs[mtf->symbols[i]];
     }
 
-    const uint32_t header_size = encode_header(mtf->freqs, dst);
-    const int32_t dst_idx = header_size;
-    for (uint32_t i = 0; i < count;) {
-        const int32_t c = src[i] & 0xFF;
-        int32_t r = mtf->s2r[c] & 0xFF;
-        uint32_t p = mtf->buckets[c];
+    const u32 header_size = encode_header(mtf->freqs, dst);
+    const s32 dst_idx = header_size;
+    for (u32 i = 0; i < count;) {
+        const s32 c = src[i] & 0xFF;
+        s32 r = mtf->s2r[c] & 0xFF;
+        u32 p = mtf->buckets[c];
         dst[dst_idx + p++] = r;
         if (r != 0) {
             do {
@@ -122,32 +122,32 @@ uint32_t srt_encode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
     return count + header_size;
 }
 
-uint32_t srt_decode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
-                    uint32_t count) {
-    const uint32_t header_size = decode_header(src, mtf->freqs);
-    const uint32_t src_idx = header_size;
-    int32_t nb_symbols = preprocess(mtf->freqs, mtf->symbols);
-    for (uint32_t i = 0, bucket_pos = 0; i < nb_symbols; i++) {
-        const int32_t c = mtf->symbols[i] & 0xFF;
+u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst,
+                    u32 count) {
+    const u32 header_size = decode_header(src, mtf->freqs);
+    const u32 src_idx = header_size;
+    s32 nb_symbols = preprocess(mtf->freqs, mtf->symbols);
+    for (u32 i = 0, bucket_pos = 0; i < nb_symbols; i++) {
+        const s32 c = mtf->symbols[i] & 0xFF;
         mtf->r2s[src[src_idx + bucket_pos] & 0xFF] = c;
         mtf->buckets[c] = bucket_pos + 1;
         bucket_pos += mtf->freqs[c];
         mtf->bucket_ends[c] = bucket_pos;
     }
-    uint32_t c = mtf->r2s[0];
-    for (uint32_t i = 0; i < count; i++) {
+    u32 c = mtf->r2s[0];
+    for (u32 i = 0; i < count; i++) {
         dst[i] = c;
         if (mtf->buckets[c] < mtf->bucket_ends[c]) {
-            const int32_t r = src[src_idx + mtf->buckets[c]] & 0xFF;
+            const s32 r = src[src_idx + mtf->buckets[c]] & 0xFF;
             mtf->buckets[c]++;
             if (r == 0) continue;
-            for (int32_t s = 0; s < r; s++) mtf->r2s[s] = mtf->r2s[s + 1];
+            for (s32 s = 0; s < r; s++) mtf->r2s[s] = mtf->r2s[s + 1];
             mtf->r2s[r] = c;
             c = mtf->r2s[0];
         } else {
             if (nb_symbols == 1) continue;
             nb_symbols--;
-            for (int32_t s = 0; s < nb_symbols; s++)
+            for (s32 s = 0; s < nb_symbols; s++)
                 mtf->r2s[s] = mtf->r2s[s + 1];
             c = mtf->r2s[0];
         }

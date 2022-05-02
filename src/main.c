@@ -31,16 +31,16 @@
 #include "rle.h"
 #include "srt.h"
 
-void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer,
-                  uint8_t * output, int32_t * sais_array,
+void encode_block(int output_des, s32 bytes_read, u8 * buffer,
+                  u8 * output, s32 * sais_array,
                   struct srt_state * srt_state, state * cm_state,
-                  uint32_t block_size, struct mtf_state * mtf_state) {
-    uint32_t crc32 = crc32sum(1, buffer, bytes_read);
+                  u32 block_size, struct mtf_state * mtf_state) {
+    u32 crc32 = crc32sum(1, buffer, bytes_read);
 
-    int32_t new_size = mrlec(buffer, bytes_read, output);
-    int32_t bwt_index =
+    s32 new_size = mrlec(buffer, bytes_read, output);
+    s32 bwt_index =
         libsais_bwt(output, output, sais_array, new_size, 16, NULL);
-    int32_t new_size2;
+    s32 new_size2;
 
     if (new_size > MiB(3)) {
         new_size2 = srt_encode(srt_state, output, buffer, new_size);
@@ -53,38 +53,38 @@ void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer,
     cm_state->out_queue = output;
     cm_state->output_ptr = 0;
     if (new_size2 != -1)
-        for (int32_t i = 0; i < new_size2; i++)
+        for (s32 i = 0; i < new_size2; i++)
             encode_byte(cm_state, buffer[i]);
     else
-        for (int32_t i = 0; i < new_size; i++) encode_byte(cm_state, buffer[i]);
+        for (s32 i = 0; i < new_size; i++) encode_byte(cm_state, buffer[i]);
     flush(cm_state);
-    int32_t new_size3 = cm_state->output_ptr;
+    s32 new_size3 = cm_state->output_ptr;
 
-    write(output_des, &crc32, sizeof(uint32_t));
-    write(output_des, &bytes_read, sizeof(int32_t));
-    write(output_des, &bwt_index, sizeof(int32_t));
-    write(output_des, &new_size, sizeof(int32_t));
-    write(output_des, &new_size2, sizeof(int32_t));
-    write(output_des, &new_size3, sizeof(int32_t));
+    write(output_des, &crc32, sizeof(u32));
+    write(output_des, &bytes_read, sizeof(s32));
+    write(output_des, &bwt_index, sizeof(s32));
+    write(output_des, &new_size, sizeof(s32));
+    write(output_des, &new_size2, sizeof(s32));
+    write(output_des, &new_size3, sizeof(s32));
     write(output_des, output, new_size3);
 }
 
-int decode_block(int input_des, int output_des, uint8_t * buffer,
-                 uint8_t * output, int32_t * sais_array,
+int decode_block(int input_des, int output_des, u8 * buffer,
+                 u8 * output, s32 * sais_array,
                  struct srt_state * srt_state, state * cm_state,
                  struct mtf_state * mtf_state) {
 #define safe_read(fd, buf, size) \
     if (read(fd, buf, size) != size) return 1;
 
-    uint32_t crc32;
-    int32_t bytes_read, bwt_index, new_size, new_size2, new_size3;
+    u32 crc32;
+    s32 bytes_read, bwt_index, new_size, new_size2, new_size3;
 
-    safe_read(input_des, &crc32, sizeof(uint32_t));
-    safe_read(input_des, &bytes_read, sizeof(int32_t));
-    safe_read(input_des, &bwt_index, sizeof(int32_t));
-    safe_read(input_des, &new_size, sizeof(int32_t));
-    safe_read(input_des, &new_size2, sizeof(int32_t));
-    safe_read(input_des, &new_size3, sizeof(int32_t));
+    safe_read(input_des, &crc32, sizeof(u32));
+    safe_read(input_des, &bytes_read, sizeof(s32));
+    safe_read(input_des, &bwt_index, sizeof(s32));
+    safe_read(input_des, &new_size, sizeof(s32));
+    safe_read(input_des, &new_size2, sizeof(s32));
+    safe_read(input_des, &new_size3, sizeof(s32));
     safe_read(input_des, buffer, new_size3);
 
     begin(cm_state);
@@ -93,11 +93,11 @@ int decode_block(int input_des, int output_des, uint8_t * buffer,
     cm_state->input_max = new_size3;
     init(cm_state);
     if (new_size2 != -1) {
-        for (int32_t i = 0; i < new_size2; i++)
+        for (s32 i = 0; i < new_size2; i++)
             output[i] = decode_byte(cm_state);
         srt_decode(srt_state, output, buffer, new_size2);
     } else {
-        for (int32_t i = 0; i < new_size; i++)
+        for (s32 i = 0; i < new_size; i++)
             output[i] = decode_byte(cm_state);
         mtf_decode(mtf_state, output, buffer, new_size);
     }
@@ -114,7 +114,7 @@ int decode_block(int input_des, int output_des, uint8_t * buffer,
 int main(int argc, char * argv[]) {
     int mode = 0;  // -1: encode, 0: unspecified, 1: encode
     char *input = NULL, *output = NULL;     // input and output file names
-    uint32_t block_size = 8 * 1024 * 1024;  // the block size
+    u32 block_size = 8 * 1024 * 1024;  // the block size
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -181,15 +181,15 @@ int main(int argc, char * argv[]) {
 
     if (mode == 1) {
         // Encode
-        uint8_t * buffer = malloc(block_size + block_size / 3);
-        uint8_t * output = malloc(block_size + block_size / 3);
-        int32_t * sais_array = malloc(block_size * sizeof(int32_t) + 16);
-        int32_t bytes_read;
+        u8 * buffer = malloc(block_size + block_size / 3);
+        u8 * output = malloc(block_size + block_size / 3);
+        s32 * sais_array = malloc(block_size * sizeof(s32) + 16);
+        s32 bytes_read;
 
         state s;
 
         write(output_des, "BZ3v1", 5);
-        write(output_des, &block_size, sizeof(uint32_t));
+        write(output_des, &block_size, sizeof(u32));
 
         while ((bytes_read = read(input_des, buffer, block_size)) > 0) {
             encode_block(output_des, bytes_read, buffer, output, sais_array,
@@ -207,10 +207,10 @@ int main(int argc, char * argv[]) {
             fprintf(stderr, "Invalid signature.\n");
             return 1;
         }
-        read(input_des, &block_size, sizeof(uint32_t));
-        uint8_t * buffer = malloc(block_size + block_size / 2);
-        uint8_t * output = malloc(block_size + block_size / 2);
-        int32_t * sais_array = malloc(block_size * sizeof(int32_t) + 16);
+        read(input_des, &block_size, sizeof(u32));
+        u8 * buffer = malloc(block_size + block_size / 2);
+        u8 * output = malloc(block_size + block_size / 2);
+        s32 * sais_array = malloc(block_size * sizeof(s32) + 16);
 
         state s;
 

@@ -5,7 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-int32_t mrlec(uint8_t * in, int32_t inlen, uint8_t * out);
-int32_t mrled(uint8_t * in, uint8_t * out, int32_t outlen);
+#include "common.h"
+
+s32 mrlec(u8 * in, s32 inlen, u8 * out);
+s32 mrled(u8 * in, u8 * out, s32 outlen);
 
 #endif

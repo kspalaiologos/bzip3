@@ -23,18 +23,20 @@
 #include <inttypes.h>
 #include <stddef.h>
 
+#include "common.h"
+
 struct srt_state {
-    uint32_t freqs[256];
-    uint8_t symbols[256];
-    uint32_t r2s[256];
-    uint32_t s2r[256];
-    uint32_t buckets[256];
-    uint32_t bucket_ends[256];
+    u32 freqs[256];
+    u8 symbols[256];
+    u32 r2s[256];
+    u32 s2r[256];
+    u32 buckets[256];
+    u32 bucket_ends[256];
 };
 
-uint32_t srt_encode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
-                    uint32_t count);
-uint32_t srt_decode(struct srt_state * mtf, uint8_t * src, uint8_t * dst,
-                    uint32_t count);
+u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst,
+                    u32 count);
+u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst,
+                    u32 count);
 
 #endif

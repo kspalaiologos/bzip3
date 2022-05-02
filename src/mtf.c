@@ -19,15 +19,15 @@
 
 #include "mtf.h"
 
-void mtf_encode(struct mtf_state * mtf, uint8_t * src, uint8_t * dst,
-                uint32_t count) {
-    for (uint32_t i = 0; i < 256; i++) {
+void mtf_encode(struct mtf_state * mtf, u8 * src, u8 * dst,
+                u32 count) {
+    for (u32 i = 0; i < 256; i++) {
         mtf->prev[i] = mtf->curr[i] = 0;
         mtf->symbols[i] = mtf->ranks[i] = i;
     }
 
-    for (uint32_t i = 0; i < count; i++) {
-        uint32_t r = mtf->symbols[src[i]];
+    for (u32 i = 0; i < count; i++) {
+        u32 r = mtf->symbols[src[i]];
         dst[i] = r;
 
         mtf->prev[src[i]] = mtf->curr[src[i]] = i;
@@ -42,18 +42,18 @@ void mtf_encode(struct mtf_state * mtf, uint8_t * src, uint8_t * dst,
     }
 }
 
-void mtf_decode(struct mtf_state * mtf, uint8_t * src, uint8_t * dst,
-                uint32_t count) {
-    for (uint32_t i = 0; i < 256; i++) {
+void mtf_decode(struct mtf_state * mtf, u8 * src, u8 * dst,
+                u32 count) {
+    for (u32 i = 0; i < 256; i++) {
         mtf->prev[i] = mtf->curr[i] = 0;
         mtf->ranks[i] = i;
     }
 
-    for (uint32_t i = 0; i < count; i++) {
-        uint32_t r = src[i] & 0xFF;
+    for (u32 i = 0; i < count; i++) {
+        u32 r = src[i] & 0xFF;
 
-        const uint32_t c = mtf->ranks[r];
-        dst[i] = (int8_t)c;
+        const u32 c = mtf->ranks[r];
+        dst[i] = (s8)c;
 
         mtf->prev[c] = mtf->curr[c] = i;
 
