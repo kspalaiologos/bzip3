@@ -11,6 +11,7 @@
 #include "crc32.h"
 #include "libsais.h"
 #include "mtf.h"
+#include "txt.h"
 #include "rle.h"
 #include "srt.h"
 
