@@ -8,7 +8,7 @@
 
 #include "libsais.h"
 #include "rle.h"
-#include "mtf.h"
+#include "srt.h"
 #include "crc32.h"
 #include "cm.h"
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         output_des = STDOUT_FILENO;
     }
 
-    struct mtf_state mtf_state;
+    struct srt_state mtf_state;
 
     if (mode == 1) {
         // Encode
@@ -87,12 +87,12 @@ int main(int argc, char *argv[]) {
             int32_t new_size = mrlec(buffer, bytes_read, output);
             int32_t bwt_index =
                 libsais_bwt(output, output, sais_array, new_size, 16, NULL);
-            mtf_encode(&mtf_state, output, buffer, new_size);
+            int32_t new_size2 = srt_encode(&mtf_state, output, buffer, new_size);
 
             begin(&s);
             s.out_queue = output;
             s.output_ptr = 0;
-            for (int32_t i = 0; i < new_size; i++) encode_bit(&s, buffer[i]);
+            for (int32_t i = 0; i < new_size2; i++) encode_bit(&s, buffer[i]);
             flush(&s);
             int32_t new_size3 = s.output_ptr;
 
@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
             write(output_des, &bytes_read, sizeof(int32_t));
             write(output_des, &bwt_index, sizeof(int32_t));
             write(output_des, &new_size, sizeof(int32_t));
+            write(output_des, &new_size2, sizeof(int32_t));
             write(output_des, &new_size3, sizeof(int32_t));
             write(output_des, output, new_size3);
         }
@@ -127,12 +128,13 @@ int main(int argc, char *argv[]) {
                 if (read(fd, buf, size) != size) break;
 
             uint32_t crc32;
-            int32_t bytes_read, bwt_index, new_size, new_size3;
+            int32_t bytes_read, bwt_index, new_size, new_size2, new_size3;
 
             safe_read(input_des, &crc32, sizeof(uint32_t));
             safe_read(input_des, &bytes_read, sizeof(int32_t));
             safe_read(input_des, &bwt_index, sizeof(int32_t));
             safe_read(input_des, &new_size, sizeof(int32_t));
+            safe_read(input_des, &new_size2, sizeof(int32_t));
             safe_read(input_des, &new_size3, sizeof(int32_t));
             safe_read(input_des, buffer, new_size3);
 
@@ -141,8 +143,8 @@ int main(int argc, char *argv[]) {
             s.input_ptr = 0;
             s.input_max = new_size3;
             init(&s);
-            for (int32_t i = 0; i < new_size; i++) output[i] = decode_bit(&s);
-            mtf_decode(&mtf_state, output, buffer, new_size);
+            for (int32_t i = 0; i < new_size2; i++) output[i] = decode_bit(&s);
+            srt_decode(&mtf_state, output, buffer, new_size2);
             libsais_unbwt(buffer, output, sais_array, new_size, NULL,
                           bwt_index);
             mrled(output, buffer, bytes_read);
