@@ -2,13 +2,7 @@
 #ifndef _LIBBZ3_H
 #define _LIBBZ3_H
 
-#include "cm.h"
 #include "common.h"
-#include "crc32.h"
-#include "libsais.h"
-#include "mtf.h"
-#include "rle.h"
-#include "srt.h"
 
 #define BZ3_OK 0
 #define BZ3_ERR_OUT_OF_BOUNDS -1

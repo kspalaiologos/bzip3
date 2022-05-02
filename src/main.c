@@ -23,14 +23,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "cm.h"
 #include "common.h"
-#include "crc32.h"
 #include "libbz3.h"
-#include "libsais.h"
-#include "mtf.h"
-#include "rle.h"
-#include "srt.h"
 
 int main(int argc, char * argv[]) {
     // -1: encode, 0: unspecified, 1: encode, 2: test
@@ -99,15 +93,6 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    struct block_encoder_state * block_encoder_state =
-        new_block_encoder_state(block_size);
-
-    if (get_last_error(block_encoder_state) != BZ3_OK) {
-        fprintf(stderr, "Failed to create block encoder state: %s\n",
-                str_last_error(block_encoder_state));
-        return 1;
-    }
-
     switch (mode) {
         case 1:
             write(output_des, "BZ3v1", 5);
@@ -134,6 +119,14 @@ int main(int argc, char * argv[]) {
 
             break;
         }
+    }
+
+    struct block_encoder_state * block_encoder_state =
+        new_block_encoder_state(block_size);
+
+    if (block_encoder_state == NULL) {
+        fprintf(stderr, "Failed to create a block encoder state.\n");
+        return 1;
     }
 
     if (mode == 1)

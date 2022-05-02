@@ -67,8 +67,8 @@ struct block_encoder_state * new_block_encoder_state(s32 block_size) {
     }
 
     block_encoder_state->cm_state = malloc(sizeof(state));
-    block_encoder_state->srt_state = malloc(sizeof(struct mtf_state));
-    block_encoder_state->mtf_state = malloc(sizeof(struct srt_state));
+    block_encoder_state->srt_state = malloc(sizeof(struct srt_state));
+    block_encoder_state->mtf_state = malloc(sizeof(struct mtf_state));
 
     block_encoder_state->buf1 = malloc(block_size + block_size / 3);
     block_encoder_state->buf2 = malloc(block_size + block_size / 3);
