@@ -74,8 +74,7 @@ static s32 decode_header(u8 * src, u32 * freqs) {
     return idx;
 }
 
-u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst,
-                    u32 count) {
+u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst, u32 count) {
     // Find first symbols and build a histogram.
     for (s32 i = 0; i < 256; i++) mtf->freqs[i] = 0;
     for (u32 i = 0, b = 0; i < count;) {
@@ -122,8 +121,7 @@ u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst,
     return count + header_size;
 }
 
-u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst,
-                    u32 count) {
+u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst, u32 count) {
     const u32 header_size = decode_header(src, mtf->freqs);
     const u32 src_idx = header_size;
     s32 nb_symbols = preprocess(mtf->freqs, mtf->symbols);
@@ -147,8 +145,7 @@ u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst,
         } else {
             if (nb_symbols == 1) continue;
             nb_symbols--;
-            for (s32 s = 0; s < nb_symbols; s++)
-                mtf->r2s[s] = mtf->r2s[s + 1];
+            for (s32 s = 0; s < nb_symbols; s++) mtf->r2s[s] = mtf->r2s[s + 1];
             c = mtf->r2s[0];
         }
     }

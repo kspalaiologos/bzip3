@@ -34,9 +34,7 @@ struct srt_state {
     u32 bucket_ends[256];
 };
 
-u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst,
-                    u32 count);
-u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst,
-                    u32 count);
+u32 srt_encode(struct srt_state * mtf, u8 * src, u8 * dst, u32 count);
+u32 srt_decode(struct srt_state * mtf, u8 * src, u8 * dst, u32 count);
 
 #endif

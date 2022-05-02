@@ -2,10 +2,10 @@
 #ifndef _CM_H
 #define _CM_H
 
-#include "common.h"
-
 #include <inttypes.h>
 #include <stdint.h>
+
+#include "common.h"
 
 typedef struct {
     u32 low, high, code;

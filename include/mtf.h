@@ -29,9 +29,7 @@ struct mtf_state {
     u32 prev[256], curr[256], symbols[256], ranks[256];
 };
 
-void mtf_encode(struct mtf_state * mtf, u8 * src, u8 * dst,
-                u32 count);
-void mtf_decode(struct mtf_state * mtf, u8 * src, u8 * dst,
-                u32 count);
+void mtf_encode(struct mtf_state * mtf, u8 * src, u8 * dst, u32 count);
+void mtf_decode(struct mtf_state * mtf, u8 * src, u8 * dst, u32 count);
 
 #endif

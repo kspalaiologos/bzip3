@@ -1,9 +1,7 @@
 
 #include "cm.h"
 
-static void write_out(state * s, u8 c) {
-    s->out_queue[s->output_ptr++] = c;
-}
+static void write_out(state * s, u8 c) { s->out_queue[s->output_ptr++] = c; }
 
 static u8 read_in(state * s) {
     if (s->input_ptr < s->input_max) return s->in_queue[s->input_ptr++];

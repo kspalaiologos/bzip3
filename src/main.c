@@ -23,8 +23,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "common.h"
 #include "cm.h"
+#include "common.h"
 #include "crc32.h"
 #include "libsais.h"
 #include "mtf.h"
@@ -33,7 +33,8 @@
 
 struct block_encoder_state {
     s32 input_des, output_des;
-    u8 * buf1, * buf2; s32 bytes_read;
+    u8 *buf1, *buf2;
+    s32 bytes_read;
     s32 * sais_array;
     struct srt_state * srt_state;
     struct mtf_state * mtf_state;
@@ -44,11 +45,13 @@ void encode_block(struct block_encoder_state * state) {
     u32 crc32 = crc32sum(1, state->buf1, state->bytes_read);
 
     s32 new_size = mrlec(state->buf1, state->bytes_read, state->buf2);
-    s32 bwt_index = libsais_bwt(state->buf2, state->buf2, state->sais_array, new_size, 16, NULL);
+    s32 bwt_index = libsais_bwt(state->buf2, state->buf2, state->sais_array,
+                                new_size, 16, NULL);
     s32 new_size2;
 
     if (new_size > MiB(3)) {
-        new_size2 = srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
+        new_size2 =
+            srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
     } else {
         new_size2 = -1;
         mtf_encode(state->mtf_state, state->buf2, state->buf1, new_size);
@@ -104,21 +107,21 @@ int decode_block(struct block_encoder_state * state, s8 test) {
             state->buf2[i] = decode_byte(state->cm_state);
         mtf_decode(state->mtf_state, state->buf2, state->buf1, new_size);
     }
-    libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size, NULL, bwt_index);
+    libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size, NULL,
+                  bwt_index);
     mrled(state->buf2, state->buf1, state->bytes_read);
     if (crc32sum(1, state->buf1, state->bytes_read) != crc32) {
         fprintf(stderr, "CRC32 checksum mismatch.\n");
         return 1;
     }
-    if(!test)
-        write(state->output_des, state->buf1, state->bytes_read);
+    if (!test) write(state->output_des, state->buf1, state->bytes_read);
     return 0;
 }
 
 int main(int argc, char * argv[]) {
     int mode = 0;  // -1: encode, 0: unspecified, 1: encode, 2: test
-    char *input = NULL, *output = NULL;     // input and output file names
-    u32 block_size = 8 * 1024 * 1024;  // the block size
+    char *input = NULL, *output = NULL;  // input and output file names
+    u32 block_size = 8 * 1024 * 1024;    // the block size
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -194,14 +197,15 @@ int main(int argc, char * argv[]) {
     block_encoder_state.input_des = input_des;
     block_encoder_state.output_des = output_des;
 
-    switch(mode) {
+    switch (mode) {
         case 1:
             write(output_des, "BZ3v1", 5);
             write(output_des, &block_size, sizeof(u32));
             break;
-        case -1: case -2: {
+        case -1:
+        case -2: {
             char signature[5];
-            
+
             read(input_des, signature, 5);
             if (strncmp(signature, "BZ3v1", 5) != 0) {
                 fprintf(stderr, "Invalid signature.\n");
@@ -218,12 +222,13 @@ int main(int argc, char * argv[]) {
     block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
 
     if (mode == 1)
-        while ((block_encoder_state.bytes_read = read(input_des, block_encoder_state.buf1, block_size)) > 0)
+        while ((block_encoder_state.bytes_read =
+                    read(input_des, block_encoder_state.buf1, block_size)) > 0)
             encode_block(&block_encoder_state);
     else if (mode == -1)
         while (decode_block(&block_encoder_state, 0) == 0)
             ;
-    else if(mode == -2)
+    else if (mode == -2)
         while (decode_block(&block_encoder_state, 1) == 0)
             ;
 
