@@ -54,7 +54,7 @@ Benchmark 2: lzma -9 -k -f corpus/calgary.tar
   Time (mean ± σ):     787.9 ms ±   9.6 ms    [User: 753.6 ms, System: 33.7 ms]
   Range (min … max):   764.8 ms … 813.1 ms    30 runs
 
-Benchmark 3: ./bzip3 -e -b 4 corpus/calgary.tar corpus/calgary.tar.bz3
+Benchmark 3: ./bzip3 -e -b 3 corpus/calgary.tar corpus/calgary.tar.bz3
   Time (mean ± σ):     286.0 ms ±   4.8 ms    [User: 280.3 ms, System: 4.5 ms]
   Range (min … max):   280.1 ms … 298.9 ms    30 runs
 
@@ -67,7 +67,7 @@ Memory usage (as reported by `zsh`'s `time`):
 
 ```
 bzip2 8M memory
-bzip3 21M memory
+bzip3 17M memory
 lzma 95M memory
 gzip 5M memory
 ```
