@@ -4,25 +4,25 @@ Note: These benchmarks are rarely updated.
 [Testing corpus](https://github.com/kspalaiologos/bzip3/releases/download/corpus/corpus.7z)
 
 ```
-496847 cantrbry.tar.bz3
+17836 bee_movie.txt.bz3
+18109 bzip2/bee_movie.txt.bz2
+
+496851 cantrbry.tar.bz3
 570856 bzip2/cantrbry.tar.bz2
 
-874687 calgary.tar.bz3
+874691 calgary.tar.bz3
 891321 bzip2/calgary.tar.bz2
 
-28442351 silesia2.tar.bz3
-30128327 bzip2/silesia2.tar.bz2
-
-24790019 enwik8.bz3
+23036919 enwik8.bz3
 29008758 bzip2/enwik8.bz2
 
-21854321 silesia1.tar.bz3
-24462553 bzip2/silesia1.tar.bz2
+48354432 silesia.tar.bz3
+54538771 bzip2/silesia.tar.bz2
 
-6835103 lisp.mb.bz3
+6639873 lisp.mb.bz3
 13462295 bzip2/lisp.mb.bz2
 
-138366523 linux.tar.bz3
+132539016 linux.tar.bz3
 157810434 bzip2/linux.tar.bz2
 ```
 
@@ -31,8 +31,7 @@ Note: These benchmarks are rarely updated.
 Results:
 
 ```
-% wc -c corpus/calgary.tar.bz3 corpus/calgary.tar.bz2 corpus/calgary.tar.lzma corpus/calgary.tar.gz corpus/calgary.tar
- 874691 corpus/calgary.tar.bz3
+% wc -c corpus/calgary.tar.bz2 corpus/calgary.tar.lzma corpus/calgary.tar.gz corpus/calgary.tar
  891321 corpus/calgary.tar.bz2
  853112 corpus/calgary.tar.lzma
 1062584 corpus/calgary.tar.gz
@@ -81,7 +80,6 @@ lzma -9 -k linux.tar  397.30s user 0.90s system 99% cpu 675M memory 6:38.28 tota
 wc -c linux.tar*
 1215221760 linux.tar
  157810434 linux.tar.bz2
- 130959938 linux.tar.bz3
  208100532 linux.tar.gz
  125725455 linux.tar.lzma
 ```
