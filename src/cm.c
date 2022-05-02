@@ -1,6 +1,9 @@
 
 #include "cm.h"
 
+// Uses an arithmetic coder implementation outlined in:
+// http://mattmahoney.net/dc/dce.html#Section_31
+
 static void write_out(state * s, u8 c) { s->out_queue[s->output_ptr++] = c; }
 
 static u8 read_in(state * s) {
@@ -8,15 +11,19 @@ static u8 read_in(state * s) {
     return -1;
 }
 
+// Encode a zero bit with given probability.
 static void encodebit0(state * s, u32 p) {
     s->low += (((u64)(s->high - s->low) * p) >> 18) + 1;
+
+    // Write identical bits.
     while ((s->low ^ s->high) < (1 << 24)) {
-        write_out(s, s->low >> 24);
+        write_out(s, s->low >> 24); // Same as s->high >> 24
         s->low <<= 8;
         s->high = (s->high << 8) | 0xFF;
     }
 }
 
+// Encode an one bit with given probability.
 static void encodebit1(state * s, u32 p) {
     s->high = s->low + (((u64)(s->high - s->low) * p) >> 18);
     while ((s->low ^ s->high) < (1 << 24)) {
@@ -27,6 +34,7 @@ static void encodebit1(state * s, u32 p) {
 }
 
 static u8 decodebit(state * s, u32 p) {
+    // Split the range.
     const u32 mid = s->low + (((u64)(s->high - s->low) * p) >> 18);
     const u8 bit = s->code <= mid;
     if (bit)
