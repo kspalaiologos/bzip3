@@ -1,6 +1,6 @@
 
-#ifndef _MTF_H
-#define _MTF_H
+#ifndef _SRT_H
+#define _SRT_H
 
 static const int MAX_HDR_SIZE = 4 * 256;
 

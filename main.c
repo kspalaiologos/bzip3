@@ -8,22 +8,36 @@
 
 #include "libsais.h"
 #include "rle.h"
+#include "mtf.h"
 #include "srt.h"
 #include "crc32.h"
 #include "cm.h"
 
-void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer, uint8_t * output, int32_t * sais_array, struct srt_state * srt_state, state * cm_state, uint32_t block_size) {
+#define KiB(x) ((x) * 1024)
+#define MiB(x) ((x) * 1024 * 1024)
+
+void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer, uint8_t * output, int32_t * sais_array, struct srt_state * srt_state, state * cm_state, uint32_t block_size, struct mtf_state * mtf_state) {
     uint32_t crc32 = crc32sum(1, buffer, bytes_read);
 
     int32_t new_size = mrlec(buffer, bytes_read, output);
     int32_t bwt_index =
         libsais_bwt(output, output, sais_array, new_size, 16, NULL);
-    int32_t new_size2 = srt_encode(srt_state, output, buffer, new_size);
+    int32_t new_size2;
+
+    if(new_size > MiB(3)) {
+        new_size2 = srt_encode(srt_state, output, buffer, new_size);
+    } else {
+        new_size2 = -1;
+        mtf_encode(mtf_state, output, buffer, new_size);
+    }
 
     begin(cm_state);
     cm_state->out_queue = output;
     cm_state->output_ptr = 0;
-    for (int32_t i = 0; i < new_size2; i++) encode_bit(cm_state, buffer[i]);
+    if(new_size2 != -1)
+        for (int32_t i = 0; i < new_size2; i++) encode_bit(cm_state, buffer[i]);
+    else 
+        for (int32_t i = 0; i < new_size; i++) encode_bit(cm_state, buffer[i]);
     flush(cm_state);
     int32_t new_size3 = cm_state->output_ptr;
 
@@ -36,7 +50,7 @@ void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer, uint8_t 
     write(output_des, output, new_size3);
 }
 
-int decode_block(int input_des, int output_des, uint8_t * buffer, uint8_t * output, int32_t * sais_array, struct srt_state * srt_state, state * cm_state) {
+int decode_block(int input_des, int output_des, uint8_t * buffer, uint8_t * output, int32_t * sais_array, struct srt_state * srt_state, state * cm_state, struct mtf_state * mtf_state) {
     #define safe_read(fd, buf, size) \
         if (read(fd, buf, size) != size) return 1;
 
@@ -56,8 +70,13 @@ int decode_block(int input_des, int output_des, uint8_t * buffer, uint8_t * outp
     cm_state->input_ptr = 0;
     cm_state->input_max = new_size3;
     init(cm_state);
-    for (int32_t i = 0; i < new_size2; i++) output[i] = decode_bit(cm_state);
-    srt_decode(srt_state, output, buffer, new_size2);
+    if(new_size2 != -1) {
+        for (int32_t i = 0; i < new_size2; i++) output[i] = decode_bit(cm_state);
+        srt_decode(srt_state, output, buffer, new_size2);
+    } else {
+        for (int32_t i = 0; i < new_size; i++) output[i] = decode_bit(cm_state);
+        mtf_decode(mtf_state, output, buffer, new_size);
+    }
     libsais_unbwt(buffer, output, sais_array, new_size, NULL,
                     bwt_index);
     mrled(output, buffer, bytes_read);
@@ -125,6 +144,7 @@ int main(int argc, char *argv[]) {
     }
 
     struct srt_state srt_state;
+    struct mtf_state mtf_state;
 
     if (mode == 1) {
         // Encode
@@ -139,7 +159,7 @@ int main(int argc, char *argv[]) {
         write(output_des, &block_size, sizeof(uint32_t));
 
         while ((bytes_read = read(input_des, buffer, block_size)) > 0) {
-            encode_block(output_des, bytes_read, buffer, output, sais_array, &srt_state, &s, block_size);
+            encode_block(output_des, bytes_read, buffer, output, sais_array, &srt_state, &s, block_size, &mtf_state);
         }
 
         free(buffer);
@@ -160,7 +180,7 @@ int main(int argc, char *argv[]) {
 
         state s;
 
-        while(decode_block(input_des, output_des, buffer, output, sais_array, &srt_state, &s) == 0);
+        while(decode_block(input_des, output_des, buffer, output, sais_array, &srt_state, &s, &mtf_state) == 0);
 
         free(buffer);
         free(output);
