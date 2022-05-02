@@ -3,6 +3,8 @@
         "srt.h": "c",
         "rle.h": "c",
         "cm.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "common.h": "c",
+        "libsais.h": "c"
     }
 }

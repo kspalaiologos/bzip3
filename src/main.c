@@ -26,102 +26,21 @@
 #include "cm.h"
 #include "common.h"
 #include "crc32.h"
+#include "libbz3.h"
 #include "libsais.h"
 #include "mtf.h"
 #include "rle.h"
 #include "srt.h"
 
-struct block_encoder_state {
-    s32 input_des, output_des;
-    u8 *buf1, *buf2;
-    s32 bytes_read;
-    s32 * sais_array;
-    struct srt_state * srt_state;
-    struct mtf_state * mtf_state;
-    state * cm_state;
-};
-
-void encode_block(struct block_encoder_state * state) {
-    u32 crc32 = crc32sum(1, state->buf1, state->bytes_read);
-
-    s32 new_size = mrlec(state->buf1, state->bytes_read, state->buf2);
-    s32 bwt_index = libsais_bwt(state->buf2, state->buf2, state->sais_array,
-                                new_size, 16, NULL);
-    s32 new_size2;
-
-    if (new_size > MiB(3)) {
-        new_size2 =
-            srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
-    } else {
-        new_size2 = -1;
-        mtf_encode(state->mtf_state, state->buf2, state->buf1, new_size);
-    }
-
-    begin(state->cm_state);
-    state->cm_state->out_queue = state->buf2;
-    state->cm_state->output_ptr = 0;
-    if (new_size2 != -1)
-        for (s32 i = 0; i < new_size2; i++)
-            encode_byte(state->cm_state, state->buf1[i]);
-    else
-        for (s32 i = 0; i < new_size; i++)
-            encode_byte(state->cm_state, state->buf1[i]);
-    flush(state->cm_state);
-    s32 new_size3 = state->cm_state->output_ptr;
-
-    write(state->output_des, &crc32, sizeof(u32));
-    write(state->output_des, &state->bytes_read, sizeof(s32));
-    write(state->output_des, &bwt_index, sizeof(s32));
-    write(state->output_des, &new_size, sizeof(s32));
-    write(state->output_des, &new_size2, sizeof(s32));
-    write(state->output_des, &new_size3, sizeof(s32));
-    write(state->output_des, state->buf2, new_size3);
-}
-
-int decode_block(struct block_encoder_state * state, s8 test) {
-#define safe_read(fd, buf, size) \
-    if (read(fd, buf, size) != size) return 1;
-
-    u32 crc32;
-    s32 bwt_index, new_size, new_size2, new_size3;
-
-    safe_read(state->input_des, &crc32, sizeof(u32));
-    safe_read(state->input_des, &state->bytes_read, sizeof(s32));
-    safe_read(state->input_des, &bwt_index, sizeof(s32));
-    safe_read(state->input_des, &new_size, sizeof(s32));
-    safe_read(state->input_des, &new_size2, sizeof(s32));
-    safe_read(state->input_des, &new_size3, sizeof(s32));
-    safe_read(state->input_des, state->buf1, new_size3);
-
-    begin(state->cm_state);
-    state->cm_state->in_queue = state->buf1;
-    state->cm_state->input_ptr = 0;
-    state->cm_state->input_max = new_size3;
-    init(state->cm_state);
-    if (new_size2 != -1) {
-        for (s32 i = 0; i < new_size2; i++)
-            state->buf2[i] = decode_byte(state->cm_state);
-        srt_decode(state->srt_state, state->buf2, state->buf1, new_size2);
-    } else {
-        for (s32 i = 0; i < new_size; i++)
-            state->buf2[i] = decode_byte(state->cm_state);
-        mtf_decode(state->mtf_state, state->buf2, state->buf1, new_size);
-    }
-    libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size, NULL,
-                  bwt_index);
-    mrled(state->buf2, state->buf1, state->bytes_read);
-    if (crc32sum(1, state->buf1, state->bytes_read) != crc32) {
-        fprintf(stderr, "CRC32 checksum mismatch.\n");
-        return 1;
-    }
-    if (!test) write(state->output_des, state->buf1, state->bytes_read);
-    return 0;
-}
-
 int main(int argc, char * argv[]) {
-    int mode = 0;  // -1: encode, 0: unspecified, 1: encode, 2: test
-    char *input = NULL, *output = NULL;  // input and output file names
-    u32 block_size = MiB(8);    // the block size
+    // -1: encode, 0: unspecified, 1: encode, 2: test
+    int mode = 0;
+
+    // input and output file names
+    char *input = NULL, *output = NULL;
+
+    // the block size
+    u32 block_size = MiB(8);
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -180,17 +99,14 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    struct block_encoder_state block_encoder_state;
-    struct srt_state srt_state;
-    struct mtf_state mtf_state;
-    state cm_state;
+    struct block_encoder_state * block_encoder_state =
+        new_block_encoder_state(block_size);
 
-    block_encoder_state.cm_state = &cm_state;
-    block_encoder_state.srt_state = &srt_state;
-    block_encoder_state.mtf_state = &mtf_state;
-
-    block_encoder_state.input_des = input_des;
-    block_encoder_state.output_des = output_des;
+    if (get_last_error(block_encoder_state) != BZ3_OK) {
+        fprintf(stderr, "Failed to create block encoder state: %s\n",
+                str_last_error(block_encoder_state));
+        return 1;
+    }
 
     switch (mode) {
         case 1:
@@ -210,7 +126,9 @@ int main(int argc, char * argv[]) {
             read(input_des, &block_size, sizeof(u32));
 
             if (block_size < KiB(65) || block_size > MiB(2047)) {
-                fprintf(stderr, "The input file is corrupted. Reason: Invalid block size in the header.\n");
+                fprintf(stderr,
+                        "The input file is corrupted. Reason: Invalid block "
+                        "size in the header.\n");
                 return 1;
             }
 
@@ -218,24 +136,63 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    block_encoder_state.buf1 = malloc(block_size + block_size / 3);
-    block_encoder_state.buf2 = malloc(block_size + block_size / 3);
-    block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
-
     if (mode == 1)
-        while ((block_encoder_state.bytes_read =
-                    read(input_des, block_encoder_state.buf1, block_size)) > 0)
-            encode_block(&block_encoder_state);
-    else if (mode == -1)
-        while (decode_block(&block_encoder_state, 0) == 0)
-            ;
-    else if (mode == -2)
-        while (decode_block(&block_encoder_state, 1) == 0)
-            ;
+        while (commit_read(block_encoder_state,
+                           read(input_des, get_buffer(block_encoder_state),
+                                block_size)) > 0) {
+            if (get_last_error(block_encoder_state) != BZ3_OK) {
+                fprintf(stderr, "Failed to read data: %s\n",
+                        str_last_error(block_encoder_state));
+                return 1;
+            }
+            struct encoding_result r = encode_block(block_encoder_state);
+            if (get_last_error(block_encoder_state) != BZ3_OK) {
+                fprintf(stderr, "Failed to encode the block: %s\n",
+                        str_last_error(block_encoder_state));
+                return 1;
+            }
+            write(output_des, r.buffer, r.size);
+        }
+    else if (mode == -1) {
+        s32 read_size;
+        while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
+            if (get_last_error(block_encoder_state) != BZ3_OK) {
+                fprintf(stderr, "Failed to read data: %s\n",
+                        str_last_error(block_encoder_state));
+                return 1;
+            }
+            struct encoding_result r = decode_block(block_encoder_state);
+            if (get_last_error(block_encoder_state) != BZ3_OK) {
+                fprintf(stderr, "Failed to encode the block: %s\n",
+                        str_last_error(block_encoder_state));
+                return 1;
+            }
+            write(output_des, r.buffer, r.size);
+        }
+    } else if (mode == -2) {
+        s32 read_size;
+        while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
+            if (get_last_error(block_encoder_state) != BZ3_OK) {
+                fprintf(stderr, "Failed to read data: %s\n",
+                        str_last_error(block_encoder_state));
+                return 1;
+            }
+            decode_block(block_encoder_state);
+            if (get_last_error(block_encoder_state) != BZ3_OK) {
+                fprintf(stderr, "Failed to decode data: %s\n",
+                        str_last_error(block_encoder_state));
+                return 1;
+            }
+        }
+    }
 
-    free(block_encoder_state.buf1);
-    free(block_encoder_state.buf2);
-    free(block_encoder_state.sais_array);
+    if (get_last_error(block_encoder_state) != BZ3_OK) {
+        fprintf(stderr, "Failed to read data: %s\n",
+                str_last_error(block_encoder_state));
+        return 1;
+    }
+
+    delete_block_encoder_state(block_encoder_state);
 
     close(input_des);
     close(output_des);

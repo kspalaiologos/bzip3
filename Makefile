@@ -6,7 +6,7 @@ PREFIX?=/usr/local
 .PHONY: all clean format install
 
 OBJECTS=obj/main.o obj/libsais.o obj/crc32.o obj/mtf.o obj/srt.o obj/rle.o \
-        obj/cm.o
+        obj/cm.o obj/libbz3.o
 
 all: bzip3
 
