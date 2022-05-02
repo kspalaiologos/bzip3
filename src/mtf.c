@@ -1,10 +1,5 @@
 
-#ifndef _MTF_H
-#define _MTF_H
-
-struct mtf_state {
-    uint32_t prev[256], curr[256], symbols[256], ranks[256];
-};
+#include "mtf.h"
 
 void mtf_encode(struct mtf_state * mtf, uint8_t *src, uint8_t *dst, uint32_t count) {
     for (uint32_t i = 0; i < 256; i++) {
@@ -48,5 +43,3 @@ void mtf_decode(struct mtf_state * mtf, uint8_t *src, uint8_t *dst, uint32_t cou
         mtf->ranks[r] = c;
     }
 }
-
-#endif

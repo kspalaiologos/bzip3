@@ -1,6 +1,5 @@
 
-#ifndef _CRC32_H
-#define _CRC32_H
+#include "crc32.h"
 
 static const uint32_t crc32Table[256] = {
     0x00000000L, 0xF26B8303L, 0xE13B70F7L, 0x1350F3F4L, 0xC79A971FL,
@@ -57,9 +56,7 @@ static const uint32_t crc32Table[256] = {
     0xAD7D5351L
 };
 
-static uint32_t crc32sum(uint32_t crc, uint8_t *buf, size_t size) {
+uint32_t crc32sum(uint32_t crc, uint8_t *buf, size_t size) {
     while (size--) crc = crc32Table[(crc ^ *(buf++)) & 0xff] ^ (crc >> 8);
     return crc;
 }
-
-#endif
