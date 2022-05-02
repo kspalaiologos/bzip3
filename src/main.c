@@ -31,84 +31,87 @@
 #include "rle.h"
 #include "srt.h"
 
-void encode_block(int output_des, s32 bytes_read, u8 * buffer,
-                  u8 * output, s32 * sais_array,
-                  struct srt_state * srt_state, state * cm_state,
-                  u32 block_size, struct mtf_state * mtf_state) {
-    u32 crc32 = crc32sum(1, buffer, bytes_read);
+struct block_encoder_state {
+    s32 input_des, output_des;
+    u8 * buf1, * buf2; s32 bytes_read;
+    s32 * sais_array;
+    struct srt_state * srt_state;
+    struct mtf_state * mtf_state;
+    state * cm_state;
+};
 
-    s32 new_size = mrlec(buffer, bytes_read, output);
-    s32 bwt_index =
-        libsais_bwt(output, output, sais_array, new_size, 16, NULL);
+void encode_block(struct block_encoder_state * state) {
+    u32 crc32 = crc32sum(1, state->buf1, state->bytes_read);
+
+    s32 new_size = mrlec(state->buf1, state->bytes_read, state->buf2);
+    s32 bwt_index = libsais_bwt(state->buf2, state->buf2, state->sais_array, new_size, 16, NULL);
     s32 new_size2;
 
     if (new_size > MiB(3)) {
-        new_size2 = srt_encode(srt_state, output, buffer, new_size);
+        new_size2 = srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
     } else {
         new_size2 = -1;
-        mtf_encode(mtf_state, output, buffer, new_size);
+        mtf_encode(state->mtf_state, state->buf2, state->buf1, new_size);
     }
 
-    begin(cm_state);
-    cm_state->out_queue = output;
-    cm_state->output_ptr = 0;
+    begin(state->cm_state);
+    state->cm_state->out_queue = state->buf2;
+    state->cm_state->output_ptr = 0;
     if (new_size2 != -1)
         for (s32 i = 0; i < new_size2; i++)
-            encode_byte(cm_state, buffer[i]);
+            encode_byte(state->cm_state, state->buf1[i]);
     else
-        for (s32 i = 0; i < new_size; i++) encode_byte(cm_state, buffer[i]);
-    flush(cm_state);
-    s32 new_size3 = cm_state->output_ptr;
+        for (s32 i = 0; i < new_size; i++)
+            encode_byte(state->cm_state, state->buf1[i]);
+    flush(state->cm_state);
+    s32 new_size3 = state->cm_state->output_ptr;
 
-    write(output_des, &crc32, sizeof(u32));
-    write(output_des, &bytes_read, sizeof(s32));
-    write(output_des, &bwt_index, sizeof(s32));
-    write(output_des, &new_size, sizeof(s32));
-    write(output_des, &new_size2, sizeof(s32));
-    write(output_des, &new_size3, sizeof(s32));
-    write(output_des, output, new_size3);
+    write(state->output_des, &crc32, sizeof(u32));
+    write(state->output_des, &state->bytes_read, sizeof(s32));
+    write(state->output_des, &bwt_index, sizeof(s32));
+    write(state->output_des, &new_size, sizeof(s32));
+    write(state->output_des, &new_size2, sizeof(s32));
+    write(state->output_des, &new_size3, sizeof(s32));
+    write(state->output_des, state->buf2, new_size3);
 }
 
-int decode_block(int input_des, int output_des, u8 * buffer,
-                 u8 * output, s32 * sais_array, s8 test,
-                 struct srt_state * srt_state, state * cm_state,
-                 struct mtf_state * mtf_state) {
+int decode_block(struct block_encoder_state * state, s8 test) {
 #define safe_read(fd, buf, size) \
     if (read(fd, buf, size) != size) return 1;
 
     u32 crc32;
-    s32 bytes_read, bwt_index, new_size, new_size2, new_size3;
+    s32 bwt_index, new_size, new_size2, new_size3;
 
-    safe_read(input_des, &crc32, sizeof(u32));
-    safe_read(input_des, &bytes_read, sizeof(s32));
-    safe_read(input_des, &bwt_index, sizeof(s32));
-    safe_read(input_des, &new_size, sizeof(s32));
-    safe_read(input_des, &new_size2, sizeof(s32));
-    safe_read(input_des, &new_size3, sizeof(s32));
-    safe_read(input_des, buffer, new_size3);
+    safe_read(state->input_des, &crc32, sizeof(u32));
+    safe_read(state->input_des, &state->bytes_read, sizeof(s32));
+    safe_read(state->input_des, &bwt_index, sizeof(s32));
+    safe_read(state->input_des, &new_size, sizeof(s32));
+    safe_read(state->input_des, &new_size2, sizeof(s32));
+    safe_read(state->input_des, &new_size3, sizeof(s32));
+    safe_read(state->input_des, state->buf1, new_size3);
 
-    begin(cm_state);
-    cm_state->in_queue = buffer;
-    cm_state->input_ptr = 0;
-    cm_state->input_max = new_size3;
-    init(cm_state);
+    begin(state->cm_state);
+    state->cm_state->in_queue = state->buf1;
+    state->cm_state->input_ptr = 0;
+    state->cm_state->input_max = new_size3;
+    init(state->cm_state);
     if (new_size2 != -1) {
         for (s32 i = 0; i < new_size2; i++)
-            output[i] = decode_byte(cm_state);
-        srt_decode(srt_state, output, buffer, new_size2);
+            state->buf2[i] = decode_byte(state->cm_state);
+        srt_decode(state->srt_state, state->buf2, state->buf1, new_size2);
     } else {
         for (s32 i = 0; i < new_size; i++)
-            output[i] = decode_byte(cm_state);
-        mtf_decode(mtf_state, output, buffer, new_size);
+            state->buf2[i] = decode_byte(state->cm_state);
+        mtf_decode(state->mtf_state, state->buf2, state->buf1, new_size);
     }
-    libsais_unbwt(buffer, output, sais_array, new_size, NULL, bwt_index);
-    mrled(output, buffer, bytes_read);
-    if (crc32sum(1, buffer, bytes_read) != crc32) {
+    libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size, NULL, bwt_index);
+    mrled(state->buf2, state->buf1, state->bytes_read);
+    if (crc32sum(1, state->buf1, state->bytes_read) != crc32) {
         fprintf(stderr, "CRC32 checksum mismatch.\n");
         return 1;
     }
     if(!test)
-        write(output_des, buffer, bytes_read);
+        write(state->output_des, state->buf1, state->bytes_read);
     return 0;
 }
 
@@ -179,29 +182,33 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
+    struct block_encoder_state block_encoder_state;
     struct srt_state srt_state;
     struct mtf_state mtf_state;
+    state cm_state;
+
+    block_encoder_state.cm_state = &cm_state;
+    block_encoder_state.srt_state = &srt_state;
+    block_encoder_state.mtf_state = &mtf_state;
 
     if (mode == 1) {
         // Encode
-        u8 * buffer = malloc(block_size + block_size / 3);
-        u8 * output = malloc(block_size + block_size / 3);
-        s32 * sais_array = malloc(block_size * sizeof(s32) + 16);
-        s32 bytes_read;
-
-        state s;
-
         write(output_des, "BZ3v1", 5);
         write(output_des, &block_size, sizeof(u32));
 
-        while ((bytes_read = read(input_des, buffer, block_size)) > 0) {
-            encode_block(output_des, bytes_read, buffer, output, sais_array,
-                         &srt_state, &s, block_size, &mtf_state);
+        block_encoder_state.buf1 = malloc(block_size + block_size / 3);
+        block_encoder_state.buf2 = malloc(block_size + block_size / 3);
+        block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
+        block_encoder_state.input_des = input_des;
+        block_encoder_state.output_des = output_des;
+
+        while ((block_encoder_state.bytes_read = read(input_des, block_encoder_state.buf1, block_size)) > 0) {
+            encode_block(&block_encoder_state);
         }
 
-        free(buffer);
-        free(output);
-        free(sais_array);
+        free(block_encoder_state.buf1);
+        free(block_encoder_state.buf2);
+        free(block_encoder_state.sais_array);
     } else if (mode == -1) {
         // Decode
         char signature[5];
@@ -210,20 +217,21 @@ int main(int argc, char * argv[]) {
             fprintf(stderr, "Invalid signature.\n");
             return 1;
         }
+
         read(input_des, &block_size, sizeof(u32));
-        u8 * buffer = malloc(block_size + block_size / 2);
-        u8 * output = malloc(block_size + block_size / 2);
-        s32 * sais_array = malloc(block_size * sizeof(s32) + 16);
+        
+        block_encoder_state.buf1 = malloc(block_size + block_size / 3);
+        block_encoder_state.buf2 = malloc(block_size + block_size / 3);
+        block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
+        block_encoder_state.input_des = input_des;
+        block_encoder_state.output_des = output_des;
 
-        state s;
-
-        while (decode_block(input_des, output_des, buffer, output, sais_array, 0,
-                            &srt_state, &s, &mtf_state) == 0)
+        while (decode_block(&block_encoder_state, 0) == 0)
             ;
 
-        free(buffer);
-        free(output);
-        free(sais_array);
+        free(block_encoder_state.buf1);
+        free(block_encoder_state.buf2);
+        free(block_encoder_state.sais_array);
     } else if(mode == -2) {
         // Test
         char signature[5];
@@ -233,19 +241,19 @@ int main(int argc, char * argv[]) {
             return 1;
         }
         read(input_des, &block_size, sizeof(u32));
-        u8 * buffer = malloc(block_size + block_size / 2);
-        u8 * output = malloc(block_size + block_size / 2);
-        s32 * sais_array = malloc(block_size * sizeof(s32) + 16);
+        
+        block_encoder_state.buf1 = malloc(block_size + block_size / 3);
+        block_encoder_state.buf2 = malloc(block_size + block_size / 3);
+        block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
+        block_encoder_state.input_des = input_des;
+        block_encoder_state.output_des = output_des;
 
-        state s;
-
-        while (decode_block(input_des, output_des, buffer, output, sais_array, 1,
-                            &srt_state, &s, &mtf_state) == 0)
+        while (decode_block(&block_encoder_state, 1) == 0)
             ;
 
-        free(buffer);
-        free(output);
-        free(sais_array);
+        free(block_encoder_state.buf1);
+        free(block_encoder_state.buf2);
+        free(block_encoder_state.sais_array);
     }
 
     close(input_des);
