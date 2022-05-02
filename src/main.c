@@ -121,7 +121,7 @@ int decode_block(struct block_encoder_state * state, s8 test) {
 int main(int argc, char * argv[]) {
     int mode = 0;  // -1: encode, 0: unspecified, 1: encode, 2: test
     char *input = NULL, *output = NULL;  // input and output file names
-    u32 block_size = 8 * 1024 * 1024;    // the block size
+    u32 block_size = MiB(8);    // the block size
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -132,7 +132,7 @@ int main(int argc, char * argv[]) {
             } else if (argv[i][1] == 't') {
                 mode = 2;
             } else if (argv[i][1] == 'b') {
-                block_size = 1024 * 1024 * atoi(argv[i + 1]);
+                block_size = MiB(atoi(argv[i + 1]));
                 i++;
             }
         } else {
@@ -175,13 +175,8 @@ int main(int argc, char * argv[]) {
         output_des = STDOUT_FILENO;
     }
 
-    if (block_size < KiB(65)) {
-        fprintf(stderr, "Block size must be at least 65 KiB.\n");
-        return 1;
-    }
-
-    if (block_size > MiB(2047)) {
-        fprintf(stderr, "Block size must be at most 2047 MiB.\n");
+    if (block_size < KiB(65) || block_size > MiB(2047)) {
+        fprintf(stderr, "Block size must be between 65 KiB and 2047 MiB.\n");
         return 1;
     }
 
@@ -213,6 +208,12 @@ int main(int argc, char * argv[]) {
             }
 
             read(input_des, &block_size, sizeof(u32));
+
+            if (block_size < KiB(65) || block_size > MiB(2047)) {
+                fprintf(stderr, "The input file is corrupted. Reason: Invalid block size in the header.\n");
+                return 1;
+            }
+
             break;
         }
     }
