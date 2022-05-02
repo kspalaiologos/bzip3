@@ -194,51 +194,38 @@ int main(int argc, char * argv[]) {
     block_encoder_state.input_des = input_des;
     block_encoder_state.output_des = output_des;
 
-    if (mode == 1) {
-        // Encode
-        write(output_des, "BZ3v1", 5);
-        write(output_des, &block_size, sizeof(u32));
+    switch(mode) {
+        case 1:
+            write(output_des, "BZ3v1", 5);
+            write(output_des, &block_size, sizeof(u32));
+            break;
+        case -1: case -2: {
+            char signature[5];
+            
+            read(input_des, signature, 5);
+            if (strncmp(signature, "BZ3v1", 5) != 0) {
+                fprintf(stderr, "Invalid signature.\n");
+                return 1;
+            }
 
-        block_encoder_state.buf1 = malloc(block_size + block_size / 3);
-        block_encoder_state.buf2 = malloc(block_size + block_size / 3);
-        block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
+            read(input_des, &block_size, sizeof(u32));
+            break;
+        }
+    }
 
+    block_encoder_state.buf1 = malloc(block_size + block_size / 3);
+    block_encoder_state.buf2 = malloc(block_size + block_size / 3);
+    block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
+
+    if (mode == 1)
         while ((block_encoder_state.bytes_read = read(input_des, block_encoder_state.buf1, block_size)) > 0)
             encode_block(&block_encoder_state);
-    } else if (mode == -1) {
-        // Decode
-        char signature[5];
-        read(input_des, signature, 5);
-        if (strncmp(signature, "BZ3v1", 5) != 0) {
-            fprintf(stderr, "Invalid signature.\n");
-            return 1;
-        }
-
-        read(input_des, &block_size, sizeof(u32));
-        
-        block_encoder_state.buf1 = malloc(block_size + block_size / 3);
-        block_encoder_state.buf2 = malloc(block_size + block_size / 3);
-        block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
-
+    else if (mode == -1)
         while (decode_block(&block_encoder_state, 0) == 0)
             ;
-    } else if(mode == -2) {
-        // Test
-        char signature[5];
-        read(input_des, signature, 5);
-        if (strncmp(signature, "BZ3v1", 5) != 0) {
-            fprintf(stderr, "Invalid signature.\n");
-            return 1;
-        }
-        read(input_des, &block_size, sizeof(u32));
-        
-        block_encoder_state.buf1 = malloc(block_size + block_size / 3);
-        block_encoder_state.buf2 = malloc(block_size + block_size / 3);
-        block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
-
+    else if(mode == -2)
         while (decode_block(&block_encoder_state, 1) == 0)
             ;
-    }
 
     free(block_encoder_state.buf1);
     free(block_encoder_state.buf2);
