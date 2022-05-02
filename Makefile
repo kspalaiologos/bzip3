@@ -2,7 +2,7 @@
 CC=clang
 CFLAGS=-O3 -march=native -mtune=native -flto -Iinclude
 
-.PHONY: all clean
+.PHONY: all clean format
 
 OBJECTS=obj/main.o obj/libsais.o obj/crc32.o obj/mtf.o obj/srt.o obj/rle.o \
         obj/cm.o
@@ -17,3 +17,6 @@ bzip3: $(OBJECTS)
 
 clean:
 	rm -f bzip3 obj/*.o
+
+format:
+	clang-format -i src/*.c include/*.h
