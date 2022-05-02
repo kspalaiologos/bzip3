@@ -10,8 +10,8 @@ int32_t mrlec(uint8_t * in, int32_t inlen, uint8_t * out) {
     uint8_t *ip = in, *in_ = in + inlen, *op = out;
     int32_t i;
     int32_t c, pc = -1;
-    int64_t t[256] = { 0 };
-    int64_t run = 0;
+    int32_t t[256] = { 0 };
+    int32_t run = 0;
     while ((c = buffer_read(ip, in_)) != -1) {
         if (c == pc)
             t[c] += (++run % 255) != 0;
@@ -50,8 +50,8 @@ int32_t mrled(uint8_t * in, uint8_t * out, int32_t outlen) {
     int32_t i;
 
     int32_t c, pc = -1;
-    int64_t t[256] = { 0 };
-    int64_t run = 0;
+    int32_t t[256] = { 0 };
+    int32_t run = 0;
 
     for (i = 0; i < 32; ++i) {
         int32_t j;

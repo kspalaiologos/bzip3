@@ -23,15 +23,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "common.h"
 #include "cm.h"
 #include "crc32.h"
 #include "libsais.h"
 #include "mtf.h"
 #include "rle.h"
 #include "srt.h"
-
-#define KiB(x) ((x)*1024)
-#define MiB(x) ((x)*1024 * 1024)
 
 void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer,
                   uint8_t * output, int32_t * sais_array,
