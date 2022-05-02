@@ -35,9 +35,9 @@ void encode_block(int output_des, int32_t bytes_read, uint8_t * buffer, uint8_t 
     cm_state->out_queue = output;
     cm_state->output_ptr = 0;
     if(new_size2 != -1)
-        for (int32_t i = 0; i < new_size2; i++) encode_bit(cm_state, buffer[i]);
+        for (int32_t i = 0; i < new_size2; i++) encode_byte(cm_state, buffer[i]);
     else 
-        for (int32_t i = 0; i < new_size; i++) encode_bit(cm_state, buffer[i]);
+        for (int32_t i = 0; i < new_size; i++) encode_byte(cm_state, buffer[i]);
     flush(cm_state);
     int32_t new_size3 = cm_state->output_ptr;
 
@@ -71,10 +71,10 @@ int decode_block(int input_des, int output_des, uint8_t * buffer, uint8_t * outp
     cm_state->input_max = new_size3;
     init(cm_state);
     if(new_size2 != -1) {
-        for (int32_t i = 0; i < new_size2; i++) output[i] = decode_bit(cm_state);
+        for (int32_t i = 0; i < new_size2; i++) output[i] = decode_byte(cm_state);
         srt_decode(srt_state, output, buffer, new_size2);
     } else {
-        for (int32_t i = 0; i < new_size; i++) output[i] = decode_bit(cm_state);
+        for (int32_t i = 0; i < new_size; i++) output[i] = decode_byte(cm_state);
         mtf_decode(mtf_state, output, buffer, new_size);
     }
     libsais_unbwt(buffer, output, sais_array, new_size, NULL,
