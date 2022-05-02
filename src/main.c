@@ -70,7 +70,7 @@ void encode_block(int output_des, s32 bytes_read, u8 * buffer,
 }
 
 int decode_block(int input_des, int output_des, u8 * buffer,
-                 u8 * output, s32 * sais_array,
+                 u8 * output, s32 * sais_array, s8 test,
                  struct srt_state * srt_state, state * cm_state,
                  struct mtf_state * mtf_state) {
 #define safe_read(fd, buf, size) \
@@ -107,12 +107,13 @@ int decode_block(int input_des, int output_des, u8 * buffer,
         fprintf(stderr, "CRC32 checksum mismatch.\n");
         return 1;
     }
-    write(output_des, buffer, bytes_read);
+    if(!test)
+        write(output_des, buffer, bytes_read);
     return 0;
 }
 
 int main(int argc, char * argv[]) {
-    int mode = 0;  // -1: encode, 0: unspecified, 1: encode
+    int mode = 0;  // -1: encode, 0: unspecified, 1: encode, 2: test
     char *input = NULL, *output = NULL;     // input and output file names
     u32 block_size = 8 * 1024 * 1024;  // the block size
 
@@ -122,6 +123,8 @@ int main(int argc, char * argv[]) {
                 mode = 1;
             } else if (argv[i][1] == 'd') {
                 mode = -1;
+            } else if (argv[i][1] == 't') {
+                mode = 2;
             } else if (argv[i][1] == 'b') {
                 block_size = 1024 * 1024 * atoi(argv[i + 1]);
                 i++;
@@ -136,7 +139,7 @@ int main(int argc, char * argv[]) {
     }
 
     if (mode == 0) {
-        fprintf(stderr, "Usage: %s [-e/-d] [-b block_size] input output\n",
+        fprintf(stderr, "Usage: %s [-e/-d/-t] [-b block_size] input output\n",
                 argv[0]);
         fprintf(stderr,
                 "If input or output are not specified, they default to stdin "
@@ -214,7 +217,29 @@ int main(int argc, char * argv[]) {
 
         state s;
 
-        while (decode_block(input_des, output_des, buffer, output, sais_array,
+        while (decode_block(input_des, output_des, buffer, output, sais_array, 0,
+                            &srt_state, &s, &mtf_state) == 0)
+            ;
+
+        free(buffer);
+        free(output);
+        free(sais_array);
+    } else if(mode == -2) {
+        // Test
+        char signature[5];
+        read(input_des, signature, 5);
+        if (strncmp(signature, "BZ3v1", 5) != 0) {
+            fprintf(stderr, "Invalid signature.\n");
+            return 1;
+        }
+        read(input_des, &block_size, sizeof(u32));
+        u8 * buffer = malloc(block_size + block_size / 2);
+        u8 * output = malloc(block_size + block_size / 2);
+        s32 * sais_array = malloc(block_size * sizeof(s32) + 16);
+
+        state s;
+
+        while (decode_block(input_des, output_des, buffer, output, sais_array, 1,
                             &srt_state, &s, &mtf_state) == 0)
             ;
 
