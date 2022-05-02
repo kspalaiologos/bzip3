@@ -143,13 +143,23 @@ int main(int argc, char *argv[]) {
         output_des = STDOUT_FILENO;
     }
 
+    if(block_size < KiB(65)) {
+        fprintf(stderr, "Block size must be at least 65 KiB.\n");
+        return 1;
+    }
+
+    if(block_size > MiB(2047)) {
+        fprintf(stderr, "Block size must be at most 2047 MiB.\n");
+        return 1;
+    }
+
     struct srt_state srt_state;
     struct mtf_state mtf_state;
 
     if (mode == 1) {
         // Encode
-        uint8_t *buffer = malloc(block_size + block_size / 2);
-        uint8_t *output = malloc(block_size + block_size / 2);
+        uint8_t *buffer = malloc(block_size + block_size / 3);
+        uint8_t *output = malloc(block_size + block_size / 3);
         int32_t *sais_array = malloc(block_size * sizeof(int32_t) + 16);
         int32_t bytes_read;
 
