@@ -191,6 +191,9 @@ int main(int argc, char * argv[]) {
     block_encoder_state.srt_state = &srt_state;
     block_encoder_state.mtf_state = &mtf_state;
 
+    block_encoder_state.input_des = input_des;
+    block_encoder_state.output_des = output_des;
+
     if (mode == 1) {
         // Encode
         write(output_des, "BZ3v1", 5);
@@ -199,16 +202,9 @@ int main(int argc, char * argv[]) {
         block_encoder_state.buf1 = malloc(block_size + block_size / 3);
         block_encoder_state.buf2 = malloc(block_size + block_size / 3);
         block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
-        block_encoder_state.input_des = input_des;
-        block_encoder_state.output_des = output_des;
 
-        while ((block_encoder_state.bytes_read = read(input_des, block_encoder_state.buf1, block_size)) > 0) {
+        while ((block_encoder_state.bytes_read = read(input_des, block_encoder_state.buf1, block_size)) > 0)
             encode_block(&block_encoder_state);
-        }
-
-        free(block_encoder_state.buf1);
-        free(block_encoder_state.buf2);
-        free(block_encoder_state.sais_array);
     } else if (mode == -1) {
         // Decode
         char signature[5];
@@ -223,15 +219,9 @@ int main(int argc, char * argv[]) {
         block_encoder_state.buf1 = malloc(block_size + block_size / 3);
         block_encoder_state.buf2 = malloc(block_size + block_size / 3);
         block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
-        block_encoder_state.input_des = input_des;
-        block_encoder_state.output_des = output_des;
 
         while (decode_block(&block_encoder_state, 0) == 0)
             ;
-
-        free(block_encoder_state.buf1);
-        free(block_encoder_state.buf2);
-        free(block_encoder_state.sais_array);
     } else if(mode == -2) {
         // Test
         char signature[5];
@@ -245,16 +235,14 @@ int main(int argc, char * argv[]) {
         block_encoder_state.buf1 = malloc(block_size + block_size / 3);
         block_encoder_state.buf2 = malloc(block_size + block_size / 3);
         block_encoder_state.sais_array = malloc(block_size * sizeof(s32) + 16);
-        block_encoder_state.input_des = input_des;
-        block_encoder_state.output_des = output_des;
 
         while (decode_block(&block_encoder_state, 1) == 0)
             ;
-
-        free(block_encoder_state.buf1);
-        free(block_encoder_state.buf2);
-        free(block_encoder_state.sais_array);
     }
+
+    free(block_encoder_state.buf1);
+    free(block_encoder_state.buf2);
+    free(block_encoder_state.sais_array);
 
     close(input_des);
     close(output_des);
