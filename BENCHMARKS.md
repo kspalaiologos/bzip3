@@ -4,26 +4,53 @@ Note: These benchmarks are rarely updated.
 [Testing corpus](https://github.com/kspalaiologos/bzip3/releases/download/corpus/corpus.7z)
 
 ```
-17836 bee_movie.txt.bz3
+17274 bee_movie.txt.bz3
 18109 bzip2/bee_movie.txt.bz2
+55315 bee_movie.txt
 
 496851 cantrbry.tar.bz3
 570856 bzip2/cantrbry.tar.bz2
+2821120 cantrbry.tar
 
-874691 calgary.tar.bz3
+815502 calgary.tar.bz3
 891321 bzip2/calgary.tar.bz2
+3265536 calgary.tar
 
-23036919 enwik8.bz3
+1230549 shakespeare.txt.bz3
+1479261 bzip2/shakespeare.txt.bz2
+5458199 shakespeare.txt
+
+2053832 2b2t_signs.txt.bz3
+2388597 bzip2/2b2t_signs.txt.bz2
+9635520 2b2t_signs.txt
+
+22744548 enwik8.bz3
 29008758 bzip2/enwik8.bz2
+100000000 enwik8
 
-48354432 silesia.tar.bz3
+53491060 audio.tar.bz3
+95526840 bzip2/audio.tar.bz2
+115742720 audio.tar
+
+48285452 silesia.tar.bz3
 54538771 bzip2/silesia.tar.bz2
+211968000 silesia.tar
 
 6639873 lisp.mb.bz3
 13462295 bzip2/lisp.mb.bz2
+371331415 lisp.mb
 
-132539016 linux.tar.bz3
+85734970 gcc.tar.bz3
+109065903 bzip2/gcc.tar.bz2
+824309760 gcc.tar
+
+158506542 dna.tar.bz3
+180075480 bzip2/dna.tar.bz2
+685619200 dna.tar
+
+132533752 linux.tar.bz3
 157810434 bzip2/linux.tar.bz2
+1215221760 linux.tar
 ```
 
 ## Benchmark on the Calgary corpus
