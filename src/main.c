@@ -58,8 +58,7 @@ int main(int argc, char * argv[]) {
     }
 
     if (mode == 0) {
-        fprintf(stderr, "Usage: %s [-e/-d/-t] [-b block_size] input output\n",
-                argv[0]);
+        fprintf(stderr, "Usage: %s [-e/-d/-t] [-b block_size] input output\n", argv[0]);
         fprintf(stderr,
                 "If input or output are not specified, they default to stdin "
                 "and stdout.\n");
@@ -121,8 +120,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    struct block_encoder_state * block_encoder_state =
-        new_block_encoder_state(block_size);
+    struct block_encoder_state * block_encoder_state = new_block_encoder_state(block_size);
 
     if (block_encoder_state == NULL) {
         fprintf(stderr, "Failed to create a block encoder state.\n");
@@ -131,11 +129,9 @@ int main(int argc, char * argv[]) {
 
     if (mode == 1)
         while (commit_read(block_encoder_state,
-                           read(input_des, get_buffer(block_encoder_state),
-                                block_size)) > 0) {
+                           read(input_des, get_buffer(block_encoder_state), block_size)) > 0) {
             if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to read data: %s\n",
-                        str_last_error(block_encoder_state));
+                fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
                 return 1;
             }
             struct encoding_result r = encode_block(block_encoder_state);
@@ -150,8 +146,7 @@ int main(int argc, char * argv[]) {
         s32 read_size;
         while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
             if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to read data: %s\n",
-                        str_last_error(block_encoder_state));
+                fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
                 return 1;
             }
             struct encoding_result r = decode_block(block_encoder_state);
@@ -166,22 +161,19 @@ int main(int argc, char * argv[]) {
         s32 read_size;
         while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
             if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to read data: %s\n",
-                        str_last_error(block_encoder_state));
+                fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
                 return 1;
             }
             decode_block(block_encoder_state);
             if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to decode data: %s\n",
-                        str_last_error(block_encoder_state));
+                fprintf(stderr, "Failed to decode data: %s\n", str_last_error(block_encoder_state));
                 return 1;
             }
         }
     }
 
     if (get_last_error(block_encoder_state) != BZ3_OK) {
-        fprintf(stderr, "Failed to read data: %s\n",
-                str_last_error(block_encoder_state));
+        fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
         return 1;
     }
 

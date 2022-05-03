@@ -77,8 +77,7 @@ s32 libsais_int(s32 * T, s32 * SA, s32 n, s32 k, s32 fs);
  * @param freq [0..255] The output symbol frequency table (can be NULL).
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_ctx(const void * ctx, const u8 * T, s32 * SA, s32 n, s32 fs,
-                s32 * freq);
+s32 libsais_ctx(const void * ctx, const u8 * T, s32 * SA, s32 n, s32 fs, s32 * freq);
 
 /**
  * Constructs the burrows-wheeler transformed string (BWT) of a given string.
@@ -107,8 +106,7 @@ s32 libsais_bwt(const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq);
  * @param I [0..(n-1)/r] The output auxiliary indexes.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_bwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq,
-                    s32 r, s32 * I);
+s32 libsais_bwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq, s32 r, s32 * I);
 
 /**
  * Constructs the burrows-wheeler transformed string (BWT) of a given string
@@ -123,8 +121,7 @@ s32 libsais_bwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq,
  * @param freq [0..255] The output symbol frequency table (can be NULL).
  * @return The primary index if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_bwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n,
-                    s32 fs, s32 * freq);
+s32 libsais_bwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq);
 
 /**
  * Constructs the burrows-wheeler transformed string (BWT) of a given string
@@ -141,8 +138,8 @@ s32 libsais_bwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n,
  * @param I [0..(n-1)/r] The output auxiliary indexes.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_bwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n,
-                        s32 fs, s32 * freq, s32 r, s32 * I);
+s32 libsais_bwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq,
+                        s32 r, s32 * I);
 
 /**
  * Creates the libsais reverse BWT context that allows reusing allocated memory
@@ -170,8 +167,7 @@ void libsais_unbwt_free_ctx(void * ctx);
  * @param i The primary index.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_unbwt(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
-                  s32 i);
+s32 libsais_unbwt(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s32 i);
 
 /**
  * Constructs the original string from a given burrows-wheeler transformed
@@ -186,8 +182,8 @@ s32 libsais_unbwt(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
  * @param i The primary index.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_unbwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n,
-                      const s32 * freq, s32 i);
+s32 libsais_unbwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
+                      s32 i);
 
 /**
  * Constructs the original string from a given burrows-wheeler transformed
@@ -202,8 +198,7 @@ s32 libsais_unbwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n,
  * @param I [0..(n-1)/r] The input auxiliary indexes.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_unbwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
-                      s32 r, const s32 * I);
+s32 libsais_unbwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s32 r, const s32 * I);
 
 /**
  * Constructs the original string from a given burrows-wheeler transformed
@@ -219,8 +214,8 @@ s32 libsais_unbwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
  * @param I [0..(n-1)/r] The input auxiliary indexes.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_unbwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A,
-                          s32 n, const s32 * freq, s32 r, const s32 * I);
+s32 libsais_unbwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
+                          s32 r, const s32 * I);
 
 /**
  * Constructs the permuted longest common prefix array (PLCP) of a given string

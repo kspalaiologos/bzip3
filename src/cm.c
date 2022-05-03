@@ -17,7 +17,7 @@ static void encodebit0(state * s, u32 p) {
 
     // Write identical bits.
     while ((s->low ^ s->high) < (1 << 24)) {
-        write_out(s, s->low >> 24); // Same as s->high >> 24
+        write_out(s, s->low >> 24);  // Same as s->high >> 24
         s->low <<= 8;
         s->high = (s->high << 8) | 0xFF;
     }

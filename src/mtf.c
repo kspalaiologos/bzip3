@@ -55,8 +55,7 @@ void mtf_decode(struct mtf_state * mtf, u8 * src, u8 * dst, u32 count) {
 
         mtf->prev[c] = mtf->curr[c] = i;
 
-        for (; r > 0 && mtf->curr[mtf->ranks[r - 1]] <= i; r--)
-            mtf->ranks[r] = mtf->ranks[r - 1];
+        for (; r > 0 && mtf->curr[mtf->ranks[r - 1]] <= i; r--) mtf->ranks[r] = mtf->ranks[r - 1];
 
         mtf->ranks[r] = c;
     }

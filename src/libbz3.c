@@ -10,10 +10,14 @@
 #include "common.h"
 #include "crc32.h"
 #include "libsais.h"
+#include "lzp.h"
 #include "mtf.h"
-#include "txt.h"
 #include "rle.h"
 #include "srt.h"
+#include "txt.h"
+
+#define LZP_DICTIONARY 16
+#define LZP_MIN_MATCH 40
 
 struct block_encoder_state {
     u8 *buf1, *buf2;
@@ -25,9 +29,7 @@ struct block_encoder_state {
     s8 last_error;
 };
 
-s8 get_last_error(struct block_encoder_state * state) {
-    return state->last_error;
-}
+s8 get_last_error(struct block_encoder_state * state) { return state->last_error; }
 
 const char * str_last_error(struct block_encoder_state * state) {
     switch (state->last_error) {
@@ -60,8 +62,7 @@ s32 commit_read(struct block_encoder_state * state, s32 bytes_read) {
 }
 
 struct block_encoder_state * new_block_encoder_state(s32 block_size) {
-    struct block_encoder_state * block_encoder_state =
-        malloc(sizeof(struct block_encoder_state));
+    struct block_encoder_state * block_encoder_state = malloc(sizeof(struct block_encoder_state));
 
     if (!block_encoder_state) {
         return NULL;
@@ -97,18 +98,19 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
 
     int txt = is_text(state->buf1, state->bytes_read);
 
-    if(txt) {
-        s32 bwt_index = libsais_bwt(state->buf1, state->buf1, state->sais_array,
-                                    state->bytes_read, 16, NULL);
-        if(bwt_index < 0) {
+    if (txt) {
+        s32 lzp_size = lzp_compress(state->buf1, state->buf2, state->bytes_read, LZP_DICTIONARY,
+                                    LZP_MIN_MATCH);
+        s32 bwt_index =
+            libsais_bwt(state->buf2, state->buf1, state->sais_array, lzp_size, 16, NULL);
+        if (bwt_index < 0) {
             state->last_error = BZ3_ERR_BWT;
-            return (struct encoding_result) { NULL, -1 };
+            return (struct encoding_result){ NULL, -1 };
         }
         begin(state->cm_state);
         state->cm_state->out_queue = state->buf2 + 24;
         state->cm_state->output_ptr = 0;
-        for(s32 i = 0; i < state->bytes_read; i++)
-            encode_byte(state->cm_state, state->buf1[i]);
+        for (s32 i = 0; i < lzp_size; i++) encode_byte(state->cm_state, state->buf1[i]);
         flush(state->cm_state);
         s32 new_size = state->cm_state->output_ptr;
 
@@ -116,15 +118,15 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
         ((uint32_t *)state->buf2)[1] = htonl(state->bytes_read);
         ((uint32_t *)state->buf2)[2] = htonl(bwt_index);
         ((uint32_t *)state->buf2)[3] = 0xFFFFFFFF;
-        ((uint32_t *)state->buf2)[4] = 0xFFFFFFFF;
+        ((uint32_t *)state->buf2)[4] = htonl(lzp_size);
         ((uint32_t *)state->buf2)[5] = htonl(new_size);
-        
+
         state->last_error = BZ3_OK;
-        return (struct encoding_result) { state->buf2, 24 + new_size };
+        return (struct encoding_result){ state->buf2, 24 + new_size };
     } else {
         s32 new_size = mrlec(state->buf1, state->bytes_read, state->buf2);
-        s32 bwt_index = libsais_bwt(state->buf2, state->buf2, state->sais_array,
-                                    new_size, 16, NULL);
+        s32 bwt_index =
+            libsais_bwt(state->buf2, state->buf2, state->sais_array, new_size, 16, NULL);
         if (bwt_index < 0) {
             state->last_error = BZ3_ERR_BWT;
             return (struct encoding_result){ NULL, -1 };
@@ -132,8 +134,7 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
         s32 new_size2;
 
         if (new_size > MiB(3)) {
-            new_size2 =
-                srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
+            new_size2 = srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
         } else {
             new_size2 = -1;
             mtf_encode(state->mtf_state, state->buf2, state->buf1, new_size);
@@ -143,11 +144,9 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
         state->cm_state->out_queue = state->buf2 + 24;
         state->cm_state->output_ptr = 0;
         if (new_size2 != -1)
-            for (s32 i = 0; i < new_size2; i++)
-                encode_byte(state->cm_state, state->buf1[i]);
+            for (s32 i = 0; i < new_size2; i++) encode_byte(state->cm_state, state->buf1[i]);
         else
-            for (s32 i = 0; i < new_size; i++)
-                encode_byte(state->cm_state, state->buf1[i]);
+            for (s32 i = 0; i < new_size; i++) encode_byte(state->cm_state, state->buf1[i]);
         flush(state->cm_state);
         s32 new_size3 = state->cm_state->output_ptr;
 
@@ -158,8 +157,7 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
         ((uint32_t *)state->buf2)[4] = htonl(new_size2);
         ((uint32_t *)state->buf2)[5] = htonl(new_size3);
         state->last_error = BZ3_OK;
-        return (struct encoding_result){ .buffer = state->buf2,
-                                        .size = 24 + new_size3 };
+        return (struct encoding_result){ .buffer = state->buf2, .size = 24 + new_size3 };
     }
 }
 
@@ -174,23 +172,21 @@ struct encoding_result decode_block(struct block_encoder_state * state) {
     new_size2 = ntohl(((uint32_t *)state->buf1)[4]);
     new_size3 = ntohl(((uint32_t *)state->buf1)[5]);
 
-    if(new_size2 != 0xFFFFFFFF || new_size != 0xFFFFFFFF) {
+    if (new_size != 0xFFFFFFFF) {
         begin(state->cm_state);
         state->cm_state->in_queue = state->buf1 + 24;
         state->cm_state->input_ptr = 0;
         state->cm_state->input_max = new_size3;
         init(state->cm_state);
         if (new_size2 != -1) {
-            for (s32 i = 0; i < new_size2; i++)
-                state->buf2[i] = decode_byte(state->cm_state);
+            for (s32 i = 0; i < new_size2; i++) state->buf2[i] = decode_byte(state->cm_state);
             srt_decode(state->srt_state, state->buf2, state->buf1, new_size2);
         } else {
-            for (s32 i = 0; i < new_size; i++)
-                state->buf2[i] = decode_byte(state->cm_state);
+            for (s32 i = 0; i < new_size; i++) state->buf2[i] = decode_byte(state->cm_state);
             mtf_decode(state->mtf_state, state->buf2, state->buf1, new_size);
         }
-        if (libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size,
-                        NULL, bwt_index) < 0) {
+        if (libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size, NULL, bwt_index) <
+            0) {
             state->last_error = BZ3_ERR_BWT;
             return (struct encoding_result){ NULL, -1 };
         }
@@ -200,28 +196,26 @@ struct encoding_result decode_block(struct block_encoder_state * state) {
             return (struct encoding_result){ .buffer = NULL, .size = -1 };
         }
         state->last_error = BZ3_OK;
-        return (struct encoding_result){ .buffer = state->buf1,
-                                        .size = state->bytes_read };
+        return (struct encoding_result){ .buffer = state->buf1, .size = state->bytes_read };
     } else {
         begin(state->cm_state);
         state->cm_state->in_queue = state->buf1 + 24;
         state->cm_state->input_ptr = 0;
         state->cm_state->input_max = new_size3;
         init(state->cm_state);
-        for (s32 i = 0; i < state->bytes_read; i++)
-            state->buf2[i] = decode_byte(state->cm_state);
-        if (libsais_unbwt(state->buf2, state->buf1, state->sais_array, state->bytes_read,
-                        NULL, bwt_index) < 0) {
+        for (s32 i = 0; i < new_size2; i++) state->buf2[i] = decode_byte(state->cm_state);
+        if (libsais_unbwt(state->buf2, state->buf1, state->sais_array, new_size2, NULL, bwt_index) <
+            0) {
             state->last_error = BZ3_ERR_BWT;
             return (struct encoding_result){ NULL, -1 };
         }
-        if (crc32sum(1, state->buf1, state->bytes_read) != crc32) {
+        lzp_decompress(state->buf1, state->buf2, new_size2, LZP_DICTIONARY, LZP_MIN_MATCH);
+        if (crc32sum(1, state->buf2, state->bytes_read) != crc32) {
             state->last_error = BZ3_ERR_CRC;
             return (struct encoding_result){ .buffer = NULL, .size = -1 };
         }
         state->last_error = BZ3_OK;
-        return (struct encoding_result){ .buffer = state->buf1,
-                                         .size = state->bytes_read };
+        return (struct encoding_result){ .buffer = state->buf2, .size = state->bytes_read };
     }
 }
 

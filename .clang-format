@@ -7,5 +7,6 @@ PointerAlignment: Middle
 TabWidth: '4'
 UseTab: Never
 Cpp11BracedListStyle: false
+ColumnLimit: 100
 
 ...
