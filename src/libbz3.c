@@ -17,7 +17,7 @@
 #include "txt.h"
 
 #define LZP_DICTIONARY 18
-#define LZP_MIN_MATCH 100
+#define LZP_MIN_MATCH 40
 
 struct block_encoder_state {
     u8 *buf1, *buf2;
@@ -93,8 +93,6 @@ void delete_block_encoder_state(struct block_encoder_state * state) {
     free(state);
 }
 
-// TODO: Wire up RLE with lzp percentage checking.
-
 #define swap(x, y) { u8 * tmp = x; x = y; y = tmp; }
 
 struct encoding_result encode_block(struct block_encoder_state * state) {
@@ -107,17 +105,24 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
     // bit 0: text | binary
     // bit 1: lzp | no lzp
     // bit 2: srt | no srt
+    // bit 2: mtf | no mtf
     s8 model = is_text(b1, data_size);
 
     s32 lzp_size;
-    if(model)
+    if(model) {
         lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH);
-    else
-        lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, 2 * LZP_MIN_MATCH);
-    if(lzp_size > 0) {
-        swap(b1, b2);
-        data_size = lzp_size;
-        model |= 2;
+        if(lzp_size > 0) {
+            swap(b1, b2);
+            data_size = lzp_size;
+            model |= 2;
+        }
+    } else {
+        lzp_size = mrlec(b1, data_size, b2);
+        if(lzp_size < data_size) {
+            swap(b1, b2);
+            data_size = lzp_size;
+            model |= 16;
+        }
     }
 
     s32 bwt_idx = libsais_bwt(b1, b2, state->sais_array, data_size, 16, NULL);
@@ -143,7 +148,7 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
 
     // Compute the amount of overhead dwords.
     s32 overhead = 4; // CRC32 + BWT index + original size + new size
-    if(model & 2) overhead++; // LZP
+    if((model & 2) || (model & 16)) overhead++; // LZP
     if(model & 4) overhead++; // sorted rank transform
 
     begin(state->cm_state);
@@ -161,7 +166,7 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
     b2[16] = model;
 
     s32 p = 0;
-    if(model & 2) ((s32 *)(b2 + 17))[p++] = htonl(lzp_size);
+    if((model & 2) || (model & 16)) ((s32 *)(b2 + 17))[p++] = htonl(lzp_size);
     if(model & 4) ((s32 *)(b2 + 17))[p++] = htonl(srt_size);
 
     return (struct encoding_result) { .buffer = b2, .size = data_size + overhead * 4 + 1 };
@@ -176,7 +181,7 @@ struct encoding_result decode_block(struct block_encoder_state * state) {
     s8 model = state->buf1[16];
     s32 lzp_size = -1, srt_size = -1, p = 0;
 
-    if(model & 2) lzp_size = ntohl(((s32 *) (state->buf1 + 17))[p++]);
+    if((model & 2) || (model & 16)) lzp_size = ntohl(((s32 *) (state->buf1 + 17))[p++]);
     if(model & 4) srt_size = ntohl(((s32 *) (state->buf1 + 17))[p++]);
 
     data_len -= p * 4;
@@ -194,7 +199,7 @@ struct encoding_result decode_block(struct block_encoder_state * state) {
 
     if(model & 4)
         size_src = srt_size;
-    else if(model & 2)
+    else if((model & 2) || (model & 16))
         size_src = lzp_size;
     else
         size_src = orig_size;
@@ -222,6 +227,10 @@ struct encoding_result decode_block(struct block_encoder_state * state) {
     // Undo LZP
     if(model & 2) {
         size_src = lzp_decompress(b1, b2, lzp_size, LZP_DICTIONARY, (model & 1) ? LZP_MIN_MATCH : 2 * LZP_MIN_MATCH);
+        swap(b1, b2);
+    } else if(model & 16) {
+        mrled(b1, b2, orig_size);
+        size_src = orig_size;
         swap(b1, b2);
     }
 

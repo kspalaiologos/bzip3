@@ -127,9 +127,8 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if (mode == 1)
-        while (commit_read(block_encoder_state,
-                           read(input_des, get_buffer(block_encoder_state), block_size)) > 0) {
+    if (mode == 1) {
+        while (commit_read(block_encoder_state, read(input_des, get_buffer(block_encoder_state), block_size)) > 0) {
             if (get_last_error(block_encoder_state) != BZ3_OK) {
                 fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
                 return 1;
@@ -142,6 +141,7 @@ int main(int argc, char * argv[]) {
             }
             write(output_des, r.buffer, r.size);
         }
+    }
     else if (mode == -1) {
         s32 read_size;
         while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
