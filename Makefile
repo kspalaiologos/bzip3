@@ -3,7 +3,7 @@ CC=clang
 CFLAGS=-O3 -march=native -mtune=native -flto -Iinclude -g3
 PREFIX?=/usr/local
 
-.PHONY: all clean format install
+.PHONY: all clean format install cloc
 
 OBJECTS=obj/main.o obj/libsais.o obj/crc32.o obj/mtf.o obj/srt.o obj/rle.o \
         obj/cm.o obj/libbz3.o obj/txt.o obj/lzp.o
@@ -24,3 +24,6 @@ format:
 
 install:
 	install -v -m 755 bzip3 $(PREFIX)/bin
+
+cloc:
+	cloc src/*.c include/*.h
