@@ -11,10 +11,9 @@
 #define MATCH 0xf2
 
 static inline s32 num_blocks(s32 n) {
-    if (n < KiB(256)) return 1;
-    if (n < MiB(4)) return 2;
-    if (n < MiB(16)) return 4;
-    return 8;
+    if (n < MiB(4)) return 1;
+    if (n < MiB(16)) return 2;
+    return 4;
 }
 
 static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * restrict out,
