@@ -5,6 +5,8 @@
         "cm.h": "c",
         "stdint.h": "c",
         "common.h": "c",
-        "libsais.h": "c"
+        "libsais.h": "c",
+        "cstring": "c",
+        "variant": "c"
     }
 }

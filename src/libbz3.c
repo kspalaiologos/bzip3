@@ -17,7 +17,7 @@
 #include "txt.h"
 
 #define LZP_DICTIONARY 18
-#define LZP_MIN_MATCH 40
+#define LZP_MIN_MATCH 100
 
 struct block_encoder_state {
     u8 *buf1, *buf2;
@@ -93,150 +93,160 @@ void delete_block_encoder_state(struct block_encoder_state * state) {
     free(state);
 }
 
+// TODO: Wire up RLE with lzp percentage checking.
+
+#define swap(x, y) { u8 * tmp = x; x = y; y = tmp; }
+
 struct encoding_result encode_block(struct block_encoder_state * state) {
-    u32 crc32 = crc32sum(1, state->buf1, state->bytes_read);
+    u8 * b1 = state->buf1, * b2 = state->buf2;
+    s32 data_size = state->bytes_read;
+    
+    u32 crc32 = crc32sum(1, b1, data_size);
 
-    int txt = is_text(state->buf1, state->bytes_read);
+    // Back to front:
+    // bit 0: text | binary
+    // bit 1: lzp | no lzp
+    // bit 2: srt | no srt
+    s8 model = is_text(b1, data_size);
 
-    if (txt) {
-        s32 lzp_size = lzp_compress(state->buf1, state->buf2, state->bytes_read, LZP_DICTIONARY,
-                                    LZP_MIN_MATCH);
-        s32 bwt_index =
-            libsais_bwt(state->buf2, state->buf1, state->sais_array, lzp_size, 16, NULL);
-        if (bwt_index < 0) {
-            state->last_error = BZ3_ERR_BWT;
-            return (struct encoding_result){ NULL, -1 };
-        }
-        begin(state->cm_state);
-        state->cm_state->out_queue = state->buf2 + 24;
-        state->cm_state->output_ptr = 0;
-        for (s32 i = 0; i < lzp_size; i++) encode_byte(state->cm_state, state->buf1[i]);
-        flush(state->cm_state);
-        s32 new_size = state->cm_state->output_ptr;
-
-        ((uint32_t *)state->buf2)[0] = htonl(crc32);
-        ((uint32_t *)state->buf2)[1] = htonl(state->bytes_read);
-        ((uint32_t *)state->buf2)[2] = htonl(bwt_index);
-        ((uint32_t *)state->buf2)[3] = 0xFFFFFFFF;
-        ((uint32_t *)state->buf2)[4] = htonl(lzp_size);
-        ((uint32_t *)state->buf2)[5] = htonl(new_size);
-
-        state->last_error = BZ3_OK;
-        return (struct encoding_result){ state->buf2, 24 + new_size };
-    } else {
-        s32 new_size = mrlec(state->buf1, state->bytes_read, state->buf2);
-        s32 bwt_index =
-            libsais_bwt(state->buf2, state->buf2, state->sais_array, new_size, 16, NULL);
-        if (bwt_index < 0) {
-            state->last_error = BZ3_ERR_BWT;
-            return (struct encoding_result){ NULL, -1 };
-        }
-        s32 new_size2;
-
-        if (new_size > MiB(3)) {
-            new_size2 = srt_encode(state->srt_state, state->buf2, state->buf1, new_size);
-        } else {
-            new_size2 = -1;
-            mtf_encode(state->mtf_state, state->buf2, state->buf1, new_size);
-        }
-
-        begin(state->cm_state);
-        state->cm_state->out_queue = state->buf2 + 24;
-        state->cm_state->output_ptr = 0;
-        if (new_size2 != -1)
-            for (s32 i = 0; i < new_size2; i++) encode_byte(state->cm_state, state->buf1[i]);
-        else
-            for (s32 i = 0; i < new_size; i++) encode_byte(state->cm_state, state->buf1[i]);
-        flush(state->cm_state);
-        s32 new_size3 = state->cm_state->output_ptr;
-
-        ((uint32_t *)state->buf2)[0] = htonl(crc32);
-        ((uint32_t *)state->buf2)[1] = htonl(state->bytes_read);
-        ((uint32_t *)state->buf2)[2] = htonl(bwt_index);
-        ((uint32_t *)state->buf2)[3] = htonl(new_size);
-        ((uint32_t *)state->buf2)[4] = htonl(new_size2);
-        ((uint32_t *)state->buf2)[5] = htonl(new_size3);
-        state->last_error = BZ3_OK;
-        return (struct encoding_result){ .buffer = state->buf2, .size = 24 + new_size3 };
+    s32 lzp_size;
+    if(model)
+        lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH);
+    else
+        lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, 2 * LZP_MIN_MATCH);
+    if(lzp_size > 0) {
+        swap(b1, b2);
+        data_size = lzp_size;
+        model |= 2;
     }
+
+    s32 bwt_idx = libsais_bwt(b1, b2, state->sais_array, data_size, 16, NULL);
+    if(bwt_idx < 0) {
+        state->last_error = BZ3_ERR_BWT;
+        return (struct encoding_result) { .buffer = NULL, .size = -1 };
+    }
+    swap(b1, b2);
+    
+    s32 srt_size;
+    if((model & 1) == 0) {
+        if(data_size > MiB(3)) {
+            srt_size = srt_encode(state->srt_state, b1, b2, data_size);
+            swap(b1, b2);
+            data_size = srt_size;
+            model |= 4;
+        } else {
+            mtf_encode(state->mtf_state, b1, b2, data_size);
+            swap(b1, b2);
+            model |= 8;
+        }
+    }
+
+    // Compute the amount of overhead dwords.
+    s32 overhead = 4; // CRC32 + BWT index + original size + new size
+    if(model & 2) overhead++; // LZP
+    if(model & 4) overhead++; // sorted rank transform
+
+    begin(state->cm_state);
+    state->cm_state->out_queue = b2 + overhead * 4 + 1;
+    state->cm_state->output_ptr = 0;
+    for (s32 i = 0; i < data_size; i++) encode_byte(state->cm_state, b1[i]);
+    flush(state->cm_state);
+    data_size = state->cm_state->output_ptr;
+
+    // Write the header. Starting with common entries:
+    ((s32 *) (b2))[0] = htonl(data_size + overhead * 4 - 3);
+    ((u32 *) (b2))[1] = htonl(crc32);
+    ((s32 *) (b2))[2] = htonl(bwt_idx);
+    ((s32 *) (b2))[3] = htonl(state->bytes_read);
+    b2[16] = model;
+
+    s32 p = 0;
+    if(model & 2) ((s32 *)(b2 + 17))[p++] = htonl(lzp_size);
+    if(model & 4) ((s32 *)(b2 + 17))[p++] = htonl(srt_size);
+
+    return (struct encoding_result) { .buffer = b2, .size = data_size + overhead * 4 + 1 };
 }
 
 struct encoding_result decode_block(struct block_encoder_state * state) {
-    u32 crc32;
-    s32 bwt_index, new_size, new_size2, new_size3;
+    // Read the header.
+    s32 data_len = ntohl(((s32 *) state->buf1)[0]) - 1;
+    u32 crc32 = ntohl(((u32 *) state->buf1)[1]);
+    s32 bwt_idx = ntohl(((s32 *) state->buf1)[2]);
+    s32 orig_size = ntohl(((s32 *) state->buf1)[3]);
+    s8 model = state->buf1[16];
+    s32 lzp_size = -1, srt_size = -1, p = 0;
 
-    crc32 = ntohl(((uint32_t *)state->buf1)[0]);
-    state->bytes_read = ntohl(((uint32_t *)state->buf1)[1]);
-    bwt_index = ntohl(((uint32_t *)state->buf1)[2]);
-    new_size = ntohl(((uint32_t *)state->buf1)[3]);
-    new_size2 = ntohl(((uint32_t *)state->buf1)[4]);
-    new_size3 = ntohl(((uint32_t *)state->buf1)[5]);
+    if(model & 2) lzp_size = ntohl(((s32 *) (state->buf1 + 17))[p++]);
+    if(model & 4) srt_size = ntohl(((s32 *) (state->buf1 + 17))[p++]);
 
-    if (new_size != 0xFFFFFFFF) {
-        begin(state->cm_state);
-        state->cm_state->in_queue = state->buf1 + 24;
-        state->cm_state->input_ptr = 0;
-        state->cm_state->input_max = new_size3;
-        init(state->cm_state);
-        if (new_size2 != -1) {
-            for (s32 i = 0; i < new_size2; i++) state->buf2[i] = decode_byte(state->cm_state);
-            srt_decode(state->srt_state, state->buf2, state->buf1, new_size2);
-        } else {
-            for (s32 i = 0; i < new_size; i++) state->buf2[i] = decode_byte(state->cm_state);
-            mtf_decode(state->mtf_state, state->buf2, state->buf1, new_size);
-        }
-        if (libsais_unbwt(state->buf1, state->buf2, state->sais_array, new_size, NULL, bwt_index) <
-            0) {
-            state->last_error = BZ3_ERR_BWT;
-            return (struct encoding_result){ NULL, -1 };
-        }
-        mrled(state->buf2, state->buf1, state->bytes_read);
-        if (crc32sum(1, state->buf1, state->bytes_read) != crc32) {
-            state->last_error = BZ3_ERR_CRC;
-            return (struct encoding_result){ .buffer = NULL, .size = -1 };
-        }
-        state->last_error = BZ3_OK;
-        return (struct encoding_result){ .buffer = state->buf1, .size = state->bytes_read };
-    } else {
-        begin(state->cm_state);
-        state->cm_state->in_queue = state->buf1 + 24;
-        state->cm_state->input_ptr = 0;
-        state->cm_state->input_max = new_size3;
-        init(state->cm_state);
-        for (s32 i = 0; i < new_size2; i++) state->buf2[i] = decode_byte(state->cm_state);
-        if (libsais_unbwt(state->buf2, state->buf1, state->sais_array, new_size2, NULL, bwt_index) <
-            0) {
-            state->last_error = BZ3_ERR_BWT;
-            return (struct encoding_result){ NULL, -1 };
-        }
-        lzp_decompress(state->buf1, state->buf2, new_size2, LZP_DICTIONARY, LZP_MIN_MATCH);
-        if (crc32sum(1, state->buf2, state->bytes_read) != crc32) {
-            state->last_error = BZ3_ERR_CRC;
-            return (struct encoding_result){ .buffer = NULL, .size = -1 };
-        }
-        state->last_error = BZ3_OK;
-        return (struct encoding_result){ .buffer = state->buf2, .size = state->bytes_read };
+    data_len -= p * 4;
+
+    // Decode the data.
+    u8 * b1 = state->buf1, * b2 = state->buf2;
+
+    begin(state->cm_state);
+    state->cm_state->in_queue = b1 + 17 + p * 4;
+    state->cm_state->input_ptr = 0;
+    state->cm_state->input_max = data_len;
+    init(state->cm_state);
+
+    s32 size_src;
+
+    if(model & 4)
+        size_src = srt_size;
+    else if(model & 2)
+        size_src = lzp_size;
+    else
+        size_src = orig_size;
+
+    for (s32 i = 0; i < size_src; i++)
+        b2[i] = decode_byte(state->cm_state);
+    swap(b1, b2);
+
+    // Undo SRT
+    if(model & 4) {
+        size_src = srt_decode(state->srt_state, b1, b2, srt_size);
+        swap(b1, b2);
+    } else if(model & 8) {
+        mtf_decode(state->mtf_state, b1, b2, size_src);
+        swap(b1, b2);
     }
+
+    // Undo BWT
+    if (libsais_unbwt(b1, b2, state->sais_array, size_src, NULL, bwt_idx) < 0) {
+        state->last_error = BZ3_ERR_BWT;
+        return (struct encoding_result) { .buffer = NULL, .size = -1 };
+    }
+    swap(b1, b2);
+
+    // Undo LZP
+    if(model & 2) {
+        size_src = lzp_decompress(b1, b2, lzp_size, LZP_DICTIONARY, (model & 1) ? LZP_MIN_MATCH : 2 * LZP_MIN_MATCH);
+        swap(b1, b2);
+    }
+
+    return (struct encoding_result) { .buffer = b1, .size = size_src };
 }
 
+#undef swap
+
 s32 read_block(int filedes, struct block_encoder_state * state) {
-    s32 metadata[6];
-    s32 bytes_read = read(filedes, state->buf1, 24);
+    s32 bytes_read = read(filedes, state->buf1, 4);
     if (bytes_read == 0) return 0;
-    if (bytes_read != 24) {
+    if (bytes_read != 4) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
-    s32 data_size = ntohl(((uint32_t *)state->buf1)[5]);
+    s32 data_size = ntohl(((uint32_t *)state->buf1)[0]);
     if (data_size > state->block_size) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
-    bytes_read = read(filedes, state->buf1 + 24, data_size);
+    bytes_read = read(filedes, state->buf1 + 4, data_size);
     if (bytes_read != data_size) {
         state->last_error = BZ3_ERR_TRUNCATED_DATA;
         return -1;
     }
     state->last_error = BZ3_OK;
-    return state->bytes_read = 24 + data_size;
+    return state->bytes_read = 4 + data_size;
 }
