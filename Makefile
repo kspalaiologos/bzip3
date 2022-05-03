@@ -1,6 +1,6 @@
 
 CC=clang
-CFLAGS=-O1 -march=native -mtune=native -flto -Iinclude -g3
+CFLAGS=-O2 -march=native -mtune=native -flto -Iinclude -g3
 PREFIX?=/usr/local
 
 .PHONY: all clean format install cloc
