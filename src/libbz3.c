@@ -16,7 +16,7 @@
 #include "srt.h"
 #include "txt.h"
 
-#define LZP_DICTIONARY 16
+#define LZP_DICTIONARY 18
 #define LZP_MIN_MATCH 40
 
 struct block_encoder_state {
