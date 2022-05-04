@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "cm.h"
 #include "common.h"
@@ -72,8 +73,8 @@ struct block_encoder_state * new_block_encoder_state(s32 block_size) {
     block_encoder_state->srt_state = malloc(sizeof(struct srt_state));
     block_encoder_state->mtf_state = malloc(sizeof(struct mtf_state));
 
-    block_encoder_state->buf1 = malloc(block_size + block_size / 3);
-    block_encoder_state->buf2 = malloc(block_size + block_size / 3);
+    block_encoder_state->buf1 = malloc(block_size + block_size / 4);
+    block_encoder_state->buf2 = malloc(block_size + block_size / 4);
     block_encoder_state->sais_array = malloc(block_size * sizeof(s32) + 16);
 
     block_encoder_state->block_size = block_size;
@@ -100,6 +101,15 @@ struct encoding_result encode_block(struct block_encoder_state * state) {
     s32 data_size = state->bytes_read;
     
     u32 crc32 = crc32sum(1, b1, data_size);
+
+    // Ignore small blocks. They won't benefit from the entropy coding step.
+    if(data_size < 64) {
+        ((s32 *) (b2))[0] = htonl(data_size + 8);
+        ((u32 *) (b2))[1] = htonl(crc32);
+        ((s32 *) (b2))[2] = htonl(-1);
+        memcpy(b2 + 12, b1, data_size);
+        return (struct encoding_result) { .buffer = b2, .size = data_size + 12 };
+    }
 
     // Back to front:
     // bit 0: text | binary
@@ -177,6 +187,10 @@ struct encoding_result decode_block(struct block_encoder_state * state) {
     s32 data_len = ntohl(((s32 *) state->buf1)[0]) - 1;
     u32 crc32 = ntohl(((u32 *) state->buf1)[1]);
     s32 bwt_idx = ntohl(((s32 *) state->buf1)[2]);
+
+    if(bwt_idx == -1)
+        return (struct encoding_result) { .buffer = state->buf1 + 12, .size = data_len - 7 };
+
     s32 orig_size = ntohl(((s32 *) state->buf1)[3]);
     s8 model = state->buf1[16];
     s32 lzp_size = -1, srt_size = -1, p = 0;
