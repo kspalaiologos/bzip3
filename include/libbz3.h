@@ -20,12 +20,13 @@ struct bz3_state;
 s8 bz3_last_error(struct bz3_state * state);
 
 /**
- * @brief Return a user-readable message explaining the cause of the error.
+ * @brief Return a user-readable message explaining the cause of the last error.
  */
 const char * bz3_strerror(struct bz3_state * state);
 
 /**
- * @brief Construct a new block encoder state.
+ * @brief Construct a new block encoder state, which will encode blocks as big as the given block size.
+ * The decoder will be able to decode blocks at most as big as the given block size.
  */
 struct bz3_state * bz3_new(s32 block_size);
 
@@ -35,15 +36,18 @@ struct bz3_state * bz3_new(s32 block_size);
 void bz3_free(struct bz3_state * state);
 
 /**
- * @brief Encode a single block.
- * Returns the amount of bytes written to `buffer'.
- * `buffer' must be able to hold at least `size + size / 4' bytes.
+ * @brief Encode a single block. Returns the amount of bytes written to `buffer'.
+ * `buffer' must be able to hold at least `size + size / 4' bytes. The size must not
+ * exceed the block size associated with the state.
  */
 s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 size);
 
 /**
  * @brief Decode a single block.
- * `buffer' must be able to hold at least `size + size / 4' bytes.
+ * `buffer' must be able to hold at least `size + size / 4' bytes. The size must not exceed
+ * the block size associated with the state.
+ * @param size The size of the compressed data in `buffer'
+ * @param orig_size The original size of the data before compression.
  */
 s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 size, s32 orig_size);
 
