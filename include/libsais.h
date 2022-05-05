@@ -138,8 +138,7 @@ s32 libsais_bwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 
  * @param I [0..(n-1)/r] The output auxiliary indexes.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_bwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq,
-                        s32 r, s32 * I);
+s32 libsais_bwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq, s32 r, s32 * I);
 
 /**
  * Creates the libsais reverse BWT context that allows reusing allocated memory
@@ -182,8 +181,7 @@ s32 libsais_unbwt(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s32 i)
  * @param i The primary index.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_unbwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
-                      s32 i);
+s32 libsais_unbwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s32 i);
 
 /**
  * Constructs the original string from a given burrows-wheeler transformed
@@ -214,8 +212,8 @@ s32 libsais_unbwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s3
  * @param I [0..(n-1)/r] The input auxiliary indexes.
  * @return 0 if no error occurred, -1 or -2 otherwise.
  */
-s32 libsais_unbwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq,
-                          s32 r, const s32 * I);
+s32 libsais_unbwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s32 r,
+                          const s32 * I);
 
 /**
  * Constructs the permuted longest common prefix array (PLCP) of a given string

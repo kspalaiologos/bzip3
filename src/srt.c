@@ -32,8 +32,7 @@ static s32 preprocess(const u32 * freqs, u8 * symbols) {
         for (u32 i = h; i < nb_symbols; i++) {
             const s32 t = symbols[i];
             s32 b = i - h;
-            while ((b >= 0) && (freqs[symbols[b]] < freqs[t] ||
-                                (freqs[t] == freqs[symbols[b]] && t < symbols[b]))) {
+            while ((b >= 0) && (freqs[symbols[b]] < freqs[t] || (freqs[t] == freqs[symbols[b]] && t < symbols[b]))) {
                 symbols[b + h] = symbols[b];
                 b -= h;
             }

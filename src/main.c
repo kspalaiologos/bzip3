@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #include "common.h"
 #include "libbz3.h"
@@ -65,26 +66,26 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    int input_des, output_des;
+    FILE * input_des, * output_des;
 
     if (input != NULL) {
-        input_des = open(input, O_RDONLY);
-        if (input_des == -1) {
-            perror("open");
+        input_des = fopen(input, "rb");
+        if (input_des == NULL) {
+            perror("fopen");
             return 1;
         }
     } else {
-        input_des = STDIN_FILENO;
+        input_des = stdin;
     }
 
     if (output != NULL) {
-        output_des = open(output, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (output_des == -1) {
+        output_des = fopen(output, "wb");
+        if (output_des == NULL) {
             perror("open");
             return 1;
         }
     } else {
-        output_des = STDOUT_FILENO;
+        output_des = stdout;
     }
 
     if (block_size < KiB(65) || block_size > MiB(2047)) {
@@ -94,20 +95,25 @@ int main(int argc, char * argv[]) {
 
     switch (mode) {
         case 1:
-            write(output_des, "BZ3v1", 5);
-            write(output_des, &block_size, sizeof(u32));
+            fwrite("BZ3v1", 5, 1, output_des);
+
+            block_size = htonl(block_size);
+            fwrite(&block_size, sizeof(u32), 1, output_des);
+            block_size = ntohl(block_size);
             break;
         case -1:
         case -2: {
             char signature[5];
 
-            read(input_des, signature, 5);
+            fread(signature, 5, 1, input_des);
             if (strncmp(signature, "BZ3v1", 5) != 0) {
                 fprintf(stderr, "Invalid signature.\n");
                 return 1;
             }
 
-            read(input_des, &block_size, sizeof(u32));
+            fread(&block_size, sizeof(u32), 1, input_des);
+
+            block_size = ntohl(block_size);
 
             if (block_size < KiB(65) || block_size > MiB(2047)) {
                 fprintf(stderr,
@@ -120,65 +126,77 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    struct block_encoder_state * block_encoder_state = new_block_encoder_state(block_size);
+    struct bz3_state * state = bz3_new(block_size);
 
-    if (block_encoder_state == NULL) {
+    if (state == NULL) {
         fprintf(stderr, "Failed to create a block encoder state.\n");
         return 1;
     }
 
+    u8 * buffer = malloc(block_size + block_size / 4);
+
     if (mode == 1) {
-        while (commit_read(block_encoder_state, read(input_des, get_buffer(block_encoder_state), block_size)) > 0) {
-            if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
+        s32 read_count;
+        while (!feof(input_des)) {
+            read_count = fread(buffer, 1, block_size, input_des);
+
+            s32 new_size = bz3_encode_block(state, buffer, read_count);
+            if (new_size == -1) {
+                fprintf(stderr, "Failed to encode a block: %s\n", bz3_strerror(state));
                 return 1;
             }
-            struct encoding_result r = encode_block(block_encoder_state);
-            if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to encode the block: %s\n",
-                        str_last_error(block_encoder_state));
-                return 1;
-            }
-            write(output_des, r.buffer, r.size);
+
+            read_count = htonl(read_count); new_size = ntohl(new_size);
+            fwrite(&new_size, 4, 1, output_des);
+            fwrite(&read_count, 4, 1, output_des);
+            fwrite(buffer, ntohl(new_size), 1, output_des);
         }
-    }
-    else if (mode == -1) {
-        s32 read_size;
-        while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
-            if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
+    } else if (mode == -1) {
+        s32 new_size, old_size;
+        while (!feof(input_des)) {
+            if(fread(&new_size, 1, 4, input_des) != 4) {
+                // Assume that the file has no more data.
+                break;
+            }
+            if(fread(&old_size, 1, 4, input_des) != 4) {
+                fprintf(stderr, "I/O error.\n");
                 return 1;
             }
-            struct encoding_result r = decode_block(block_encoder_state);
-            if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to decode the block: %s\n",
-                        str_last_error(block_encoder_state));
+            new_size = ntohl(new_size); old_size = ntohl(old_size);
+            fread(buffer, 1, new_size, input_des);
+            if(bz3_decode_block(state, buffer, new_size, old_size) == -1) {
+                fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                 return 1;
             }
-            write(output_des, r.buffer, r.size);
+            fwrite(buffer, old_size, 1, output_des);
         }
     } else if (mode == -2) {
-        s32 read_size;
-        while ((read_size = read_block(input_des, block_encoder_state)) > 0) {
-            if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
-                return 1;
+        s32 new_size, old_size;
+        while (!feof(input_des)) {
+            if(fread(&new_size, 4, 1, input_des) != 4) {
+                fprintf(stderr, "I/O error.\n");
             }
-            decode_block(block_encoder_state);
-            if (get_last_error(block_encoder_state) != BZ3_OK) {
-                fprintf(stderr, "Failed to decode data: %s\n", str_last_error(block_encoder_state));
+            if(fread(&old_size, 4, 1, input_des) != 4) {
+                fprintf(stderr, "I/O error.\n");
+            }
+            new_size = ntohl(new_size); old_size = ntohl(old_size);
+            fread(buffer, 1, new_size, input_des);
+            if(bz3_decode_block(state, buffer, new_size, old_size) == -1) {
+                fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                 return 1;
             }
         }
     }
 
-    if (get_last_error(block_encoder_state) != BZ3_OK) {
-        fprintf(stderr, "Failed to read data: %s\n", str_last_error(block_encoder_state));
+    if (bz3_last_error(state) != BZ3_OK) {
+        fprintf(stderr, "Failed to read data: %s\n", bz3_strerror(state));
         return 1;
     }
 
-    delete_block_encoder_state(block_encoder_state);
+    free(buffer);
 
-    close(input_des);
-    close(output_des);
+    bz3_free(state);
+
+    fclose(input_des);
+    fclose(output_des);
 }
