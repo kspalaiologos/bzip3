@@ -114,7 +114,7 @@ void encode_byte(state * s, u8 c) {
     else
         s->run = 0;
 
-    const int f = s->run > 1;
+    const int f = s->run > 2;
 
     int ctx = 1;
 
@@ -158,7 +158,7 @@ u8 decode_byte(state * s) {
     else
         s->run = 0;
 
-    const int f = s->run > 1;
+    const int f = s->run > 2;
 
     int ctx = 1;
 
