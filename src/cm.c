@@ -27,15 +27,15 @@
 // Uses an arithmetic coder implementation outlined in:
 // http://mattmahoney.net/dc/dce.html#Section_31
 
-static void write_out(state * s, u8 c) { s->out_queue[s->output_ptr++] = c; }
+static inline void write_out(state * s, u8 c) { s->out_queue[s->output_ptr++] = c; }
 
-static u8 read_in(state * s) {
+static inline u8 read_in(state * s) {
     if (s->input_ptr < s->input_max) return s->in_queue[s->input_ptr++];
     return -1;
 }
 
 // Encode a zero bit with given probability.
-static void encodebit0(state * s, u32 p) {
+static inline void encodebit0(state * s, u32 p) {
     s->low += (((u64)(s->high - s->low) * p) >> 18) + 1;
 
     // Write identical bits.
@@ -47,7 +47,7 @@ static void encodebit0(state * s, u32 p) {
 }
 
 // Encode an one bit with given probability.
-static void encodebit1(state * s, u32 p) {
+static inline void encodebit1(state * s, u32 p) {
     s->high = s->low + (((u64)(s->high - s->low) * p) >> 18);
     while ((s->low ^ s->high) < (1 << 24)) {
         write_out(s, s->low >> 24);
@@ -56,7 +56,7 @@ static void encodebit1(state * s, u32 p) {
     }
 }
 
-static u8 decodebit(state * s, u32 p) {
+static inline u8 decodebit(state * s, u32 p) {
     // Split the range.
     const u32 mid = s->low + (((u64)(s->high - s->low) * p) >> 18);
     const u8 bit = s->code <= mid;
