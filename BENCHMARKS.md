@@ -97,7 +97,7 @@ gzip 5M memory
 ## Benchmark on the Linux kernel
 
 ```
-bzip3 -e -b 16 corpus/linux.tar corpus/linux.tar.bz3  89.12s user 0.40s system 99% cpu 95M memory 1:29.56 total
+bzip3 -e -b 16 corpus/linux.tar corpus/linux.tar.bz3  78.14s user 0.35s system 99% cpu 90M memory 1:18.51 total
 bzip2 -9 -k linux.tar  61.23s user 0.35s system 99% cpu 8M memory 1:01.58 total
 gzip -9 -k linux.tar  43.08s user 0.35s system 99% cpu 4M memory 43.435 total
 lzma -9 -k linux.tar  397.30s user 0.90s system 99% cpu 675M memory 6:38.28 total
