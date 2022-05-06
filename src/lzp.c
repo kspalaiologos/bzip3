@@ -92,6 +92,8 @@ static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * rest
 static s32 lzp_decode_block(const u8 * restrict in, const u8 * in_end, s32 * restrict lut, u8 * restrict out, s32 hash, s32 m_len) {
     if (in_end - in < 4) return -1;
 
+    memset(lut, 0, sizeof(s32) * hash);
+
     u32 mask = (s32)(1 << hash) - 1;
     const u8 * outs = out;
 
