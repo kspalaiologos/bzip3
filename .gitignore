@@ -22,3 +22,7 @@ config.h
 configure~
 
 Makefile
+
+bzip3.so
+
+libbz3.so

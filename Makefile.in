@@ -4,15 +4,18 @@ CFLAGS=-O2 -march=native -mtune=native -flto -Iinclude -g3
 
 .PHONY: all clean format install cloc
 
-OBJECTS=obj/main.o obj/libsais.o obj/crc32.o obj/mtf.o obj/srt.o obj/rle.o \
-        obj/cm.o obj/libbz3.o obj/txt.o obj/lzp.o
+LIBBZ3_OBJECTS=obj/libsais.o obj/crc32.o obj/mtf.o obj/srt.o obj/rle.o \
+               obj/cm.o obj/libbz3.o obj/txt.o obj/lzp.o
 
-all: bzip3
+all: bzip3 bzip3.so
 
 obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-bzip3: $(OBJECTS)
+bzip3.so: $(LIBBZ3_OBJECTS)
+	$(CC) -shared $(CFLAGS) -o $@ $^ -lm
+
+bzip3: obj/main.o $(LIBBZ3_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 clean:
@@ -22,7 +25,9 @@ format:
 	clang-format -i src/*.c include/*.h
 
 install:
-	install -v -m 755 bzip3 @prefix@/bin
+	@INSTALL@ -v -m 755 bzip3 @prefix@/bin
+	@INSTALL@ -v -m 755 bzip3.so @prefix@/lib
+	@INSTALL@ -v -m 755 include/libbz3.h @prefix@/include
 
 cloc:
 	cloc src/*.c include/*.h

@@ -20,6 +20,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include "../config.h"
+
 #define KiB(x) ((x)*1024)
 #define MiB(x) ((x)*1024 * 1024)
 
@@ -34,5 +36,42 @@ typedef uint64_t u64;
 typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;
+
+// Supply ntohl and htonl.
+#if HAVE_ARPA_INET_H == 1 && HAVE_HTONL == 1 && HAVE_NTOHL == 1
+    #include <arpa/inet.h>
+#else
+    #ifndef WORDS_BIGENDIAN
+        #include <string.h>
+    #endif
+
+    static u32 ntohl(u32 value) {
+        #ifdef WORDS_BIGENDIAN
+            return value;
+        #else
+            u8 data[4];
+            memcpy(&data, &value, sizeof(data));
+
+            return ((u32) data[3])
+                 | ((u32) data[2] << 8)
+                 | ((u32) data[1] << 16)
+                 | ((u32) data[0] << 24);
+        #endif
+    }
+
+    static u32 htonl(u32 value) {
+        #ifdef WORDS_BIGENDIAN
+            return value;
+        #else
+            u8 data[4];
+            memcpy(&data, &value, sizeof(data));
+
+            return ((u32) data[3])
+                 | ((u32) data[2] << 8)
+                 | ((u32) data[1] << 16)
+                 | ((u32) data[0] << 24);
+        #endif
+    }
+#endif
 
 #endif

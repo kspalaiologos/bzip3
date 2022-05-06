@@ -16,7 +16,7 @@ AC_PROG_INSTALL
 AC_CHECK_LIB([m], [log2])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h stdint.h stdlib.h stdio.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h inttypes.h stdint.h stdlib.h stdio.h unistd.h])
 
 # Checks for typedefs, structures, and compiler/platform characteristics.
 AC_C_INLINE
@@ -34,7 +34,7 @@ AC_CHECK_TYPES([ptrdiff_t])
 AC_C_BIGENDIAN
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memmove memcpy memset ntohl htonl memcmp calloc malloc free])
+AC_CHECK_FUNCS([memmove memcpy memset ntohl htonl memcmp calloc malloc free isatty fileno])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

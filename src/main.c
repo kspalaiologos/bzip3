@@ -16,13 +16,11 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <fcntl.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 
 #include "common.h"
 #include "libbz3.h"
@@ -92,6 +90,13 @@ int main(int argc, char * argv[]) {
         fprintf(stderr, "Block size must be between 65 KiB and 2047 MiB.\n");
         return 1;
     }
+
+    #if HAVE_ISATTY == 1 && HAVE_FILENO == 1
+    if((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && mode == -1)) {
+        fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
+        return 1;
+    }
+    #endif
 
     switch (mode) {
         case 1:
