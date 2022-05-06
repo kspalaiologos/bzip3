@@ -115,10 +115,8 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     }
 
     // Back to front:
-    // bit 0: text | binary
     // bit 1: lzp | no lzp
     // bit 2: srt | no srt
-    // bit 2: mtf | no mtf
     s8 model = 0;
     s32 lzp_size, rle_size;
 
