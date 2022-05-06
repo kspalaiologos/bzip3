@@ -12,7 +12,7 @@ typedef struct {
     s32 c1, c2, run;
     u8 *in_queue, *out_queue;
     s32 input_ptr, output_ptr, input_max;
-    
+
     u16 C0[256], C1[256][256], C2[2][256][17];
 } state;
 

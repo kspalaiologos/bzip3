@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
                 force_stdstreams = 1;
             }
         } else {
-            if(strlen(argv[i]) > 4 && !strcmp(argv[i] + strlen(argv[i]) - 4, ".bz3")) {
+            if (strlen(argv[i]) > 4 && !strcmp(argv[i] + strlen(argv[i]) - 4, ".bz3")) {
                 bz3_file = argv[i];
             } else {
                 regular_file = argv[i];
@@ -76,7 +76,7 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if(mode == 1) {
+    if (mode == 1) {
         input = regular_file;
         output = bz3_file;
     } else {
@@ -84,7 +84,7 @@ int main(int argc, char * argv[]) {
         output = regular_file;
     }
 
-    FILE * input_des, * output_des;
+    FILE *input_des, *output_des;
 
     if (input != NULL) {
         input_des = fopen(input, "rb");
@@ -92,7 +92,7 @@ int main(int argc, char * argv[]) {
             perror("fopen");
             return 1;
         }
-    } else if(force_stdstreams) {
+    } else if (force_stdstreams) {
         input_des = stdin;
     }
 
@@ -102,7 +102,7 @@ int main(int argc, char * argv[]) {
             perror("open");
             return 1;
         }
-    } else if(force_stdstreams) {
+    } else if (force_stdstreams) {
         output_des = stdout;
     }
 
@@ -111,12 +111,12 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    #if HAVE_ISATTY == 1 && HAVE_FILENO == 1
-    if((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && mode == -1)) {
+#if HAVE_ISATTY == 1 && HAVE_FILENO == 1
+    if ((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && mode == -1)) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
-    #endif
+#endif
 
     switch (mode) {
         case 1:
@@ -171,7 +171,8 @@ int main(int argc, char * argv[]) {
                 return 1;
             }
 
-            read_count = htonl(read_count); new_size = ntohl(new_size);
+            read_count = htonl(read_count);
+            new_size = ntohl(new_size);
             fwrite(&new_size, 4, 1, output_des);
             fwrite(&read_count, 4, 1, output_des);
             fwrite(buffer, ntohl(new_size), 1, output_des);
@@ -179,17 +180,18 @@ int main(int argc, char * argv[]) {
     } else if (mode == -1) {
         s32 new_size, old_size;
         while (!feof(input_des)) {
-            if(fread(&new_size, 1, 4, input_des) != 4) {
+            if (fread(&new_size, 1, 4, input_des) != 4) {
                 // Assume that the file has no more data.
                 break;
             }
-            if(fread(&old_size, 1, 4, input_des) != 4) {
+            if (fread(&old_size, 1, 4, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
                 return 1;
             }
-            new_size = ntohl(new_size); old_size = ntohl(old_size);
+            new_size = ntohl(new_size);
+            old_size = ntohl(old_size);
             fread(buffer, 1, new_size, input_des);
-            if(bz3_decode_block(state, buffer, new_size, old_size) == -1) {
+            if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                 fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                 return 1;
             }
@@ -198,15 +200,16 @@ int main(int argc, char * argv[]) {
     } else if (mode == -2) {
         s32 new_size, old_size;
         while (!feof(input_des)) {
-            if(fread(&new_size, 4, 1, input_des) != 4) {
+            if (fread(&new_size, 4, 1, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
             }
-            if(fread(&old_size, 4, 1, input_des) != 4) {
+            if (fread(&old_size, 4, 1, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
             }
-            new_size = ntohl(new_size); old_size = ntohl(old_size);
+            new_size = ntohl(new_size);
+            old_size = ntohl(old_size);
             fread(buffer, 1, new_size, input_des);
-            if(bz3_decode_block(state, buffer, new_size, old_size) == -1) {
+            if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                 fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                 return 1;
             }
