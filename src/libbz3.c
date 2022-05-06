@@ -37,7 +37,7 @@
 struct bz3_state {
     u8 *swap_buffer;
     s32 block_size;
-    s32 * sais_array;
+    s32 * sais_array, * lzp_lut;
     struct srt_state * srt_state;
     state * cm_state;
     s8 last_error;
@@ -77,7 +77,9 @@ struct bz3_state * bz3_new(s32 block_size) {
     bz3_state->srt_state = malloc(sizeof(struct srt_state));
 
     bz3_state->swap_buffer = malloc(block_size + block_size / 4);
-    bz3_state->sais_array = malloc(block_size * sizeof(s32) + 16);
+    bz3_state->sais_array = malloc(block_size * sizeof(s32));
+
+    bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
     bz3_state->block_size = block_size;
 
@@ -91,13 +93,14 @@ void bz3_free(struct bz3_state * state) {
     free(state->sais_array);
     free(state->srt_state);
     free(state->cm_state);
+    free(state->lzp_lut);
     free(state);
 }
 
 #define swap(x, y) { u8 * tmp = x; x = y; y = tmp; }
 
 s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
-    u8 * b1 = buffer, * b2 = state->swap_buffer; s32 initial_size = data_size;
+    u8 * b1 = buffer, * b2 = state->swap_buffer;
 
     if(data_size > state->block_size) {
         state->last_error = BZ3_ERR_DATA_TOO_BIG;
@@ -127,14 +130,14 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
         model |= 4;
     }
 
-    lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH);
+    lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH, state->lzp_lut);
     if(lzp_size > 0) {
         swap(b1, b2);
         data_size = lzp_size;
         model |= 2;
     }
 
-    s32 bwt_idx = libsais_bwt(b1, b2, state->sais_array, data_size, 16, NULL);
+    s32 bwt_idx = libsais_bwt(b1, b2, state->sais_array, data_size, 0, NULL);
     if(bwt_idx < 0) {
         state->last_error = BZ3_ERR_BWT;
         return -1;
@@ -226,7 +229,7 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
 
     // Undo LZP
     if(model & 2) {
-        size_src = lzp_decompress(b1, b2, lzp_size, LZP_DICTIONARY, LZP_MIN_MATCH);
+        size_src = lzp_decompress(b1, b2, lzp_size, LZP_DICTIONARY, LZP_MIN_MATCH, state->lzp_lut);
         swap(b1, b2);
     }
 
