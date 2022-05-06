@@ -27,13 +27,12 @@
 #include "crc32.h"
 #include "libsais.h"
 #include "lzp.h"
-#include "mtf.h"
 #include "rle.h"
 #include "srt.h"
 #include "txt.h"
 
 #define LZP_DICTIONARY 18
-#define LZP_MIN_MATCH 40
+#define LZP_MIN_MATCH 80
 
 struct bz3_state {
     u8 *swap_buffer;
@@ -123,23 +122,21 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     // bit 1: lzp | no lzp
     // bit 2: srt | no srt
     // bit 2: mtf | no mtf
-    s8 model = is_text(b1, data_size);
+    s8 model = 0;
+    s32 lzp_size, rle_size;
 
-    s32 lzp_size;
-    if(model) {
-        lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH);
-        if(lzp_size > 0) {
-            swap(b1, b2);
-            data_size = lzp_size;
-            model |= 2;
-        }
-    } else {
-        lzp_size = mrlec(b1, data_size, b2);
-        if(lzp_size < data_size) {
-            swap(b1, b2);
-            data_size = lzp_size;
-            model |= 16;
-        }
+    rle_size = mrlec(b1, data_size, b2);
+    if(rle_size < data_size) {
+        swap(b1, b2);
+        data_size = rle_size;
+        model |= 4;
+    }
+
+    lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH);
+    if(lzp_size > 0) {
+        swap(b1, b2);
+        data_size = lzp_size;
+        model |= 2;
     }
 
     s32 bwt_idx = libsais_bwt(b1, b2, state->sais_array, data_size, 16, NULL);
@@ -147,28 +144,11 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
         state->last_error = BZ3_ERR_BWT;
         return -1;
     }
-    
-    // Important: b2 is the input now, b1 is the output.
-    // This avoids an expensive memory copy.
-    
-    s32 srt_size;
-    if((model & 1) == 0) {
-        if(data_size > MiB(3)) {
-            srt_size = srt_encode(state->srt_state, b2, b1, data_size);
-            swap(b1, b2);
-            data_size = srt_size;
-            model |= 4;
-        } else {
-            mtf_encode(state->mtf_state, b2, b1, data_size);
-            swap(b1, b2);
-            model |= 8;
-        }
-    }
 
     // Compute the amount of overhead dwords.
     s32 overhead = 2; // CRC32 + BWT index
-    if((model & 2) || (model & 16)) overhead++; // LZP
-    if(model & 4) overhead++; // sorted rank transform
+    if(model & 2) overhead++; // LZP
+    if(model & 4) overhead++; // RLE
 
     begin(state->cm_state);
     state->cm_state->out_queue = b1 + overhead * 4 + 1;
@@ -183,8 +163,8 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     b1[8] = model;
 
     s32 p = 0;
-    if((model & 2) || (model & 16)) ((s32 *)(b1 + 9))[p++] = htonl(lzp_size);
-    if(model & 4) ((s32 *)(b1 + 9))[p++] = htonl(srt_size);
+    if(model & 2) ((s32 *)(b1 + 9))[p++] = htonl(lzp_size);
+    if(model & 4) ((s32 *)(b1 + 9))[p++] = htonl(rle_size);
 
     state->last_error = BZ3_OK;
 
@@ -211,10 +191,10 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
     }
 
     s8 model = buffer[8];
-    s32 lzp_size = -1, srt_size = -1, p = 0;
+    s32 lzp_size = -1, rle_size, p = 0;
 
-    if((model & 2) || (model & 16)) lzp_size = ntohl(((s32 *) (buffer + 9))[p++]);
-    if(model & 4) srt_size = ntohl(((s32 *) (buffer + 9))[p++]);
+    if(model & 2) lzp_size = ntohl(((s32 *) (buffer + 9))[p++]);
+    if(model & 4) rle_size = ntohl(((s32 *) (buffer + 9))[p++]);
 
     p += 2;
 
@@ -231,25 +211,16 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
 
     s32 size_src;
 
-    if(model & 4)
-        size_src = srt_size;
-    else if((model & 2) || (model & 16))
+    if(model & 2)
         size_src = lzp_size;
+    else if(model & 4)
+        size_src = rle_size;
     else
         size_src = orig_size;
 
     for (s32 i = 0; i < size_src; i++)
         b2[i] = decode_byte(state->cm_state);
     swap(b1, b2);
-
-    // Undo SRT
-    if(model & 4) {
-        size_src = srt_decode(state->srt_state, b1, b2, srt_size);
-        swap(b1, b2);
-    } else if(model & 8) {
-        mtf_decode(state->mtf_state, b1, b2, size_src);
-        swap(b1, b2);
-    }
 
     // Undo BWT
     if (libsais_unbwt(b1, b2, state->sais_array, size_src, NULL, bwt_idx) < 0) {
@@ -260,9 +231,11 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
 
     // Undo LZP
     if(model & 2) {
-        size_src = lzp_decompress(b1, b2, lzp_size, LZP_DICTIONARY, (model & 1) ? LZP_MIN_MATCH : 2 * LZP_MIN_MATCH);
+        size_src = lzp_decompress(b1, b2, lzp_size, LZP_DICTIONARY, LZP_MIN_MATCH);
         swap(b1, b2);
-    } else if(model & 16) {
+    }
+
+    if(model & 4) {
         mrled(b1, b2, orig_size);
         size_src = orig_size;
         swap(b1, b2);
