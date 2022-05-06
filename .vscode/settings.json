@@ -15,6 +15,7 @@
         "istream": "c",
         "sstream": "c",
         "streambuf": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "intrin.h": "c"
     }
 }

@@ -26,11 +26,15 @@
 #include "libbz3.h"
 
 int main(int argc, char * argv[]) {
-    // -1: encode, 0: unspecified, 1: encode, 2: test
+    // -1: decode, 0: unspecified, 1: encode, 2: test
     int mode = 0;
 
     // input and output file names
     char *input = NULL, *output = NULL;
+    char *bz3_file = NULL, *regular_file = NULL;
+
+    // command line arguments
+    int force_stdstreams = 0;
 
     // the block size
     u32 block_size = MiB(8);
@@ -46,22 +50,38 @@ int main(int argc, char * argv[]) {
             } else if (argv[i][1] == 'b') {
                 block_size = MiB(atoi(argv[i + 1]));
                 i++;
+            } else if (argv[i][1] == 'c') {
+                force_stdstreams = 1;
             }
         } else {
-            if (input == NULL) {
-                input = argv[i];
-            } else if (output == NULL) {
-                output = argv[i];
+            if(strlen(argv[i]) > 4 && !strcmp(argv[i] + strlen(argv[i]) - 4, ".bz3")) {
+                bz3_file = argv[i];
+            } else {
+                regular_file = argv[i];
             }
         }
     }
 
     if (mode == 0) {
-        fprintf(stderr, "Usage: %s [-e/-d/-t] [-b block_size] input output\n", argv[0]);
-        fprintf(stderr,
-                "If input or output are not specified, they default to stdin "
-                "and stdout.\n");
+        fprintf(stderr, "bzip3 - A better and stronger spiritual successor to bzip2.\n");
+        fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of GPLv3.\n");
+        fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c] [-b block_size] input output\n");
+        fprintf(stderr, "Operations:\n");
+        fprintf(stderr, "  -e: encode\n");
+        fprintf(stderr, "  -d: decode\n");
+        fprintf(stderr, "  -t: test\n");
+        fprintf(stderr, "Extra flags:\n");
+        fprintf(stderr, "  -c: force reading/writing from standard streams\n");
+        fprintf(stderr, "  -b N: set block size in MiB\n");
         return 1;
+    }
+
+    if(mode == 1) {
+        input = regular_file;
+        output = bz3_file;
+    } else {
+        input = bz3_file;
+        output = regular_file;
     }
 
     FILE * input_des, * output_des;
@@ -72,7 +92,7 @@ int main(int argc, char * argv[]) {
             perror("fopen");
             return 1;
         }
-    } else {
+    } else if(force_stdstreams) {
         input_des = stdin;
     }
 
@@ -82,7 +102,7 @@ int main(int argc, char * argv[]) {
             perror("open");
             return 1;
         }
-    } else {
+    } else if(force_stdstreams) {
         output_des = stdout;
     }
 

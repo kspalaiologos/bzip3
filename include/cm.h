@@ -9,11 +9,11 @@
 
 typedef struct {
     u32 low, high, code;
-    u16 C0[256], C1[256][256], C2[2][256][17];
     s32 c1, c2, run;
-
     u8 *in_queue, *out_queue;
     s32 input_ptr, output_ptr, input_max;
+    
+    u16 C0[256], C1[256][256], C2[2][256][17];
 } state;
 
 void flush(state * s);

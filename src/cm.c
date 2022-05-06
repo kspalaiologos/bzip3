@@ -1,6 +1,29 @@
 
 #include "cm.h"
 
+#if defined(__has_builtin)
+    #if __has_builtin(__builtin_prefetch)
+        #define HAS_BUILTIN_PREFECTCH
+    #endif
+#elif defined(__GNUC__) && (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4))
+    #define HAS_BUILTIN_PREFECTCH
+#endif
+
+#if defined(HAS_BUILTIN_PREFECTCH)
+    #define prefetch(address) __builtin_prefetch((const void *)(address), 0, 0)
+#elif defined(_M_IX86) || defined(_M_AMD64)
+    #include <intrin.h>
+    #define prefetch(address) _mm_prefetch((const void *)(address), _MM_HINT_NTA)
+#elif defined(_M_ARM)
+    #include <intrin.h>
+    #define prefetch(address) __prefetch((const void *)(address))
+#elif defined(_M_ARM64)
+    #include <intrin.h>
+    #define prefetch(address) __prefetch2((const void *)(address), 1)
+#else
+    #define prefetch(address)
+#endif
+
 // Uses an arithmetic coder implementation outlined in:
 // http://mattmahoney.net/dc/dce.html#Section_31
 
@@ -71,6 +94,7 @@ void init(state * s) {
 #define update1(p, x) ((p) + (((p) ^ 65535) >> x))
 
 void begin(state * s) {
+    prefetch(s);
     s->c1 = s->c2 = 0;
     s->run = 0;
     s->low = 0;
