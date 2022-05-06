@@ -1,5 +1,6 @@
 
 // Lempel Ziv Prediction code.
+// A heavily modified version of libbcm's LZP predictor. This one should have better single thread performance.
 
 #include <memory.h>
 #include <stdlib.h>
