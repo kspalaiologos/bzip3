@@ -39,7 +39,6 @@ struct bz3_state {
     s32 block_size;
     s32 * sais_array;
     struct srt_state * srt_state;
-    struct mtf_state * mtf_state;
     state * cm_state;
     s8 last_error;
 };
@@ -76,7 +75,6 @@ struct bz3_state * bz3_new(s32 block_size) {
 
     bz3_state->cm_state = malloc(sizeof(state));
     bz3_state->srt_state = malloc(sizeof(struct srt_state));
-    bz3_state->mtf_state = malloc(sizeof(struct mtf_state));
 
     bz3_state->swap_buffer = malloc(block_size + block_size / 4);
     bz3_state->sais_array = malloc(block_size * sizeof(s32) + 16);
@@ -92,7 +90,6 @@ void bz3_free(struct bz3_state * state) {
     free(state->swap_buffer);
     free(state->sais_array);
     free(state->srt_state);
-    free(state->mtf_state);
     free(state->cm_state);
     free(state);
 }
