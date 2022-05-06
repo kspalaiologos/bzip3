@@ -20,3 +20,5 @@ config.h.in~
 config.h
 
 configure~
+
+Makefile
