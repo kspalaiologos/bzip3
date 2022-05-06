@@ -55,14 +55,14 @@ void bz3_free(struct bz3_state * state);
 
 /**
  * @brief Encode a single block. Returns the amount of bytes written to `buffer'.
- * `buffer' must be able to hold at least `size + size / 4' bytes. The size must not
+ * `buffer' must be able to hold at least `size + size / 50 + 16' bytes. The size must not
  * exceed the block size associated with the state.
  */
 int32_t bz3_encode_block(struct bz3_state * state, uint8_t * buffer, int32_t size);
 
 /**
  * @brief Decode a single block.
- * `buffer' must be able to hold at least `size + size / 4' bytes. The size must not exceed
+ * `buffer' must be able to hold at least `size + size / 50 + 16' bytes. The size must not exceed
  * the block size associated with the state.
  * @param size The size of the compressed data in `buffer'
  * @param orig_size The original size of the data before compression.

@@ -158,7 +158,7 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    u8 * buffer = malloc(block_size + block_size / 4);
+    u8 * buffer = malloc(block_size + block_size / 50 + 16);
 
     if (mode == 1) {
         s32 read_count;

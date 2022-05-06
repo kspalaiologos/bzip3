@@ -28,8 +28,6 @@
 #include "libsais.h"
 #include "lzp.h"
 #include "rle.h"
-#include "srt.h"
-#include "txt.h"
 
 #define LZP_DICTIONARY 18
 #define LZP_MIN_MATCH 40
@@ -38,7 +36,6 @@ struct bz3_state {
     u8 * swap_buffer;
     s32 block_size;
     s32 *sais_array, *lzp_lut;
-    struct srt_state * srt_state;
     state * cm_state;
     s8 last_error;
 };
@@ -74,14 +71,13 @@ struct bz3_state * bz3_new(s32 block_size) {
     }
 
     bz3_state->cm_state = malloc(sizeof(state));
-    bz3_state->srt_state = malloc(sizeof(struct srt_state));
 
-    bz3_state->swap_buffer = malloc(block_size + block_size / 4);
+    bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 16);
     bz3_state->sais_array = malloc(block_size * sizeof(s32));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
-    if (!bz3_state->cm_state || !bz3_state->srt_state || !bz3_state->swap_buffer || !bz3_state->sais_array ||
+    if (!bz3_state->cm_state || !bz3_state->swap_buffer || !bz3_state->sais_array ||
         !bz3_state->lzp_lut) {
         return NULL;
     }
@@ -96,7 +92,6 @@ struct bz3_state * bz3_new(s32 block_size) {
 void bz3_free(struct bz3_state * state) {
     free(state->swap_buffer);
     free(state->sais_array);
-    free(state->srt_state);
     free(state->cm_state);
     free(state->lzp_lut);
     free(state);
