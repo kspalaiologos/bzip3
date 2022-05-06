@@ -29,11 +29,7 @@ Please see the file LICENSE for full copyright information.
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_OPENMP)
-    #include <omp.h>
-#else
-    #define UNUSED(_x) (void)(_x)
-#endif
+#define UNUSED(_x) (void)(_x)
 
 typedef s32 sa_sint_t;
 typedef u32 sa_uint_t;

@@ -8,3 +8,15 @@ libsais.o
 main.o
 
 *.o
+
+autom4te.cache/
+
+config.log
+
+config.status
+
+config.h.in~
+
+config.h
+
+configure~

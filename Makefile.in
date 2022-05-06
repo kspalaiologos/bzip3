@@ -22,7 +22,7 @@ format:
 	clang-format -i src/*.c include/*.h
 
 install:
-	install -v -m 755 bzip3 /usr/local/bin
+	install -v -m 755 bzip3 @prefix@/bin
 
 cloc:
 	cloc src/*.c include/*.h

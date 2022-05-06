@@ -20,9 +20,7 @@
 #include "libbz3.h"
 
 #include <arpa/inet.h>
-#include <fcntl.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 
 #include "cm.h"
