@@ -4,51 +4,51 @@ Note: These benchmarks are rarely updated.
 [Testing corpus](https://github.com/kspalaiologos/bzip3/releases/download/corpus/corpus.7z)
 
 ```
-17260 bee_movie.txt.bz3
+17273 bee_movie.txt.bz3
 18109 bzip2/bee_movie.txt.bz2
 55315 bee_movie.txt
 
-496848 cantrbry.tar.bz3
+468757 cantrbry.tar.bz3
 570856 bzip2/cantrbry.tar.bz2
 2821120 cantrbry.tar
 
-809563 calgary.tar.bz3
+810704 calgary.tar.bz3
 891321 bzip2/calgary.tar.bz2
 3265536 calgary.tar
 
-1230428 shakespeare.txt.bz3
+1230584 shakespeare.txt.bz3
 1479261 bzip2/shakespeare.txt.bz2
 5458199 shakespeare.txt
 
-2051783 2b2t_signs.txt.bz3
+2054325 2b2t_signs.txt.bz3
 2388597 bzip2/2b2t_signs.txt.bz2
 9635520 2b2t_signs.txt
 
-22689829 enwik8.bz3
-29008758 bzip2/enwik8.bz2
-100000000 enwik8
-
-53491012 audio.tar.bz3
+48418257 audio.tar.bz3
 95526840 bzip2/audio.tar.bz2
 115742720 audio.tar
 
-48322612 silesia.tar.bz3
+22705495 enwik8.bz3
+29008758 bzip2/enwik8.bz2
+100000000 enwik8
+
+47037638 silesia.tar.bz3
 54538771 bzip2/silesia.tar.bz2
 211968000 silesia.tar
 
-6639384 lisp.mb.bz3
+7661541 lisp.mb.bz3
 13462295 bzip2/lisp.mb.bz2
 371331415 lisp.mb
 
-85301601 gcc.tar.bz3
+84395698 gcc.tar.bz3
 109065903 bzip2/gcc.tar.bz2
 824309760 gcc.tar
 
-158471351 dna.tar.bz3
+157682878 dna.tar.bz3
 180075480 bzip2/dna.tar.bz2
 685619200 dna.tar
 
-132282411 linux.tar.bz3
+130310900 linux.tar.bz3
 157810434 bzip2/linux.tar.bz2
 1215221760 linux.tar
 ```
@@ -76,9 +76,9 @@ Benchmark 2: lzma -9 -k -f corpus/calgary.tar
   Time (mean ± σ):     787.9 ms ±   9.6 ms    [User: 753.6 ms, System: 33.7 ms]
   Range (min … max):   764.8 ms … 813.1 ms    30 runs
 
-Benchmark 3: ./bzip3 -e -b 3 corpus/calgary.tar corpus/calgary.tar.bz3
-  Time (mean ± σ):     286.0 ms ±   4.8 ms    [User: 280.3 ms, System: 4.5 ms]
-  Range (min … max):   280.1 ms … 298.9 ms    30 runs
+Benchmark 3: bzip3 -e -b 3 corpus/calgary.tar corpus/calgary.tar.bz3
+  Time (mean ± σ):     265.3 ms ±   1.8 ms    [User: 257.6 ms, System: 5.9 ms]
+  Range (min … max):   262.5 ms … 269.0 ms    11 runs
 
 Benchmark 4: bzip2 -9 -k -f corpus/calgary.tar
   Time (mean ± σ):     172.9 ms ±   2.4 ms    [User: 168.4 ms, System: 4.4 ms]
@@ -97,7 +97,7 @@ gzip 5M memory
 ## Benchmark on the Linux kernel
 
 ```
-bzip3 -e -b 16 linux.tar linux.tar.bz3  104.71s user 0.41s system 99% cpu 100M memory 1:45.16 total
+bzip3 -e -b 16 corpus/linux.tar corpus/linux.tar.bz3  89.12s user 0.40s system 99% cpu 95M memory 1:29.56 total
 bzip2 -9 -k linux.tar  61.23s user 0.35s system 99% cpu 8M memory 1:01.58 total
 gzip -9 -k linux.tar  43.08s user 0.35s system 99% cpu 4M memory 43.435 total
 lzma -9 -k linux.tar  397.30s user 0.90s system 99% cpu 675M memory 6:38.28 total

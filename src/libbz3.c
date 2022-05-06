@@ -32,7 +32,7 @@
 #include "txt.h"
 
 #define LZP_DICTIONARY 18
-#define LZP_MIN_MATCH 80
+#define LZP_MIN_MATCH 40
 
 struct bz3_state {
     u8 *swap_buffer;
@@ -80,6 +80,10 @@ struct bz3_state * bz3_new(s32 block_size) {
     bz3_state->sais_array = malloc(block_size * sizeof(s32));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
+
+    if (!bz3_state->cm_state || !bz3_state->srt_state || !bz3_state->swap_buffer || !bz3_state->sais_array || !bz3_state->lzp_lut) {
+        return NULL;
+    }
 
     bz3_state->block_size = block_size;
 
