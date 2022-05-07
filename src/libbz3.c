@@ -78,6 +78,15 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
     if (!bz3_state->cm_state || !bz3_state->swap_buffer || !bz3_state->sais_array || !bz3_state->lzp_lut) {
+        if(bz3_state->cm_state)
+            free(bz3_state->cm_state);
+        if(bz3_state->swap_buffer)
+            free(bz3_state->swap_buffer);
+        if(bz3_state->sais_array)
+            free(bz3_state->sais_array);
+        if(bz3_state->lzp_lut)
+            free(bz3_state->lzp_lut);
+
         return NULL;
     }
 
