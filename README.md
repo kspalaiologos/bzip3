@@ -8,7 +8,7 @@ No stability guarantees yet.
 ## Installation
 
 ```
-./configure && make all && sudo make install
+make all && sudo make install
 ```
 
 ## Benchmarks

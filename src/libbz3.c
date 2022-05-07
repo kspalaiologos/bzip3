@@ -115,8 +115,8 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
 
     // Ignore small blocks. They won't benefit from the entropy coding step.
     if (data_size < 64) {
-        ((u32 *)(b1))[0] = htonl(crc32);
-        ((s32 *)(b1))[1] = htonl(-1);
+        write_neutral_s32(b1, crc32);
+        write_neutral_s32(b1 + 4, -1);
         memmove(b1 + 8, b1, data_size);
         return data_size + 8;
     }
@@ -160,13 +160,13 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     data_size = state->cm_state->output_ptr;
 
     // Write the header. Starting with common entries.
-    ((u32 *)(b1))[0] = htonl(crc32);
-    ((s32 *)(b1))[1] = htonl(bwt_idx);
+    write_neutral_s32(b1, crc32);
+    write_neutral_s32(b1 + 4, bwt_idx);
     b1[8] = model;
 
     s32 p = 0;
-    if (model & 2) ((s32 *)(b1 + 9))[p++] = htonl(lzp_size);
-    if (model & 4) ((s32 *)(b1 + 9))[p++] = htonl(rle_size);
+    if (model & 2) write_neutral_s32(b1 + 9 + 4 * p++, lzp_size);
+    if (model & 4) write_neutral_s32(b1 + 9 + 4 * p++, rle_size);
 
     state->last_error = BZ3_OK;
 
@@ -178,8 +178,8 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
 
 s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 orig_size) {
     // Read the header.
-    u32 crc32 = ntohl(((u32 *)buffer)[0]);
-    s32 bwt_idx = ntohl(((s32 *)buffer)[1]);
+    u32 crc32 = read_neutral_s32(buffer);
+    s32 bwt_idx = read_neutral_s32(buffer + 4);
 
     if (bwt_idx == -1) {
         memmove(buffer, buffer + 8, data_size - 8);
@@ -194,8 +194,8 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
     s8 model = buffer[8];
     s32 lzp_size = -1, rle_size, p = 0;
 
-    if (model & 2) lzp_size = ntohl(((s32 *)(buffer + 9))[p++]);
-    if (model & 4) rle_size = ntohl(((s32 *)(buffer + 9))[p++]);
+    if (model & 2) lzp_size = read_neutral_s32(buffer + 9 + 4 * p++);
+    if (model & 4) rle_size = read_neutral_s32(buffer + 9 + 4 * p++);
 
     p += 2;
 
@@ -255,3 +255,11 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
 }
 
 #undef swap
+
+void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
+
+}
+
+void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t orig_sizes[], int32_t n) {
+    
+}

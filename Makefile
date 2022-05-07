@@ -1,6 +1,7 @@
 
 CC=clang
 CFLAGS=-O2 -march=native -mtune=native -flto -Iinclude -g3
+PREFOX?=/usr/local
 
 .PHONY: all clean format install cloc
 
@@ -13,10 +14,10 @@ obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 bzip3.so: $(LIBBZ3_OBJECTS)
-	$(CC) -shared $(CFLAGS) -o $@ $^ @LIBS@
+	$(CC) -shared $(CFLAGS) -o $@ $^ -lpthread 
 
 bzip3: obj/main.o $(LIBBZ3_OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ @LIBS@
+	$(CC) $(CFLAGS) -o $@ $^ -lpthread 
 
 clean:
 	rm -f bzip3 obj/*.o
@@ -25,9 +26,9 @@ format:
 	clang-format -i src/*.c include/*.h
 
 install:
-	@INSTALL@ -v -m 755 bzip3 @prefix@/bin
-	@INSTALL@ -v -m 755 bzip3.so @prefix@/lib
-	@INSTALL@ -v -m 755 include/libbz3.h @prefix@/include
+	install -c -v -m 755 bzip3 $(PREFIX)/bin
+	install -c -v -m 755 bzip3.so $(PREFIX)/lib
+	install -c -v -m 755 include/libbz3.h $(PREFIX)/include
 
 cloc:
 	cloc src/*.c include/*.h

@@ -143,13 +143,14 @@ int main(int argc, char * argv[]) {
     }
 #endif
 
+    u8 byteswap_buf[4];
+
     switch (mode) {
         case 1:
             fwrite("BZ3v1", 5, 1, output_des);
 
-            block_size = htonl(block_size);
-            fwrite(&block_size, sizeof(u32), 1, output_des);
-            block_size = ntohl(block_size);
+            write_neutral_s32(byteswap_buf, block_size);
+            fwrite(byteswap_buf, 4, 1, output_des);
             break;
         case -1:
         case 2: {
@@ -161,9 +162,8 @@ int main(int argc, char * argv[]) {
                 return 1;
             }
 
-            fread(&block_size, sizeof(u32), 1, input_des);
-
-            block_size = ntohl(block_size);
+            fread(byteswap_buf, 4, 1, input_des);
+            block_size = read_neutral_s32(byteswap_buf);
 
             if (block_size < KiB(65) || block_size > MiB(2047)) {
                 fprintf(stderr,
@@ -196,25 +196,25 @@ int main(int argc, char * argv[]) {
                 return 1;
             }
 
-            read_count = htonl(read_count);
-            new_size = ntohl(new_size);
-            fwrite(&new_size, 4, 1, output_des);
-            fwrite(&read_count, 4, 1, output_des);
-            fwrite(buffer, ntohl(new_size), 1, output_des);
+            write_neutral_s32(byteswap_buf, new_size);
+            fwrite(byteswap_buf, 4, 1, output_des);
+            write_neutral_s32(byteswap_buf, read_count);
+            fwrite(byteswap_buf, 4, 1, output_des);
+            fwrite(buffer, new_size, 1, output_des);
         }
     } else if (mode == -1) {
         s32 new_size, old_size;
         while (!feof(input_des)) {
-            if (fread(&new_size, 1, 4, input_des) != 4) {
+            if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
                 // Assume that the file has no more data.
                 break;
             }
-            if (fread(&old_size, 1, 4, input_des) != 4) {
+            new_size = read_neutral_s32(byteswap_buf);
+            if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
                 return 1;
             }
-            new_size = ntohl(new_size);
-            old_size = ntohl(old_size);
+            old_size = read_neutral_s32(byteswap_buf);
             fread(buffer, 1, new_size, input_des);
             if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                 fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
@@ -225,16 +225,16 @@ int main(int argc, char * argv[]) {
     } else if (mode == 2) {
         s32 new_size, old_size;
         while (!feof(input_des)) {
-            s32 read;
-            if ((read = fread(&new_size, 1, 4, input_des)) != 4) {
+            if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
                 // Assume that the file has no more data.
                 break;
             }
-            if (fread(&old_size, 1, 4, input_des) != 4) {
+            new_size = read_neutral_s32(byteswap_buf);
+            if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
+                return 1;
             }
-            new_size = ntohl(new_size);
-            old_size = ntohl(old_size);
+            old_size = read_neutral_s32(byteswap_buf);
             fread(buffer, 1, new_size, input_des);
             if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                 fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
