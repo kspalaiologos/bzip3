@@ -6,14 +6,8 @@
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
-/* Define to 1 if you have the `calloc' function. */
-#undef HAVE_CALLOC
-
 /* Define to 1 if you have the `fileno' function. */
 #undef HAVE_FILENO
-
-/* Define to 1 if you have the `free' function. */
-#undef HAVE_FREE
 
 /* Define to 1 if you have the `htonl' function. */
 #undef HAVE_HTONL
@@ -23,24 +17,6 @@
 
 /* Define to 1 if you have the `isatty' function. */
 #undef HAVE_ISATTY
-
-/* Define to 1 if you have the `m' library (-lm). */
-#undef HAVE_LIBM
-
-/* Define to 1 if you have the `malloc' function. */
-#undef HAVE_MALLOC
-
-/* Define to 1 if you have the `memcmp' function. */
-#undef HAVE_MEMCMP
-
-/* Define to 1 if you have the `memcpy' function. */
-#undef HAVE_MEMCPY
-
-/* Define to 1 if you have the `memmove' function. */
-#undef HAVE_MEMMOVE
-
-/* Define to 1 if you have the `memset' function. */
-#undef HAVE_MEMSET
 
 /* Define to 1 if you have the `ntohl' function. */
 #undef HAVE_NTOHL

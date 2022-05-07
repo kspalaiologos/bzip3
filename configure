@@ -1458,53 +1458,6 @@ fi
 
 } # ac_fn_c_try_compile
 
-# ac_fn_c_try_link LINENO
-# -----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded.
-ac_fn_c_try_link ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  rm -f conftest.$ac_objext conftest.beam conftest$ac_exeext
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 test -x conftest$ac_exeext
-       }
-then :
-  ac_retval=0
-else $as_nop
-  printf "%s\n" "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_retval=1
-fi
-  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
-  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
-  # interfere with the next link command; also delete a directory that is
-  # left behind by Apple's compiler.  We do this before executing the actions.
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_link
-
 # ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
 # Tests whether HEADER exists and can be compiled using the include files in
@@ -1774,6 +1727,53 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_run
+
+# ac_fn_c_try_link LINENO
+# -----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_c_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest.beam conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+printf "%s\n" "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 test -x conftest$ac_exeext
+       }
+then :
+  ac_retval=0
+else $as_nop
+  printf "%s\n" "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_link
 
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
@@ -3723,53 +3723,8 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
-# Checks for librariees.
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for log2 in -lm" >&5
-printf %s "checking for log2 in -lm... " >&6; }
-if test ${ac_cv_lib_m_log2+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lm  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char log2 ();
-int
-main (void)
-{
-return log2 ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_lib_m_log2=yes
-else $as_nop
-  ac_cv_lib_m_log2=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_log2" >&5
-printf "%s\n" "$ac_cv_lib_m_log2" >&6; }
-if test "x$ac_cv_lib_m_log2" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBM 1" >>confdefs.h
-
-  LIBS="-lm $LIBS"
-
-fi
-
-
 # Checks for header files.
+
 ac_header= ac_cache=
 for ac_item in $ac_header_c_list
 do
@@ -3815,18 +3770,6 @@ ac_fn_c_check_header_compile "$LINENO" "stdint.h" "ac_cv_header_stdint_h" "$ac_i
 if test "x$ac_cv_header_stdint_h" = xyes
 then :
   printf "%s\n" "#define HAVE_STDINT_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "stdlib.h" "ac_cv_header_stdlib_h" "$ac_includes_default"
-if test "x$ac_cv_header_stdlib_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_STDLIB_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "stdio.h" "ac_cv_header_stdio_h" "$ac_includes_default"
-if test "x$ac_cv_header_stdio_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_STDIO_H 1" >>confdefs.h
 
 fi
 ac_fn_c_check_header_compile "$LINENO" "unistd.h" "ac_cv_header_unistd_h" "$ac_includes_default"
@@ -4342,24 +4285,6 @@ printf "%s\n" "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 
 
 # Checks for library functions.
-ac_fn_c_check_func "$LINENO" "memmove" "ac_cv_func_memmove"
-if test "x$ac_cv_func_memmove" = xyes
-then :
-  printf "%s\n" "#define HAVE_MEMMOVE 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "memcpy" "ac_cv_func_memcpy"
-if test "x$ac_cv_func_memcpy" = xyes
-then :
-  printf "%s\n" "#define HAVE_MEMCPY 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "memset" "ac_cv_func_memset"
-if test "x$ac_cv_func_memset" = xyes
-then :
-  printf "%s\n" "#define HAVE_MEMSET 1" >>confdefs.h
-
-fi
 ac_fn_c_check_func "$LINENO" "ntohl" "ac_cv_func_ntohl"
 if test "x$ac_cv_func_ntohl" = xyes
 then :
@@ -4370,30 +4295,6 @@ ac_fn_c_check_func "$LINENO" "htonl" "ac_cv_func_htonl"
 if test "x$ac_cv_func_htonl" = xyes
 then :
   printf "%s\n" "#define HAVE_HTONL 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "memcmp" "ac_cv_func_memcmp"
-if test "x$ac_cv_func_memcmp" = xyes
-then :
-  printf "%s\n" "#define HAVE_MEMCMP 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "calloc" "ac_cv_func_calloc"
-if test "x$ac_cv_func_calloc" = xyes
-then :
-  printf "%s\n" "#define HAVE_CALLOC 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "malloc" "ac_cv_func_malloc"
-if test "x$ac_cv_func_malloc" = xyes
-then :
-  printf "%s\n" "#define HAVE_MALLOC 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "free" "ac_cv_func_free"
-if test "x$ac_cv_func_free" = xyes
-then :
-  printf "%s\n" "#define HAVE_FREE 1" >>confdefs.h
 
 fi
 ac_fn_c_check_func "$LINENO" "isatty" "ac_cv_func_isatty"
