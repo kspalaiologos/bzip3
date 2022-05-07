@@ -201,7 +201,8 @@ int main(int argc, char * argv[]) {
         s32 new_size, old_size;
         while (!feof(input_des)) {
             if (fread(&new_size, 4, 1, input_des) != 4) {
-                fprintf(stderr, "I/O error.\n");
+                // Assume that the file has no more data.
+                break;
             }
             if (fread(&old_size, 4, 1, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
