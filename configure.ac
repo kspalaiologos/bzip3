@@ -12,6 +12,8 @@ AC_LANG([C])
 AC_PROG_CC
 AC_PROG_INSTALL
 
+AC_CHECK_LIB([pthread], [pthread_create])
+
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h inttypes.h stdint.h unistd.h])
 
