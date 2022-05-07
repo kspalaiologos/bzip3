@@ -81,7 +81,7 @@ void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t
 
 /**
  * @brief Decode `n' blocks, all in parallel.
- * Same specifics as `bz3_encode_blocks'
+ * Same specifics as `bz3_encode_blocks', but doesn't overwrite `sizes'.
  */
 void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t orig_sizes[], int32_t n);
 

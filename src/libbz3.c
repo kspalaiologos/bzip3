@@ -256,10 +256,52 @@ s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 o
 
 #undef swap
 
-void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
+#include <pthread.h>
 
+typedef struct {
+    struct bz3_state * state;
+    uint8_t * buffer;
+    int32_t size;
+} encode_thread_msg;
+
+typedef struct {
+    struct bz3_state * state;
+    uint8_t * buffer;
+    int32_t size;
+    int32_t orig_size;
+} decode_thread_msg;
+
+static void bz3_init_encode_thread(encode_thread_msg * msg) {
+    msg->size = bz3_encode_block(msg->state, msg->buffer, msg->size);
+}
+
+static void bz3_init_decode_thread(decode_thread_msg * msg) {
+    bz3_decode_block(msg->state, msg->buffer, msg->size, msg->orig_size);
+}
+
+void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
+    encode_thread_msg messages[n];
+    pthread_t threads[n];
+    for(int32_t i = 0; i < n; i++) {
+        messages[i].state = states[i];
+        messages[i].buffer = buffers[i];
+        messages[i].size = sizes[i];
+        pthread_create(&threads[i], NULL, (void *(*)(void *)) bz3_init_encode_thread, &messages[i]);
+    }
+    for(int32_t i = 0; i < n; i++)
+        pthread_join(threads[i], NULL);
 }
 
 void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t orig_sizes[], int32_t n) {
-    
+    decode_thread_msg messages[n];
+    pthread_t threads[n];
+    for(int32_t i = 0; i < n; i++) {
+        messages[i].state = states[i];
+        messages[i].buffer = buffers[i];
+        messages[i].size = sizes[i];
+        messages[i].orig_size = orig_sizes[i];
+        pthread_create(&threads[i], NULL, (void *(*)(void *)) bz3_init_decode_thread, &messages[i]);
+    }
+    for(int32_t i = 0; i < n; i++)
+        pthread_join(threads[i], NULL);
 }
