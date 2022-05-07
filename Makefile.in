@@ -13,10 +13,10 @@ obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 bzip3.so: $(LIBBZ3_OBJECTS)
-	$(CC) -shared $(CFLAGS) -o $@ $^ -lm
+	$(CC) -shared $(CFLAGS) -o $@ $^ @LIBS@
 
 bzip3: obj/main.o $(LIBBZ3_OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ -lm
+	$(CC) $(CFLAGS) -o $@ $^ @LIBS@
 
 clean:
 	rm -f bzip3 obj/*.o
