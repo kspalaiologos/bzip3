@@ -290,6 +290,8 @@ void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t
     }
     for(int32_t i = 0; i < n; i++)
         pthread_join(threads[i], NULL);
+    for(int32_t i = 0; i < n; i++)
+        sizes[i] = messages[i].size;
 }
 
 void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t orig_sizes[], int32_t n) {
