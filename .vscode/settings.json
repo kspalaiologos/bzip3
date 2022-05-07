@@ -16,6 +16,9 @@
         "sstream": "c",
         "streambuf": "c",
         "config.h": "c",
-        "intrin.h": "c"
+        "intrin.h": "c",
+        "signal.h": "c",
+        "time.h": "c",
+        "libbz3.h": "c"
     }
 }

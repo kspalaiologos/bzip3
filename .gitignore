@@ -24,3 +24,9 @@ configure~
 bzip3.so
 
 libbz3.so
+
+etc/bitflip
+
+etc/shakespeare.bz3
+
+libbzip3.so

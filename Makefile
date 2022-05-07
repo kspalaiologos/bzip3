@@ -8,12 +8,12 @@ PREFIX?=/usr/local
 LIBBZ3_OBJECTS=obj/libsais.o obj/crc32.o obj/rle.o obj/cm.o \
                obj/libbz3.o obj/lzp.o
 
-all: bzip3 bzip3.so
+all: bzip3 libbzip3.so
 
 obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-bzip3.so: $(LIBBZ3_OBJECTS)
+libbzip3.so: $(LIBBZ3_OBJECTS)
 	$(CC) -shared $(CFLAGS) -o $@ $^ -lpthread 
 
 bzip3: obj/main.o $(LIBBZ3_OBJECTS)
@@ -27,7 +27,7 @@ format:
 
 install:
 	install -c -v -m 755 bzip3 $(PREFIX)/bin
-	install -c -v -m 755 bzip3.so $(PREFIX)/lib
+	install -c -v -m 755 libbzip3.so $(PREFIX)/lib
 	install -c -v -m 755 include/libbz3.h $(PREFIX)/include
 
 cloc:
