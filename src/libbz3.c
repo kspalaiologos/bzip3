@@ -280,14 +280,18 @@ typedef struct {
     int32_t orig_size;
 } decode_thread_msg;
 
-static void bz3_init_encode_thread(encode_thread_msg * msg) {
+static void * bz3_init_encode_thread(void * _msg) {
+    encode_thread_msg * msg = _msg;
     msg->size = bz3_encode_block(msg->state, msg->buffer, msg->size);
     pthread_exit(NULL);
+    return NULL; // unreachable
 }
 
-static void bz3_init_decode_thread(decode_thread_msg * msg) {
+static void * bz3_init_decode_thread(void * _msg) {
+    decode_thread_msg * msg = _msg;
     bz3_decode_block(msg->state, msg->buffer, msg->size, msg->orig_size);
     pthread_exit(NULL);
+    return NULL; // unreachable
 }
 
 PUBLIC_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
@@ -297,7 +301,7 @@ PUBLIC_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers
         messages[i].state = states[i];
         messages[i].buffer = buffers[i];
         messages[i].size = sizes[i];
-        pthread_create(&threads[i], NULL, (void *(*)(void *)) bz3_init_encode_thread, &messages[i]);
+        pthread_create(&threads[i], NULL, bz3_init_encode_thread, &messages[i]);
     }
     for(int32_t i = 0; i < n; i++)
         pthread_join(threads[i], NULL);
@@ -313,7 +317,7 @@ PUBLIC_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers
         messages[i].buffer = buffers[i];
         messages[i].size = sizes[i];
         messages[i].orig_size = orig_sizes[i];
-        pthread_create(&threads[i], NULL, (void *(*)(void *)) bz3_init_decode_thread, &messages[i]);
+        pthread_create(&threads[i], NULL, bz3_init_decode_thread, &messages[i]);
     }
     for(int32_t i = 0; i < n; i++)
         pthread_join(threads[i], NULL);
