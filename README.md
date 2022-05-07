@@ -10,3 +10,9 @@ No stability guarantees yet.
 ```
 ./configure && make all && sudo make install
 ```
+
+## Benchmarks
+
+![visualisation of the benchmarks](etc/benchmark.png)
+
+Check etc/BENCHMARKS.md for more results.
