@@ -294,7 +294,7 @@ int main(int argc, char * argv[]) {
                     size_t read_count = fread(buffers[i], 1, block_size, input_des);
                     sizes[i] = old_sizes[i] = read_count;
                     if(read_count < block_size)
-                        break;
+                        { i++; break; }
                 }
                 bz3_encode_blocks(states, buffers, sizes, i);
                 for(s32 j = 0; j < i; j++) {

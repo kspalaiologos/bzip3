@@ -273,10 +273,12 @@ typedef struct {
 
 static void bz3_init_encode_thread(encode_thread_msg * msg) {
     msg->size = bz3_encode_block(msg->state, msg->buffer, msg->size);
+    pthread_exit(NULL);
 }
 
 static void bz3_init_decode_thread(decode_thread_msg * msg) {
     bz3_decode_block(msg->state, msg->buffer, msg->size, msg->orig_size);
+    pthread_exit(NULL);
 }
 
 void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
