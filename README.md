@@ -10,10 +10,3 @@ No stability guarantees yet.
 ```
 ./configure && make all && sudo make install
 ```
-
-## TODO
-
-- Avoid a memory copy in `bz3_encode_block`/`bz3_decode_block`.
-- "Extreme" preset which automatically picks the best options at the expense of the runtime.
-- Further performance optimisations.
-- Thorough memory safety testing.
