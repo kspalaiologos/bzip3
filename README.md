@@ -16,3 +16,7 @@ No stability guarantees yet.
 ![visualisation of the benchmarks](etc/benchmark.png)
 
 Check etc/BENCHMARKS.md for more results.
+
+## Thanks
+
+- Ilya Grebnov for his `libsais` library used for BWT construction in BZip3 and the LZP encoder which I had used as a reference implementation to improve myself.
