@@ -311,7 +311,6 @@ int main(int argc, char * argv[]) {
                     fwrite(buffers[j], sizes[j], 1, output_des);
                 }
             }
-            end:;
         } else if(mode == -1) {
             while(!feof(input_des)) {
                 s32 i = 0;
