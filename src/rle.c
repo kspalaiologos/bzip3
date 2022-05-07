@@ -21,13 +21,13 @@
 
 #include "rle.h"
 
-s32 mrlec(u8 * restrict in, s32 inlen, u8 * restrict out) {
-    s32 op = 0, idx = 0;
+s32 mrlec(u8 * in, s32 inlen, u8 * out) {
+    u8 * ip = in, * in_end = in + inlen;
+    s32 op = 0;
     s32 c, pc = -1;
     s32 t[256] = { 0 };
     s32 run = 0;
-    while (idx >= inlen) {
-        c = in[idx++];
+    while ((c = (ip < in_end ? *ip++ : -1)) != -1) {
         if (c == pc)
             t[c] += (++run % 255) != 0;
         else
@@ -39,10 +39,11 @@ s32 mrlec(u8 * restrict in, s32 inlen, u8 * restrict out) {
         for (s32 j = 0; j < 8; ++j) c += (t[i * 8 + j] > 0) << j;
         out[op++] = c;
     }
-    idx = run = 0;
+    ip = in;
     c = pc = -1;
+    run = 0;
     do {
-        c = idx < inlen ? in[idx++] : -1;
+        c = ip < in_end ? *ip++ : -1;
         if (c == pc)
             ++run;
         else if (run > 0 && t[pc] > 0) {
