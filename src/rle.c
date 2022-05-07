@@ -45,29 +45,27 @@ s32 mrlec(u8 * in, s32 inlen, u8 * out) {
     return op - out;
 }
 
-s32 mrled(u8 * in, u8 * out, s32 outlen) {
-    u8 *ip = in, *op = out;
-    s32 i;
+void mrled(u8 * restrict in, u8 * restrict out, s32 outlen) {
+    s32 op = 0, ip = 0;
 
     s32 c, pc = -1;
     s32 t[256] = { 0 };
     s32 run = 0;
 
-    for (i = 0; i < 32; ++i) {
-        s32 j;
-        c = *ip++;
-        for (j = 0; j < 8; ++j) t[i * 8 + j] = (c >> j) & 1;
+    for (s32 i = 0; i < 32; ++i) {
+        c = in[ip++];
+        for (s32 j = 0; j < 8; ++j) t[i * 8 + j] = (c >> j) & 1;
     }
 
-    while (op < out + outlen) {
-        c = *ip++;
+    while (op < outlen) {
+        c = in[ip++];
         if (t[c]) {
-            for (run = 0; (pc = *ip++) == 255; run += 255)
+            for (run = 0; (pc = in[ip++]) == 255; run += 255)
                 ;
             run += pc + 1;
-            for (; run > 0; --run) buffer_write(c, op);
+            for (; run > 0; --run)
+                out[op++] = c;
         } else
-            buffer_write(c, op);
+            out[op++] = c;
     }
-    return ip - in;
 }
