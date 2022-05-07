@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bzip3",
-            "args": ["-e", "${workspaceFolder}/corpus/cm.c", "${workspaceFolder}/corpus/cm.bz3"],
+            "args": ["-t", "${workspaceFolder}/corpus/linux.bz3"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

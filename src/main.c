@@ -91,7 +91,7 @@ int main(int argc, char * argv[]) {
             output = bz3_file;
             if(!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
                 // add the bz3 extension
-                output = malloc(strlen(input) + 4);
+                output = malloc(strlen(input) + 5);
                 strcpy(output, input);
                 strcat(output, ".bz3");
             }
