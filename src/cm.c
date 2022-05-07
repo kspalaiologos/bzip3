@@ -105,7 +105,7 @@ void begin(state * s) {
         for (int j = 0; j < 256; j++) s->C1[i][j] = 1 << 15;
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 256; j++)
-            for (int k = 0; k < 17; k++) s->C2[2*j+i][k] = (k << 12) - (k == 16);
+            for (int k = 0; k < 17; k++) s->C2[2 * j + i][k] = (k << 12) - (k == 16);
 }
 
 void encode_byte(state * s, u8 c) {
@@ -125,23 +125,23 @@ void encode_byte(state * s, u8 c) {
         const int p = ((p0 + p1) * 7 + p2 + p2) >> 4;
 
         const int j = p >> 12;
-        const int x1 = s->C2[2*ctx+f][j];
-        const int x2 = s->C2[2*ctx+f][j + 1];
+        const int x1 = s->C2[2 * ctx + f][j];
+        const int x2 = s->C2[2 * ctx + f][j + 1];
         const int ssep = x1 + (((x2 - x1) * (p & 4095)) >> 12);
 
         if (c & 128) {
             encodebit1(s, ssep * 3 + p);
             s->C0[ctx] = update1(s->C0[ctx], 2);
             s->C1[s->c1][ctx] = update1(s->C1[s->c1][ctx], 4);
-            s->C2[2*ctx+f][j] = update1(s->C2[2*ctx+f][j], 6);
-            s->C2[2*ctx+f][j + 1] = update1(s->C2[2*ctx+f][j + 1], 6);
+            s->C2[2 * ctx + f][j] = update1(s->C2[2 * ctx + f][j], 6);
+            s->C2[2 * ctx + f][j + 1] = update1(s->C2[2 * ctx + f][j + 1], 6);
             ctx += ctx + 1;
         } else {
             encodebit0(s, ssep * 3 + p);
             s->C0[ctx] = update0(s->C0[ctx], 2);
             s->C1[s->c1][ctx] = update0(s->C1[s->c1][ctx], 4);
-            s->C2[2*ctx+f][j] = update0(s->C2[2*ctx+f][j], 6);
-            s->C2[2*ctx+f][j + 1] = update0(s->C2[2*ctx+f][j + 1], 6);
+            s->C2[2 * ctx + f][j] = update0(s->C2[2 * ctx + f][j], 6);
+            s->C2[2 * ctx + f][j + 1] = update0(s->C2[2 * ctx + f][j + 1], 6);
             ctx += ctx;
         }
 
@@ -169,8 +169,8 @@ u8 decode_byte(state * s) {
         const int p = ((p0 + p1) * 7 + p2 + p2) >> 4;
 
         const int j = p >> 12;
-        const int x1 = s->C2[2*ctx+f][j];
-        const int x2 = s->C2[2*ctx+f][j + 1];
+        const int x1 = s->C2[2 * ctx + f][j];
+        const int x2 = s->C2[2 * ctx + f][j + 1];
         const int ssep = x1 + (((x2 - x1) * (p & 4095)) >> 12);
 
         const int bit = decodebit(s, ssep * 3 + p);
@@ -178,14 +178,14 @@ u8 decode_byte(state * s) {
         if (bit) {
             s->C0[ctx] = update1(s->C0[ctx], 2);
             s->C1[s->c1][ctx] = update1(s->C1[s->c1][ctx], 4);
-            s->C2[2*ctx+f][j] = update1(s->C2[2*ctx+f][j], 6);
-            s->C2[2*ctx+f][j + 1] = update1(s->C2[2*ctx+f][j + 1], 6);
+            s->C2[2 * ctx + f][j] = update1(s->C2[2 * ctx + f][j], 6);
+            s->C2[2 * ctx + f][j + 1] = update1(s->C2[2 * ctx + f][j + 1], 6);
             ctx += ctx + 1;
         } else {
             s->C0[ctx] = update0(s->C0[ctx], 2);
             s->C1[s->c1][ctx] = update0(s->C1[s->c1][ctx], 4);
-            s->C2[2*ctx+f][j] = update0(s->C2[2*ctx+f][j], 6);
-            s->C2[2*ctx+f][j + 1] = update0(s->C2[2*ctx+f][j + 1], 6);
+            s->C2[2 * ctx + f][j] = update0(s->C2[2 * ctx + f][j], 6);
+            s->C2[2 * ctx + f][j + 1] = update0(s->C2[2 * ctx + f][j + 1], 6);
             ctx += ctx;
         }
     }

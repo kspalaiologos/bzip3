@@ -77,8 +77,7 @@ struct bz3_state * bz3_new(s32 block_size) {
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
-    if (!bz3_state->cm_state || !bz3_state->swap_buffer || !bz3_state->sais_array ||
-        !bz3_state->lzp_lut) {
+    if (!bz3_state->cm_state || !bz3_state->swap_buffer || !bz3_state->sais_array || !bz3_state->lzp_lut) {
         return NULL;
     }
 
@@ -129,7 +128,7 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     s32 lzp_size, rle_size;
 
     rle_size = mrlec(b1, data_size, b2);
-    if (rle_size < data_size) {
+    if (rle_size < data_size + 64) {
         swap(b1, b2);
         data_size = rle_size;
         model |= 4;
