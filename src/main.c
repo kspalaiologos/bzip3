@@ -32,6 +32,7 @@ int main(int argc, char * argv[]) {
     // input and output file names
     char *input = NULL, *output = NULL;
     char *bz3_file = NULL, *regular_file = NULL;
+    int no_bz3_suffix = 0;
 
     // command line arguments
     int force_stdstreams = 0;
@@ -54,8 +55,16 @@ int main(int argc, char * argv[]) {
                 force_stdstreams = 1;
             }
         } else {
-            if (strlen(argv[i]) > 4 && !strcmp(argv[i] + strlen(argv[i]) - 4, ".bz3")) {
+            if(bz3_file != NULL && regular_file != NULL) {
+                fprintf(stderr, "Error: too many files specified.\n");
+                return 1;
+            }
+
+            int has_bz3_suffix = strlen(argv[i]) > 4 && !strcmp(argv[i] + strlen(argv[i]) - 4, ".bz3");
+
+            if (has_bz3_suffix || regular_file != NULL) {
                 bz3_file = argv[i];
+                no_bz3_suffix = !has_bz3_suffix;
             } else {
                 regular_file = argv[i];
             }
@@ -76,12 +85,24 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if (mode == 1) {
+    if (no_bz3_suffix || mode == 1) {
         input = regular_file;
         output = bz3_file;
+        if(!force_stdstreams && output == NULL && input != NULL) {
+            // add the bz3 extension
+            output = malloc(strlen(input) + 4);
+            strcpy(output, input);
+            strcat(output, ".bz3");
+        }
     } else {
         input = bz3_file;
         output = regular_file;
+        if(!force_stdstreams && output == NULL && input != NULL) {
+            // strip the bz3 extension
+            output = malloc(strlen(input) - 4);
+            strncpy(output, input, strlen(input) - 4);
+            output[strlen(input) - 4] = '\0';
+        }
     }
 
     FILE *input_des, *output_des;
@@ -109,6 +130,8 @@ int main(int argc, char * argv[]) {
     if (block_size < KiB(65) || block_size > MiB(2047)) {
         fprintf(stderr, "Block size must be between 65 KiB and 2047 MiB.\n");
         return 1;
+    } else {
+
     }
 
 #if HAVE_ISATTY == 1 && HAVE_FILENO == 1

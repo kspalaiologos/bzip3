@@ -134,7 +134,7 @@ static s32 lzp_decode_block(const u8 * restrict in, const u8 * in_end, s32 * res
     return out - outs;
 }
 
-s32 lzp_compress(const u8 * in, u8 * out, s32 n, s32 hash, s32 m_len, s32 * lut) {
+s32 lzp_compress(const u8 * restrict in, u8 * restrict out, s32 n, s32 hash, s32 m_len, s32 * restrict lut) {
     s32 nblk = num_blocks(n);
 
     if (nblk == 1) {
@@ -186,7 +186,7 @@ s32 lzp_compress(const u8 * in, u8 * out, s32 n, s32 hash, s32 m_len, s32 * lut)
     return out_ptr;
 }
 
-s32 lzp_decompress(const u8 * in, u8 * out, s32 n, s32 hash, s32 m_len, s32 * lut) {
+s32 lzp_decompress(const u8 * restrict in, u8 * restrict out, s32 n, s32 hash, s32 m_len, s32 * restrict lut) {
     s32 nblk = in[0];
 
     if (nblk == 1) return lzp_decode_block(in + 1, in + n, lut, out, hash, m_len);
