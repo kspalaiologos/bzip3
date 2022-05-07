@@ -75,6 +75,8 @@ int32_t bz3_decode_block(struct bz3_state * state, uint8_t * buffer, int32_t siz
  * The compressed sizes are written to the `sizes' array. Every buffer is overwritten and none of them can overlap.
  * Precisely `n' states, buffers and sizes must be supplied.
  * 
+ * Expects `n' between 2 and 16.
+ * 
  * Present in the shared library only if -lpthread was present during building.
  */
 void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n);
