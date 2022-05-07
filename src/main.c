@@ -85,24 +85,28 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if (no_bz3_suffix || mode == 1) {
-        input = regular_file;
-        output = bz3_file;
-        if(!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
-            // add the bz3 extension
-            output = malloc(strlen(input) + 4);
-            strcpy(output, input);
-            strcat(output, ".bz3");
+    if(mode != 2) {
+        if (no_bz3_suffix || mode == 1) {
+            input = regular_file;
+            output = bz3_file;
+            if(!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
+                // add the bz3 extension
+                output = malloc(strlen(input) + 4);
+                strcpy(output, input);
+                strcat(output, ".bz3");
+            }
+        } else {
+            input = bz3_file;
+            output = regular_file;
+            if(!force_stdstreams && output == NULL && input != NULL) {
+                // strip the bz3 extension
+                output = malloc(strlen(input) - 4);
+                strncpy(output, input, strlen(input) - 4);
+                output[strlen(input) - 4] = '\0';
+            }
         }
     } else {
-        input = bz3_file;
-        output = regular_file;
-        if(!force_stdstreams && output == NULL && input != NULL) {
-            // strip the bz3 extension
-            output = malloc(strlen(input) - 4);
-            strncpy(output, input, strlen(input) - 4);
-            output[strlen(input) - 4] = '\0';
-        }
+        input = bz3_file != NULL ? bz3_file : regular_file;
     }
 
     FILE *input_des, *output_des;
@@ -117,7 +121,7 @@ int main(int argc, char * argv[]) {
         input_des = stdin;
     }
 
-    if (output != NULL) {
+    if (output != NULL && mode != 2) {
         output_des = fopen(output, "wb");
         if (output_des == NULL) {
             perror("open");
@@ -130,12 +134,10 @@ int main(int argc, char * argv[]) {
     if (block_size < KiB(65) || block_size > MiB(2047)) {
         fprintf(stderr, "Block size must be between 65 KiB and 2047 MiB.\n");
         return 1;
-    } else {
-
     }
 
 #if HAVE_ISATTY == 1 && HAVE_FILENO == 1
-    if ((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && mode == -1)) {
+    if ((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && (mode == -1 || mode == 2))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
@@ -150,7 +152,7 @@ int main(int argc, char * argv[]) {
             block_size = ntohl(block_size);
             break;
         case -1:
-        case -2: {
+        case 2: {
             char signature[5];
 
             fread(signature, 5, 1, input_des);
@@ -220,14 +222,15 @@ int main(int argc, char * argv[]) {
             }
             fwrite(buffer, old_size, 1, output_des);
         }
-    } else if (mode == -2) {
+    } else if (mode == 2) {
         s32 new_size, old_size;
         while (!feof(input_des)) {
-            if (fread(&new_size, 4, 1, input_des) != 4) {
+            s32 read;
+            if ((read = fread(&new_size, 1, 4, input_des)) != 4) {
                 // Assume that the file has no more data.
                 break;
             }
-            if (fread(&old_size, 4, 1, input_des) != 4) {
+            if (fread(&old_size, 1, 4, input_des) != 4) {
                 fprintf(stderr, "I/O error.\n");
             }
             new_size = ntohl(new_size);
