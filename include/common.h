@@ -47,4 +47,6 @@ static void write_neutral_s32(u8 * data, s32 value) {
 
 }
 
+#define PUBLIC_API
+
 #endif
