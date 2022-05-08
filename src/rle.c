@@ -2,7 +2,7 @@
 /*
  * BZip3 - A spiritual successor to BZip2.
  * Copyright (C) 2022 Kamila Szewczyk
- * 
+ *
  * An implementation of Mespotine RLE.
  *
  * This program is free software: you can redistribute it and/or modify it
@@ -22,7 +22,7 @@
 #include "rle.h"
 
 s32 mrlec(u8 * in, s32 inlen, u8 * out) {
-    u8 * ip = in, * in_end = in + inlen;
+    u8 *ip = in, *in_end = in + inlen;
     s32 op = 0;
     s32 c, pc = -1;
     s32 t[256] = { 0 };
@@ -77,8 +77,7 @@ void mrled(u8 * restrict in, u8 * restrict out, s32 outlen) {
             for (run = 0; (pc = in[ip++]) == 255; run += 255)
                 ;
             run += pc + 1;
-            for (; run > 0; --run)
-                out[op++] = c;
+            for (; run > 0; --run) out[op++] = c;
         } else
             out[op++] = c;
     }

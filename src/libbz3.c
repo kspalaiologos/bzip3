@@ -78,14 +78,10 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
     if (!bz3_state->cm_state || !bz3_state->swap_buffer || !bz3_state->sais_array || !bz3_state->lzp_lut) {
-        if(bz3_state->cm_state)
-            free(bz3_state->cm_state);
-        if(bz3_state->swap_buffer)
-            free(bz3_state->swap_buffer);
-        if(bz3_state->sais_array)
-            free(bz3_state->sais_array);
-        if(bz3_state->lzp_lut)
-            free(bz3_state->lzp_lut);
+        if (bz3_state->cm_state) free(bz3_state->cm_state);
+        if (bz3_state->swap_buffer) free(bz3_state->swap_buffer);
+        if (bz3_state->sais_array) free(bz3_state->sais_array);
+        if (bz3_state->lzp_lut) free(bz3_state->lzp_lut);
 
         return NULL;
     }
@@ -284,41 +280,39 @@ static void * bz3_init_encode_thread(void * _msg) {
     encode_thread_msg * msg = _msg;
     msg->size = bz3_encode_block(msg->state, msg->buffer, msg->size);
     pthread_exit(NULL);
-    return NULL; // unreachable
+    return NULL;  // unreachable
 }
 
 static void * bz3_init_decode_thread(void * _msg) {
     decode_thread_msg * msg = _msg;
     bz3_decode_block(msg->state, msg->buffer, msg->size, msg->orig_size);
     pthread_exit(NULL);
-    return NULL; // unreachable
+    return NULL;  // unreachable
 }
 
 PUBLIC_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
     encode_thread_msg messages[n];
     pthread_t threads[n];
-    for(int32_t i = 0; i < n; i++) {
+    for (int32_t i = 0; i < n; i++) {
         messages[i].state = states[i];
         messages[i].buffer = buffers[i];
         messages[i].size = sizes[i];
         pthread_create(&threads[i], NULL, bz3_init_encode_thread, &messages[i]);
     }
-    for(int32_t i = 0; i < n; i++)
-        pthread_join(threads[i], NULL);
-    for(int32_t i = 0; i < n; i++)
-        sizes[i] = messages[i].size;
+    for (int32_t i = 0; i < n; i++) pthread_join(threads[i], NULL);
+    for (int32_t i = 0; i < n; i++) sizes[i] = messages[i].size;
 }
 
-PUBLIC_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t orig_sizes[], int32_t n) {
+PUBLIC_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
+                                  int32_t orig_sizes[], int32_t n) {
     decode_thread_msg messages[n];
     pthread_t threads[n];
-    for(int32_t i = 0; i < n; i++) {
+    for (int32_t i = 0; i < n; i++) {
         messages[i].state = states[i];
         messages[i].buffer = buffers[i];
         messages[i].size = sizes[i];
         messages[i].orig_size = orig_sizes[i];
         pthread_create(&threads[i], NULL, bz3_init_decode_thread, &messages[i]);
     }
-    for(int32_t i = 0; i < n; i++)
-        pthread_join(threads[i], NULL);
+    for (int32_t i = 0; i < n; i++) pthread_join(threads[i], NULL);
 }

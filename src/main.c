@@ -58,7 +58,7 @@ int main(int argc, char * argv[]) {
                 i++;
             }
         } else {
-            if(bz3_file != NULL && regular_file != NULL) {
+            if (bz3_file != NULL && regular_file != NULL) {
                 fprintf(stderr, "Error: too many files specified.\n");
                 return 1;
             }
@@ -89,11 +89,11 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if(mode != 2) {
+    if (mode != 2) {
         if (no_bz3_suffix || mode == 1) {
             input = regular_file;
             output = bz3_file;
-            if(!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
+            if (!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
                 // add the bz3 extension
                 output = malloc(strlen(input) + 5);
                 strcpy(output, input);
@@ -102,7 +102,7 @@ int main(int argc, char * argv[]) {
         } else {
             input = bz3_file;
             output = regular_file;
-            if(!force_stdstreams && output == NULL && input != NULL) {
+            if (!force_stdstreams && output == NULL && input != NULL) {
                 // strip the bz3 extension
                 output = malloc(strlen(input) - 4);
                 strncpy(output, input, strlen(input) - 4);
@@ -180,12 +180,12 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    if(workers > 16 || workers < 0) {
+    if (workers > 16 || workers < 0) {
         fprintf(stderr, "Number of workers must be between 2 and 16.\n");
         return 1;
     }
 
-    if(workers <= 1) {
+    if (workers <= 1) {
         struct bz3_state * state = bz3_new(block_size);
 
         if (state == NULL) {
@@ -195,7 +195,7 @@ int main(int argc, char * argv[]) {
 
         u8 * buffer = malloc(block_size + block_size / 50 + 16);
 
-        if(!buffer) {
+        if (!buffer) {
             fprintf(stderr, "Failed to allocate memory.\n");
             return 1;
         }
@@ -274,36 +274,38 @@ int main(int argc, char * argv[]) {
         u8 * buffers[workers];
         s32 sizes[workers];
         s32 old_sizes[workers];
-        for(s32 i = 0; i < workers; i++) {
+        for (s32 i = 0; i < workers; i++) {
             states[i] = bz3_new(block_size);
             if (states[i] == NULL) {
                 fprintf(stderr, "Failed to create a block encoder state.\n");
                 return 1;
             }
             buffers[i] = malloc(block_size + block_size / 50 + 16);
-            if(!buffers[i]) {
+            if (!buffers[i]) {
                 fprintf(stderr, "Failed to allocate memory.\n");
                 return 1;
             }
         }
 
         if (mode == 1) {
-            while(!feof(input_des)) {
+            while (!feof(input_des)) {
                 s32 i = 0;
-                for(; i < workers; i++) {
+                for (; i < workers; i++) {
                     size_t read_count = fread(buffers[i], 1, block_size, input_des);
                     sizes[i] = old_sizes[i] = read_count;
-                    if(read_count < block_size)
-                        { i++; break; }
+                    if (read_count < block_size) {
+                        i++;
+                        break;
+                    }
                 }
                 bz3_encode_blocks(states, buffers, sizes, i);
-                for(s32 j = 0; j < i; j++) {
+                for (s32 j = 0; j < i; j++) {
                     if (bz3_last_error(states[j]) != BZ3_OK) {
                         fprintf(stderr, "Failed to encode data: %s\n", bz3_strerror(states[j]));
                         return 1;
                     }
                 }
-                for(s32 j = 0; j < i; j++) {
+                for (s32 j = 0; j < i; j++) {
                     write_neutral_s32(byteswap_buf, sizes[j]);
                     fwrite(byteswap_buf, 4, 1, output_des);
                     write_neutral_s32(byteswap_buf, old_sizes[j]);
@@ -311,49 +313,45 @@ int main(int argc, char * argv[]) {
                     fwrite(buffers[j], sizes[j], 1, output_des);
                 }
             }
-        } else if(mode == -1) {
-            while(!feof(input_des)) {
+        } else if (mode == -1) {
+            while (!feof(input_des)) {
                 s32 i = 0;
-                for(; i < workers; i++) {
-                    if(fread(&byteswap_buf, 1, 4, input_des) != 4)
-                        break;
+                for (; i < workers; i++) {
+                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
-                    if(fread(&byteswap_buf, 1, 4, input_des) != 4)
-                        break;
+                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if(fread(buffers[i], 1, sizes[i], input_des) != sizes[i]) {
+                    if (fread(buffers[i], 1, sizes[i], input_des) != sizes[i]) {
                         fprintf(stderr, "I/O error.\n");
                         return 1;
                     }
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
-                for(s32 j = 0; j < i; j++) {
+                for (s32 j = 0; j < i; j++) {
                     if (bz3_last_error(states[j]) != BZ3_OK) {
                         fprintf(stderr, "Failed to decode data: %s\n", bz3_strerror(states[j]));
                         return 1;
                     }
                 }
-                for(s32 j = 0; j < i; j++) {
+                for (s32 j = 0; j < i; j++) {
                     fwrite(buffers[j], old_sizes[j], 1, output_des);
                 }
             }
-        } else if(mode == 2) {
-            while(!feof(input_des)) {
+        } else if (mode == 2) {
+            while (!feof(input_des)) {
                 s32 i = 0;
-                for(; i < workers; i++) {
-                    if(fread(&byteswap_buf, 1, 4, input_des) != 4)
-                        break;
+                for (; i < workers; i++) {
+                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
-                    if(fread(&byteswap_buf, 1, 4, input_des) != 4)
-                        break;
+                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if(fread(buffers[i], 1, sizes[i], input_des) != sizes[i]) {
+                    if (fread(buffers[i], 1, sizes[i], input_des) != sizes[i]) {
                         fprintf(stderr, "I/O error.\n");
                         return 1;
                     }
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
-                for(s32 j = 0; j < i; j++) {
+                for (s32 j = 0; j < i; j++) {
                     if (bz3_last_error(states[j]) != BZ3_OK) {
                         fprintf(stderr, "Failed to decode data: %s\n", bz3_strerror(states[j]));
                         return 1;
@@ -362,7 +360,7 @@ int main(int argc, char * argv[]) {
             }
         }
 
-        for(s32 i = 0; i < workers; i++) {
+        for (s32 i = 0; i < workers; i++) {
             free(buffers[i]);
             bz3_free(states[i]);
         }
