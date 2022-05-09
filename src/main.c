@@ -21,9 +21,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "common.h"
 #include "libbz3.h"
+
+int is_dir(const char * path) {
+    struct stat sb;
+    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode))
+        return 1;
+    return 0;
+}
 
 int main(int argc, char * argv[]) {
     // -1: decode, 0: unspecified, 1: encode, 2: test
@@ -116,6 +124,11 @@ int main(int argc, char * argv[]) {
     FILE *input_des, *output_des;
 
     if (input != NULL) {
+        if(is_dir(input)) {
+            fprintf(stderr, "Error: input is a directory.\n");
+            return 1;
+        }
+
         input_des = fopen(input, "rb");
         if (input_des == NULL) {
             perror("fopen");
@@ -126,6 +139,11 @@ int main(int argc, char * argv[]) {
     }
 
     if (output != NULL && mode != 2) {
+        if(is_dir(output)) {
+            fprintf(stderr, "Error: output is a directory.\n");
+            return 1;
+        }
+
         output_des = fopen(output, "wb");
         if (output_des == NULL) {
             perror("open");
