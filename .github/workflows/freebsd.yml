@@ -19,5 +19,5 @@ jobs:
         usesh: true
         prepare: pkg install -y llvm gmake
         run: |
-          make
-          make check
+          gmake
+          gmake check
