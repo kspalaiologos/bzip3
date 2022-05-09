@@ -20,7 +20,7 @@ bzip3: obj/main.o $(LIBBZ3_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ -lpthread 
 
 clean:
-	rm -f bzip3 obj/*.o
+	rm -f bzip3 libbzip3.so obj/*.o
 
 format:
 	clang-format -i src/*.c include/*.h
