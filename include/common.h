@@ -44,6 +44,10 @@ static void write_neutral_s32(u8 * data, s32 value) {
     data[3] = (value >> 24) & 0xFF;
 }
 
-#define PUBLIC_API
+#ifdef __MINGW32__
+    #define PUBLIC_API __declspec(dllexport)
+#else
+    #define PUBLIC_API
+#endif
 
 #endif
