@@ -3,7 +3,7 @@ CC=clang
 CFLAGS=-O2 -march=native -mtune=native -Iinclude -flto -g3 -fPIC
 PREFIX?=/usr/local
 
-.PHONY: all clean format install cloc
+.PHONY: all clean format install cloc check
 
 LIBBZ3_OBJECTS=obj/libsais.o obj/crc32.o obj/rle.o obj/cm.o \
                obj/libbz3.o obj/lzp.o
@@ -32,3 +32,7 @@ install:
 
 cloc:
 	cloc src/*.c include/*.h
+
+check: bzip3
+	time ./bzip3 -e -b 6 etc/shakespeare.txt
+	time ./bzip3 -d etc/shakespeare.txt.bz3

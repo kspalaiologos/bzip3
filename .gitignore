@@ -30,3 +30,5 @@ etc/bitflip
 etc/shakespeare.bz3
 
 libbzip3.so
+
+etc/shakespeare.txt.bz3
