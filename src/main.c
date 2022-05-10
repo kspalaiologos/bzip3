@@ -45,12 +45,13 @@ int main(int argc, char * argv[]) {
 
     // command line arguments
     int force_stdstreams = 0, workers = 0;
+    int double_dash = 0;
 
     // the block size
     u32 block_size = MiB(8);
 
     for (int i = 1; i < argc; i++) {
-        if (argv[i][0] == '-') {
+        if (argv[i][0] == '-' && !double_dash) {
             if (argv[i][1] == 'e') {
                 mode = 1;
             } else if (argv[i][1] == 'd') {
@@ -65,6 +66,8 @@ int main(int argc, char * argv[]) {
             } else if (argv[i][1] == 'j') {
                 workers = atoi(argv[i + 1]);
                 i++;
+            } else if(argv[i][1] == '-') {
+                double_dash = 1;
             }
         } else {
             if (bz3_file != NULL && regular_file != NULL) {
