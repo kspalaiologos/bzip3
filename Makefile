@@ -24,6 +24,7 @@ clean:
 	rm -f bzip3 libbzip3.so obj/*.o
 
 format:
+	@which clang-format > /dev/null || ( sh -c "printf 'clang-format not found! See https://clang.llvm.org/docs/ClangFormat.html\n'"; false; )
 	clang-format -i src/*.c include/*.h
 
 install: all
@@ -32,6 +33,7 @@ install: all
 	install -c -v -m 755 include/libbz3.h $(PREFIX)/include
 
 cloc:
+	@which cloc > /dev/null || ( sh -c "printf 'cloc not found! download it from github.com/AlDanial/cloc\n'"; false; )
 	cloc src/*.c include/*.h
 
 check: bzip3
