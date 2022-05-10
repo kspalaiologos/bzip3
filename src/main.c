@@ -199,7 +199,7 @@ int main(int argc, char * argv[]) {
     }
 
     if (workers > 16 || workers < 0) {
-        fprintf(stderr, "Number of workers must be between 2 and 16.\n");
+        fprintf(stderr, "Number of workers must be between 0 and 16.\n");
         return 1;
     }
 
