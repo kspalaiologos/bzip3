@@ -27,12 +27,8 @@
 // Uses an arithmetic coder implementation outlined in:
 // http://mattmahoney.net/dc/dce.html#Section_31
 
-static inline void write_out(state * s, u8 c) { s->out_queue[s->output_ptr++] = c; }
-
-static inline u8 read_in(state * s) {
-    if (s->input_ptr < s->input_max) return s->in_queue[s->input_ptr++];
-    return -1;
-}
+#define write_out(s, c) (s)->out_queue[(s)->output_ptr++] = (c)
+#define read_in(s) ((s)->input_ptr < (s)->input_max ? (s)->in_queue[(s)->input_ptr++] : -1)
 
 // Encode a zero bit with given probability.
 static inline void encodebit0(state * s, u32 p) {
