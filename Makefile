@@ -26,7 +26,7 @@ clean:
 format:
 	clang-format -i src/*.c include/*.h
 
-install:
+install: all
 	install -c -v -m 755 bzip3 $(PREFIX)/bin
 	install -c -v -m 755 libbzip3.so $(PREFIX)/lib
 	install -c -v -m 755 include/libbz3.h $(PREFIX)/include
