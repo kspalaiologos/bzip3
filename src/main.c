@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
 
     if (mode == 0) {
         fprintf(stderr, "bzip3 - A better and stronger spiritual successor to bzip2.\n");
-        fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of GPLv3.\n");
+        fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
         fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c] [-b block_size] input output\n");
         fprintf(stderr, "Operations:\n");
         fprintf(stderr, "  -e: encode\n");
