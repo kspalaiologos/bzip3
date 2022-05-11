@@ -1,6 +1,4 @@
 
-Note: These benchmarks are rarely updated.
-
 [Testing corpus](https://github.com/kspalaiologos/bzip3/releases/download/corpus/corpus.7z)
 
 ```
@@ -131,3 +129,16 @@ wc -c linux.tar*
  125725455 linux.tar.lzma
 ```
 
+## The Silesia corpus
+
+```
+lzma -9 -k silesia.tar  76.88s user 0.31s system 99% cpu 675M memory 1:17.20 total
+bzip3 -e -b 16 silesia.tar  17.42s user 0.08s system 99% cpu 98M memory 17.510 total
+zstd -19 silesia.tar  83.43s user 0.20s system 100% cpu 237M memory 1:23.47 total
+
+% wc -c silesia*
+211968000 silesia.tar
+ 47227855 silesia.tar.bz3
+ 48761670 silesia.tar.lzma
+ 53000145 silesia.tar.zst
+```
