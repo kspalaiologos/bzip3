@@ -27,9 +27,9 @@ format:
 	clang-format -i src/*.c include/*.h
 
 install:
-	install -c -v -m 755 bzip3 $(PREFIX)/bin
-	install -c -v -m 755 libbzip3.so $(PREFIX)/lib
-	install -c -v -m 755 include/libbz3.h $(PREFIX)/include
+	install -c -v -D -m 755 bzip3 $(DESTDIR)$(PREFIX)/bin
+	install -c -v -D -m 755 libbzip3.so $(DESTDIR)$(PREFIX)/lib
+	install -c -v -D -m 644 include/libbz3.h $(DESTDIR)$(PREFIX)/include
 
 cloc:
 	cloc src/*.c include/*.h
