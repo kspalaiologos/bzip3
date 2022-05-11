@@ -206,7 +206,8 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
     data_size -= p * 4 + 1;
 
-    if(lzp_size > state->block_size || rle_size > state->block_size || lzp_size < 0 || rle_size < 0) {
+    if (((model & 2) && (lzp_size > state->block_size + state->block_size / 50 + 16 || lzp_size < 0)) ||
+        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 16 || rle_size < 0))) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }

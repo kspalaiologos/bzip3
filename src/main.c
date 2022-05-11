@@ -17,28 +17,26 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "libbz3.h"
 
 int is_dir(const char * path) {
     struct stat sb;
-    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode))
-        return 1;
+    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) return 1;
     return 0;
 }
 
 int is_numeric(const char * str) {
     for (; *str; str++)
-        if (!isdigit(*str))
-            return 0;
+        if (!isdigit(*str)) return 0;
     return 1;
 }
 
@@ -67,12 +65,12 @@ int main(int argc, char * argv[]) {
             } else if (argv[i][1] == 't') {
                 mode = 2;
             } else if (argv[i][1] == 'b') {
-                if(i + 1 >= argc) {
+                if (i + 1 >= argc) {
                     fprintf(stderr, "Error: -b requires an argument.\n");
                     return 1;
                 }
 
-                if(!is_numeric(argv[i + 1])) {
+                if (!is_numeric(argv[i + 1])) {
                     fprintf(stderr, "Error: -b requires an integer argument.\n");
                     return 1;
                 }
@@ -82,19 +80,19 @@ int main(int argc, char * argv[]) {
             } else if (argv[i][1] == 'c') {
                 force_stdstreams = 1;
             } else if (argv[i][1] == 'j') {
-                if(i + 1 >= argc) {
+                if (i + 1 >= argc) {
                     fprintf(stderr, "Error: -j requires an argument.\n");
                     return 1;
                 }
 
-                if(!is_numeric(argv[i + 1])) {
+                if (!is_numeric(argv[i + 1])) {
                     fprintf(stderr, "Error: -j requires an integer argument.\n");
                     return 1;
                 }
 
                 workers = atoi(argv[i + 1]);
                 i++;
-            } else if(argv[i][1] == '-') {
+            } else if (argv[i][1] == '-') {
                 double_dash = 1;
             }
         } else {
@@ -156,7 +154,7 @@ int main(int argc, char * argv[]) {
     FILE *input_des, *output_des;
 
     if (input != NULL) {
-        if(is_dir(input)) {
+        if (is_dir(input)) {
             fprintf(stderr, "Error: input is a directory.\n");
             return 1;
         }
@@ -171,7 +169,7 @@ int main(int argc, char * argv[]) {
     }
 
     if (output != NULL && mode != 2) {
-        if(is_dir(output)) {
+        if (is_dir(output)) {
             fprintf(stderr, "Error: output is a directory.\n");
             return 1;
         }
