@@ -25,3 +25,20 @@ bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)
 bzip3_LDDADD = libbzip3.la
 bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
+
+# End standard autotools stuff, begin developer convenience targets
+
+.PHONY: format
+format: $(bzip3_SOURCES) $(include_HEADERS)
+	clang-format -i $^
+
+.PHONY: cloc
+cloc: $(bzip3_SOURCES) $(include_HEADERS)
+	cloc $^
+
+check: roundtrip
+
+.PHONY: roundtrip
+roundtrip: $(bin_PROGRAMS)
+	time ./$< -e -b 6 etc/shakespeare.txt
+	time ./$< -d etc/shakespeare.txt.bz3
