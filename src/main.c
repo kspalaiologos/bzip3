@@ -153,6 +153,9 @@ int main(int argc, char * argv[]) {
         input = bz3_file != NULL ? bz3_file : regular_file;
     }
 
+    if(input == NULL && output == NULL)
+        force_stdstreams = 1;
+
     FILE *input_des, *output_des;
 
     if (input != NULL) {
