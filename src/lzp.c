@@ -10,10 +10,6 @@
 
 #define MATCH 0xf2
 
-static inline s32 num_blocks(s32 n) {
-    return 1;
-}
-
 static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * restrict out, u8 * out_end,
                             s32 * restrict lut, s32 mask, s32 m_len) {
     const u8 *ins = in, *outs = out;
