@@ -202,7 +202,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     }
 
     s8 model = buffer[8];
-    s32 lzp_size = -1, rle_size, p = 0;
+    s32 lzp_size = -1, rle_size = -1, p = 0;
 
     if (model & 2) lzp_size = read_neutral_s32(buffer + 9 + 4 * p++);
     if (model & 4) rle_size = read_neutral_s32(buffer + 9 + 4 * p++);
