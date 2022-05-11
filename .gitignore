@@ -1,36 +1,31 @@
-
+# Developer stuff
 corpus/
-
-.vscode/
-
-bzip3
-
-libsais.o
-
-main.o
-
-*.o
-
-autom4te.cache/
-
-config.log
-
-config.status
-
-config.h.in~
-
-config.h
-
-configure~
-
-bzip3.so
-
-libbz3.so
-
+*.bz3
 etc/bitflip
 
-etc/shakespeare.bz3
+# Editor stuff
+.vscode/
+*.~
+tags
 
-libbzip3.so
+# Generated
+*.o
+*.lo
+*.la
+*.so
+bzip3
+bzip3-*
 
-etc/shakespeare.txt.bz3
+# Autotools
+.deps/
+.libs/
+.dirstamp
+/aclocal.m4
+/config.log
+/config.status
+/configure
+/libtool
+Makefile
+Makefile.in
+autom4te.cache/
+build-aux/
