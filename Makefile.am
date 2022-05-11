@@ -36,8 +36,6 @@ format: $(bzip3_SOURCES) $(include_HEADERS)
 cloc: $(bzip3_SOURCES) $(include_HEADERS)
 	cloc $^
 
-check: roundtrip
-
 .PHONY: roundtrip
 roundtrip: $(bin_PROGRAMS)
 	time ./$< -e -b 6 etc/shakespeare.txt
