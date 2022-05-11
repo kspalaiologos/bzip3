@@ -82,7 +82,7 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
         if (bz3_state->swap_buffer) free(bz3_state->swap_buffer);
         if (bz3_state->sais_array) free(bz3_state->sais_array);
         if (bz3_state->lzp_lut) free(bz3_state->lzp_lut);
-
+        free(bz3_state);
         return NULL;
     }
 
