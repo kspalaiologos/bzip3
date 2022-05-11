@@ -261,6 +261,8 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
 #undef swap
 
+#ifdef PTHREAD
+
 #include <pthread.h>
 
 typedef struct {
@@ -316,3 +318,5 @@ PUBLIC_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers
     }
     for (int32_t i = 0; i < n; i++) pthread_join(threads[i], NULL);
 }
+
+#endif
