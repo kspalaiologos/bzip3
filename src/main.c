@@ -142,9 +142,11 @@ int main(int argc, char * argv[]) {
             output = regular_file;
             if (!force_stdstreams && output == NULL && input != NULL) {
                 // strip the bz3 extension
-                output = malloc(strlen(input) - 4);
-                strncpy(output, input, strlen(input) - 4);
-                output[strlen(input) - 4] = '\0';
+                if(strlen(input) > 4 && !strcmp(input + strlen(input) - 4, ".bz3")) {
+                    output = malloc(strlen(input));
+                    strncpy(output, input, strlen(input) - 4);
+                    output[strlen(input) - 4] = '\0';
+                }
             }
         }
     } else {

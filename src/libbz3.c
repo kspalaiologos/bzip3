@@ -186,14 +186,19 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
-    if (bwt_idx == -1) {
-        memmove(buffer, buffer + 8, data_size - 8);
-        return data_size - 8;
+    if(data_size > state->block_size + state->block_size / 50 + 16 || data_size < 0) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
     }
 
-    if (orig_size > state->block_size) {
-        state->last_error = BZ3_ERR_DATA_TOO_BIG;
-        return -1;
+    if (bwt_idx == -1) {
+        if(data_size > 64) {
+            state->last_error = BZ3_ERR_MALFORMED_HEADER;
+            return -1;
+        }
+
+        memmove(buffer, buffer + 8, data_size - 8);
+        return data_size - 8;
     }
 
     s8 model = buffer[8];
