@@ -1,6 +1,8 @@
 
 corpus/
 
+.vscode/
+
 bzip3
 
 libsais.o
