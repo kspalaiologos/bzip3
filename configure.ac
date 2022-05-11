@@ -5,7 +5,8 @@ AM_INIT_AUTOMAKE([foreign subdir-objects tar-pax color-tests])
 AM_SILENT_RULES([yes])
 AC_CONFIG_MACRO_DIR([build-aux])
 
-AC_PROG_CC
+AC_PROG_CC([clang gcc icc])
+LT_INIT
 
 AC_ARG_ENABLE([pthread],
 			  AS_HELP_STRING([--enable-pthread], [Enable use of pthread library [default=yes]]),
