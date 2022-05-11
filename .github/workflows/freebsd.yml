@@ -19,5 +19,7 @@ jobs:
         usesh: true
         prepare: pkg install -y llvm gmake
         run: |
-          gmake
-          gmake check
+          ./bootstrap.sh
+          ./configure
+          make
+          make check

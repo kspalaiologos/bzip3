@@ -1,0 +1,34 @@
+name: Build
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure
+      run: |
+        ./bootstrap.sh
+        ./configure
+    - name: Make
+      run: make
+    - name: Check
+      run: make check
+
+  distcheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure
+      run: |
+        ./bootstrap.sh
+        ./configure
+    - name: Distcheck
+      run: make distcheck
+
