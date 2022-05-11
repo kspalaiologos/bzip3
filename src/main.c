@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -32,6 +33,13 @@ int is_dir(const char * path) {
     if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode))
         return 1;
     return 0;
+}
+
+int is_numeric(const char * str) {
+    for (; *str; str++)
+        if (!isdigit(*str))
+            return 0;
+    return 1;
 }
 
 int main(int argc, char * argv[]) {
@@ -59,11 +67,31 @@ int main(int argc, char * argv[]) {
             } else if (argv[i][1] == 't') {
                 mode = 2;
             } else if (argv[i][1] == 'b') {
+                if(i + 1 >= argc) {
+                    fprintf(stderr, "Error: -b requires an argument.\n");
+                    return 1;
+                }
+
+                if(!is_numeric(argv[i + 1])) {
+                    fprintf(stderr, "Error: -b requires an integer argument.\n");
+                    return 1;
+                }
+
                 block_size = MiB(atoi(argv[i + 1]));
                 i++;
             } else if (argv[i][1] == 'c') {
                 force_stdstreams = 1;
             } else if (argv[i][1] == 'j') {
+                if(i + 1 >= argc) {
+                    fprintf(stderr, "Error: -j requires an argument.\n");
+                    return 1;
+                }
+
+                if(!is_numeric(argv[i + 1])) {
+                    fprintf(stderr, "Error: -j requires an integer argument.\n");
+                    return 1;
+                }
+
                 workers = atoi(argv[i + 1]);
                 i++;
             } else if(argv[i][1] == '-') {
