@@ -30,3 +30,4 @@ Makefile.in
 autom4te.cache/
 build-aux/
 !build-aux/ax_pthread.m4
+!build-aux/ax_check_compile_flag.m4
