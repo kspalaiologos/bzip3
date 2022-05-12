@@ -9,7 +9,7 @@ AC_PROG_CC([clang gcc icc])
 LT_INIT
 
 AC_MSG_CHECKING([whether system or user specificed compiler flags are set])
-AM_CONDITIONAL([PASSED_CFLAGS], [test -n "$CFLAGS"])
+AM_CONDITIONAL([PASSED_CFLAGS], [test -z "$CFLAGS"])
 AM_COND_IF([PASSED_CFLAGS], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no])])
 
 AC_ARG_WITH([pthread],
