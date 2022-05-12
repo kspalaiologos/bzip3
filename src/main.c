@@ -199,12 +199,10 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-#if HAVE_ISATTY == 1 && HAVE_FILENO == 1
     if ((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && (mode == -1 || mode == 2))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
-#endif
 
     u8 byteswap_buf[4];
 
