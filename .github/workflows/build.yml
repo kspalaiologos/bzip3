@@ -24,12 +24,12 @@ jobs:
       run: make distcheck
 
   build:
-    name: Build
+    name: Build Matrix
     needs: [ dist ]
     strategy:
       fail-fast: false
       matrix:
-        platform: [ ubuntu-latest, macos-latest ] #, windows-latest ]
+        platform: [ ubuntu-latest, macos-latest ]
         compiler: [ clang, gcc ]
         feature: [ enable-pthread, disable-pthread ]
     runs-on: ${{ matrix.platform }}
@@ -46,3 +46,23 @@ jobs:
       run: make
     - name: Check
       run: make check
+
+  build-bsd:
+    name: Build on FreeBSD
+    needs: [ dist ]
+    runs-on: macos-10.15
+    steps:
+    - name: Download source package artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: bzip3-${{ github.sha }}
+    - name: Extract source package
+      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Build in FreeBSD VM
+      uses: vmactions/freebsd-vm@v0.1.5
+      with:
+        usesh: true
+        run: |
+          ./configure
+          make
+          make check
