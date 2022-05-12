@@ -72,7 +72,7 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
 
     bz3_state->cm_state = malloc(sizeof(state));
 
-    bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 16);
+    bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 32);
     bz3_state->sais_array = malloc(block_size * sizeof(s32));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
@@ -82,7 +82,7 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
         if (bz3_state->swap_buffer) free(bz3_state->swap_buffer);
         if (bz3_state->sais_array) free(bz3_state->sais_array);
         if (bz3_state->lzp_lut) free(bz3_state->lzp_lut);
-
+        free(bz3_state);
         return NULL;
     }
 
@@ -140,7 +140,7 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
     }
 
     lzp_size = lzp_compress(b1, b2, data_size, LZP_DICTIONARY, LZP_MIN_MATCH, state->lzp_lut);
-    if (lzp_size > 0) {
+    if (lzp_size > 0 && lzp_size < data_size + 64) {
         swap(b1, b2);
         data_size = lzp_size;
         model |= 2;
@@ -186,18 +186,23 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
+    if(data_size > state->block_size + state->block_size / 50 + 32 || data_size < 0) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
+    }
+
     if (bwt_idx == -1) {
+        if(data_size > 64) {
+            state->last_error = BZ3_ERR_MALFORMED_HEADER;
+            return -1;
+        }
+
         memmove(buffer, buffer + 8, data_size - 8);
         return data_size - 8;
     }
 
-    if (orig_size > state->block_size) {
-        state->last_error = BZ3_ERR_DATA_TOO_BIG;
-        return -1;
-    }
-
     s8 model = buffer[8];
-    s32 lzp_size = -1, rle_size, p = 0;
+    s32 lzp_size = -1, rle_size = -1, p = 0;
 
     if (model & 2) lzp_size = read_neutral_s32(buffer + 9 + 4 * p++);
     if (model & 4) rle_size = read_neutral_s32(buffer + 9 + 4 * p++);
@@ -205,6 +210,17 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     p += 2;
 
     data_size -= p * 4 + 1;
+
+    if (((model & 2) && (lzp_size > state->block_size + state->block_size / 50 + 32 || lzp_size < 0)) ||
+        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 32 || rle_size < 0))) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
+    }
+
+    if(orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
+    }
 
     // Decode the data.
     u8 *b1 = buffer, *b2 = state->swap_buffer;
@@ -247,6 +263,11 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     }
 
     state->last_error = BZ3_OK;
+
+    if(size_src > state->block_size + state->block_size / 50 + 32 || size_src < 0) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
+    }
 
     // XXX: Better solution
     if (b1 != buffer) memcpy(buffer, b1, size_src);

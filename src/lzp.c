@@ -10,12 +10,6 @@
 
 #define MATCH 0xf2
 
-static inline s32 num_blocks(s32 n) {
-    if (n < MiB(4)) return 1;
-    if (n < MiB(16)) return 2;
-    return 4;
-}
-
 static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * restrict out, u8 * out_end,
                             s32 * restrict lut, s32 mask, s32 m_len) {
     const u8 *ins = in, *outs = out;
@@ -135,89 +129,13 @@ static s32 lzp_decode_block(const u8 * restrict in, const u8 * in_end, s32 * res
 }
 
 s32 lzp_compress(const u8 * restrict in, u8 * restrict out, s32 n, s32 hash, s32 m_len, s32 * restrict lut) {
-    s32 nblk = num_blocks(n);
+    if (n - m_len < 32) return -1;
 
-    if (nblk == 1) {
-        if (n - m_len < 32) return -1;
+    memset(lut, 0, sizeof(s32) * (1 << hash));
 
-        memset(lut, 0, sizeof(s32) * (1 << hash));
-
-        s32 r = lzp_encode_block(in, in + n, out + 1, out + n - 1, lut, (s32)(1 << hash) - 1, m_len);
-
-        if (r >= 0) {
-            out[0] = 1;
-            r++;
-        }
-
-        return r;
-    }
-
-    s32 out_ptr = 1 + 8 * nblk;
-
-    out[0] = nblk;
-    for (s32 b_id = 0; b_id < nblk; ++b_id) {
-        s32 ins = b_id * (n / nblk);
-        s32 insz = b_id != nblk - 1 ? n / nblk : n - ins;
-        s32 outsz = insz;
-        if (outsz > n - out_ptr) outsz = n - out_ptr;
-
-        s32 r;
-
-        if (insz - m_len < 32)
-            r = -1;
-        else {
-            memset(lut, 0, sizeof(s32) * (1 << hash));
-
-            r = lzp_encode_block(in + ins, in + ins + insz, out + out_ptr, out + out_ptr + outsz, lut,
-                                 (s32)(1 << hash) - 1, m_len);
-        }
-
-        if (r < 0) {
-            if (out_ptr + insz >= n) return -1;
-            r = insz;
-            memcpy(out + out_ptr, in + ins, insz);
-        }
-        memcpy(out + 1 + 8 * b_id + 0, &insz, sizeof(s32));
-        memcpy(out + 1 + 8 * b_id + 4, &r, sizeof(s32));
-
-        out_ptr += r;
-    }
-
-    return out_ptr;
+    return lzp_encode_block(in, in + n, out, out + n, lut, (s32)(1 << hash) - 1, m_len);
 }
 
 s32 lzp_decompress(const u8 * restrict in, u8 * restrict out, s32 n, s32 hash, s32 m_len, s32 * restrict lut) {
-    s32 nblk = in[0];
-
-    if (nblk == 1) return lzp_decode_block(in + 1, in + n, lut, out, hash, m_len);
-
-    s32 dec[256];
-
-    for (s32 b_id = 0; b_id < nblk; ++b_id) {
-        s32 in_ptr = 0, out_ptr = 0;
-        for (s32 p = 0; p < b_id; ++p) {
-            in_ptr += *(s32 *)(in + 1 + 8 * p + 4);
-            out_ptr += *(s32 *)(in + 1 + 8 * p + 0);
-        }
-
-        in_ptr += 1 + 8 * nblk;
-
-        s32 insz = *(s32 *)(in + 1 + 8 * b_id + 4);
-        s32 outsz = *(s32 *)(in + 1 + 8 * b_id + 0);
-
-        if (insz != outsz) {
-            dec[b_id] = lzp_decode_block(in + in_ptr, in + in_ptr + insz, lut, out + out_ptr, hash, m_len);
-        } else {
-            dec[b_id] = insz;
-            memcpy(out + out_ptr, in + in_ptr, insz);
-        }
-    }
-
-    s32 dataSize = 0, r = 0;
-    for (s32 b_id = 0; b_id < nblk; ++b_id) {
-        if (dec[b_id] < 0) r = dec[b_id];
-        dataSize += dec[b_id];
-    }
-
-    return (r == 0) ? dataSize : r;
+    return lzp_decode_block(in, in + n, lut, out, hash, m_len);
 }

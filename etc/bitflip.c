@@ -35,7 +35,7 @@ int main(void) {
     if (!s) { printf("error in bz3_new.\n"); return 1; }
     int32_t len = bz3_encode_block(s, buf, size);
     if (len < 0) { printf("error in bz3_compress. %s.\n", bz3_strerror(s)); return 1; }
-    new_buf = malloc(size + size / 5 + 16);
+    new_buf = malloc(size + size / 50 + 32);
     if (!new_buf) { perror("malloc"); return 1; }
     orig_size = size;
     new_size = len;

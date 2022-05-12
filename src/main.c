@@ -17,21 +17,27 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "libbz3.h"
 
 int is_dir(const char * path) {
     struct stat sb;
-    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode))
-        return 1;
+    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) return 1;
     return 0;
+}
+
+int is_numeric(const char * str) {
+    for (; *str; str++)
+        if (!isdigit(*str)) return 0;
+    return 1;
 }
 
 int main(int argc, char * argv[]) {
@@ -52,22 +58,48 @@ int main(int argc, char * argv[]) {
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-' && !double_dash) {
-            if (argv[i][1] == 'e') {
+            if (strlen(argv[i]) < 2) {
+                fprintf(stderr, "Invalid flag '%s'.\n", argv[i]);
+                return 1;
+            } else if (argv[i][1] == 'e') {
                 mode = 1;
             } else if (argv[i][1] == 'd') {
                 mode = -1;
             } else if (argv[i][1] == 't') {
                 mode = 2;
             } else if (argv[i][1] == 'b') {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "Error: -b requires an argument.\n");
+                    return 1;
+                }
+
+                if (!is_numeric(argv[i + 1])) {
+                    fprintf(stderr, "Error: -b requires an integer argument.\n");
+                    return 1;
+                }
+
                 block_size = MiB(atoi(argv[i + 1]));
                 i++;
             } else if (argv[i][1] == 'c') {
                 force_stdstreams = 1;
             } else if (argv[i][1] == 'j') {
+                if (i + 1 >= argc) {
+                    fprintf(stderr, "Error: -j requires an argument.\n");
+                    return 1;
+                }
+
+                if (!is_numeric(argv[i + 1])) {
+                    fprintf(stderr, "Error: -j requires an integer argument.\n");
+                    return 1;
+                }
+
                 workers = atoi(argv[i + 1]);
                 i++;
-            } else if(argv[i][1] == '-') {
+            } else if (argv[i][1] == '-') {
                 double_dash = 1;
+            } else {
+                fprintf(stderr, "Invalid flag '%s'.\n", argv[i]);
+                return 1;
             }
         } else {
             if (bz3_file != NULL && regular_file != NULL) {
@@ -116,19 +148,24 @@ int main(int argc, char * argv[]) {
             output = regular_file;
             if (!force_stdstreams && output == NULL && input != NULL) {
                 // strip the bz3 extension
-                output = malloc(strlen(input) - 4);
-                strncpy(output, input, strlen(input) - 4);
-                output[strlen(input) - 4] = '\0';
+                if(strlen(input) > 4 && !strcmp(input + strlen(input) - 4, ".bz3")) {
+                    output = malloc(strlen(input));
+                    strncpy(output, input, strlen(input) - 4);
+                    output[strlen(input) - 4] = '\0';
+                }
             }
         }
     } else {
         input = bz3_file != NULL ? bz3_file : regular_file;
     }
 
+    if(input == NULL && output == NULL)
+        force_stdstreams = 1;
+
     FILE *input_des, *output_des;
 
     if (input != NULL) {
-        if(is_dir(input)) {
+        if (is_dir(input)) {
             fprintf(stderr, "Error: input is a directory.\n");
             return 1;
         }
@@ -143,7 +180,7 @@ int main(int argc, char * argv[]) {
     }
 
     if (output != NULL && mode != 2) {
-        if(is_dir(output)) {
+        if (is_dir(output)) {
             fprintf(stderr, "Error: output is a directory.\n");
             return 1;
         }
@@ -157,17 +194,15 @@ int main(int argc, char * argv[]) {
         output_des = stdout;
     }
 
-    if (block_size < KiB(65) || block_size > MiB(2047)) {
-        fprintf(stderr, "Block size must be between 65 KiB and 2047 MiB.\n");
+    if (block_size < KiB(65) || block_size > MiB(1023)) {
+        fprintf(stderr, "Block size must be between 65 KiB and 1023 MiB.\n");
         return 1;
     }
 
-#if HAVE_ISATTY == 1 && HAVE_FILENO == 1
     if ((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && (mode == -1 || mode == 2))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
-#endif
 
     u8 byteswap_buf[4];
 
@@ -191,7 +226,7 @@ int main(int argc, char * argv[]) {
             fread(byteswap_buf, 4, 1, input_des);
             block_size = read_neutral_s32(byteswap_buf);
 
-            if (block_size < KiB(65) || block_size > MiB(2047)) {
+            if (block_size < KiB(65) || block_size > MiB(1023)) {
                 fprintf(stderr,
                         "The input file is corrupted. Reason: Invalid block "
                         "size in the header.\n");
@@ -215,7 +250,7 @@ int main(int argc, char * argv[]) {
             return 1;
         }
 
-        u8 * buffer = malloc(block_size + block_size / 50 + 16);
+        u8 * buffer = malloc(block_size + block_size / 50 + 32);
 
         if (!buffer) {
             fprintf(stderr, "Failed to allocate memory.\n");
@@ -302,7 +337,7 @@ int main(int argc, char * argv[]) {
                 fprintf(stderr, "Failed to create a block encoder state.\n");
                 return 1;
             }
-            buffers[i] = malloc(block_size + block_size / 50 + 16);
+            buffers[i] = malloc(block_size + block_size / 50 + 32);
             if (!buffers[i]) {
                 fprintf(stderr, "Failed to allocate memory.\n");
                 return 1;
