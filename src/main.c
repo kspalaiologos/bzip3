@@ -82,6 +82,7 @@ int main(int argc, char * argv[]) {
                 i++;
             } else if (argv[i][1] == 'c') {
                 force_stdstreams = 1;
+#ifdef PTHREAD
             } else if (argv[i][1] == 'j') {
                 if (i + 1 >= argc) {
                     fprintf(stderr, "Error: -j requires an argument.\n");
@@ -95,6 +96,7 @@ int main(int argc, char * argv[]) {
 
                 workers = atoi(argv[i + 1]);
                 i++;
+#endif
             } else if (argv[i][1] == '-') {
                 double_dash = 1;
             } else {
@@ -129,7 +131,9 @@ int main(int argc, char * argv[]) {
         fprintf(stderr, "Extra flags:\n");
         fprintf(stderr, "  -c: force reading/writing from standard streams\n");
         fprintf(stderr, "  -b N: set block size in MiB\n");
+#ifdef PTHREAD
         fprintf(stderr, "  -j N: set the amount of parallel threads\n");
+#endif
         return 1;
     }
 
@@ -237,12 +241,14 @@ int main(int argc, char * argv[]) {
         }
     }
 
+#ifdef PTHREAD
     if (workers > 16 || workers < 0) {
         fprintf(stderr, "Number of workers must be between 0 and 16.\n");
         return 1;
     }
 
     if (workers <= 1) {
+#endif
         struct bz3_state * state = bz3_new(block_size);
 
         if (state == NULL) {
@@ -326,6 +332,7 @@ int main(int argc, char * argv[]) {
 
         fclose(input_des);
         fclose(output_des);
+#ifdef PTHREAD
     } else {
         struct bz3_state * states[workers];
         u8 * buffers[workers];
@@ -422,4 +429,5 @@ int main(int argc, char * argv[]) {
             bz3_free(states[i]);
         }
     }
+#endif
 }
