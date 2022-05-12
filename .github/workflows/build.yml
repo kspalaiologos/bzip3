@@ -3,25 +3,9 @@ name: Build
 on: [ push, pull_request ]
 
 jobs:
-  build:
 
-    strategy:
-      matrix:
-        platform: [ ubuntu-latest, macos-latest, windows-latest ]
-    runs-on: ${{ matrix.platform }}
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Configure
-      run: |
-        ./bootstrap.sh
-        ./configure
-    - name: Make
-      run: make
-    - name: Check
-      run: make check
-
-  distcheck:
+  dist:
+    name: Package
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -29,6 +13,35 @@ jobs:
       run: |
         ./bootstrap.sh
         ./configure
-    - name: Distcheck
+    - name: Make source package
+      run: make VERSION=${{ github.sha }} dist
+    - name: Upload source package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: bzip3-${{ github.sha }}
+        path: bzip3-${{ github.sha }}.tar.gz
+    - name: Run distcheck
       run: make distcheck
 
+  build:
+    name: Build
+    needs: [ dist ]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ ubuntu-latest, macos-latest, windows-latest ]
+        platform: [ ubuntu-latest ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Download source package artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: bzip3-${{ github.sha }}
+    - name: Extract source package
+      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Configure
+      run: ./configure
+    - name: Make
+      run: make
+    - name: Check
+      run: make check
