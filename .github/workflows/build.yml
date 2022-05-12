@@ -29,8 +29,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ ubuntu-latest, macos-latest, windows-latest ]
-        platform: [ ubuntu-latest ]
+        platform: [ ubuntu-latest, macos-latest ] #, windows-latest ]
+        compiler: [ clang, gcc ]
+        feature: [ enable-pthread, disable-pthread ]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Download source package artifact
@@ -40,7 +41,7 @@ jobs:
     - name: Extract source package
       run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
     - name: Configure
-      run: ./configure
+      run: ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
     - name: Make
       run: make
     - name: Check
