@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = -I build-aux
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -avoid-version
 
-EXTRA_DIST = LICENSE PORTING.md README.md
+EXTRA_DIST = LICENSE PORTING.md README.md build-aux/git-version-gen
 
 include_HEADERS = include/libbz3.h
 noinst_HEADERS = include/cm.h \
@@ -26,7 +26,26 @@ bzip3_CFLAGS = $(AM_CFLAGS)
 bzip3_LDDADD = libbzip3.la
 bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
 
-CLEANFILES = $(bin_PROGRAMS)
+BUILT_SOURCES = .version
+CLEANFILES = $(BUILT_SOURCES) .version-prev $(bin_PROGRAMS)
+
+_BRANCH_REF != $(AWK) '{print ".git/" $$2}' .git/HEAD 2>/dev/null
+
+.version: $(_BRANCH_REF)
+	if [ -e "$@" ]; then \
+		mv "$@" "$@-prev"; \
+	else \
+		[ -e "$<" ] && touch "$@-prev" || cp "$(srcdir)/.tarball-version" "$@-prev"; \
+	fi
+	if [ -e "$<" ]; then \
+		./build-aux/git-version-gen "$(srcdir)/.tarball-version"; \
+		cmp -s "$@" "$@-prev" || autoreconf configure.ac --force; \
+	else \
+		printf "$(VERSION)"; \
+	fi > $@
+
+dist-hook:
+	printf "$(VERSION)" > "$(distdir)/.tarball-version"
 
 # End standard autotools stuff, begin developer convenience targets
 

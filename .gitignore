@@ -15,6 +15,7 @@ tags
 *.so
 bzip3
 bzip3-*
+.version
 
 # Autotools
 .deps/
@@ -28,6 +29,7 @@ bzip3-*
 Makefile
 Makefile.in
 autom4te.cache/
-build-aux/
-!build-aux/ax_pthread.m4
-!build-aux/ax_check_compile_flag.m4
+/build-aux/*
+!/build-aux/ax_check_compile_flag.m4
+!/build-aux/ax_pthread.m4
+!/build-aux/git-version-gen
