@@ -120,9 +120,9 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
     // Ignore small blocks. They won't benefit from the entropy coding step.
     if (data_size < 64) {
+        memmove(b1 + 8, b1, data_size);
         write_neutral_s32(b1, crc32);
         write_neutral_s32(b1 + 4, -1);
-        memmove(b1 + 8, b1, data_size);
         return data_size + 8;
     }
 
