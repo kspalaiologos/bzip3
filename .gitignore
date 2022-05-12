@@ -29,3 +29,4 @@ Makefile
 Makefile.in
 autom4te.cache/
 build-aux/
+!build-aux/ax_pthread.m4
