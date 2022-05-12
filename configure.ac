@@ -8,31 +8,46 @@ AC_CONFIG_MACRO_DIR([build-aux])
 AC_PROG_CC([clang gcc icc])
 LT_INIT
 
-AC_ARG_ENABLE([pthread],
-			  AS_HELP_STRING([--disable-pthread], [Disable use of pthread library]]))
-AM_CONDITIONAL([ENABLE_PTHREAD], [test x"$enable_pthread" != xno])
-AM_COND_IF([ENABLE_PTHREAD], [
+AC_MSG_CHECKING([whether system or user specificed compiler flags are set])
+AM_CONDITIONAL([PASSED_CFLAGS], [test -n "$CFLAGS"])
+AM_COND_IF([PASSED_CFLAGS], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no])])
+
+AC_ARG_WITH([pthread],
+			  AS_HELP_STRING([--without-pthread], [Disable use of pthread library]))
+AM_CONDITIONAL([WITH_PTHREAD], [test x"$with_pthread" != xno])
+AM_COND_IF([WITH_PTHREAD], [
 	AC_CHECK_HEADER(pthread.h,
 					[AX_PTHREAD([CFLAGS="$CFLAGS $PTHREAD_CFLAGS -DPTHREAD" LIBS="$LIBS $PTHREAD_LIBS"])],
-					[AC_MSG_ERROR([pthread.h not found, use --disable-pthread to skip])])
+					[AC_MSG_ERROR([pthread.h not found, use --without-pthread to skip])])
 ])
 
 AC_ARG_ENABLE([arch-native],
-			  AS_HELP_STRING([--disable-arch-native], [Disable CPU-specific optimizations]))
+			AS_HELP_STRING([--disable-arch-native], [Disable CPU-specific optimizations]))
 AM_CONDITIONAL([ENABLE_ARCH_NATIVE], [test x"$enable_arch_native" != xno])
-AM_COND_IF([ENABLE_ARCH_NATIVE], [
-			AX_CHECK_COMPILE_FLAG([-march=native], [],
-								  [AC_MSG_ERROR([Compiler does not support native optimizations, use --disable-arch-native])])
-			AX_CHECK_COMPILE_FLAG([-mtune=native], [],
-								  [AC_MSG_ERROR([Compiler does not support native optimizations, use --disable-arch-native])])
-])
 
 AC_ARG_ENABLE([link-time-optimization],
-			  AS_HELP_STRING([--disable-link-time-optimization], [Disable link time optimization]))
+			AS_HELP_STRING([--disable-link-time-optimization], [Disable link time optimization]))
 AM_CONDITIONAL([ENABLE_LINK_TIME_OPTIMIZATION], [test x"$enable_link_time_optimization" != xno])
-AM_COND_IF([ENABLE_LINK_TIME_OPTIMIZATION], [
-			AX_CHECK_COMPILE_FLAG([-flto], [],
-								  [AC_MSG_ERROR([Compiler does not support link time optimization, use --disable-link-time-optimization])])
+
+AM_COND_IF([PASSED_CFLAGS], [
+	AC_MSG_NOTICE([skipping compiler feature detection, using '$CFLAGS'])
+], [
+	AX_CHECK_COMPILE_FLAG([-O2], [CFLAGS="$CFLAGS -O2"], [])
+	AX_CHECK_COMPILE_FLAG([-g3], [CFLAGS="$CFLAGS -g3"], [])
+	AX_CHECK_COMPILE_FLAG([-fPIC], [CFLAGS="$CFLAGS -fPIC"], [])
+	AC_MSG_NOTICE([using '$CFLAGS' plus compiler feature detection])
+
+	AM_COND_IF([ENABLE_ARCH_NATIVE], [
+				AX_CHECK_COMPILE_FLAG([-march=native], [CFLAGS="$CFLAGS -march=native"],
+									[AC_MSG_ERROR([Compiler does not support native optimizations, use --disable-arch-native])])
+				AX_CHECK_COMPILE_FLAG([-mtune=native], [CFLAGS="$CFLAGS -mtune=native"],
+									[AC_MSG_ERROR([Compiler does not support native optimizations, use --disable-arch-native])])
+	])
+
+	AM_COND_IF([ENABLE_LINK_TIME_OPTIMIZATION], [
+				AX_CHECK_COMPILE_FLAG([-flto], [CFLAGS="$CFLAGS -flto"],
+									[AC_MSG_ERROR([Compiler does not support link time optimization, use --disable-link-time-optimization])])
+	])
 ])
 
 AC_CONFIG_FILES([Makefile])
