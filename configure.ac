@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT([bzip3], [1.0.1], [https://github.com/kspalaiologos/bzip3])
+AC_INIT([bzip3], [1.1.1], [https://github.com/kspalaiologos/bzip3])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign subdir-objects tar-pax color-tests])
 AM_SILENT_RULES([yes])
