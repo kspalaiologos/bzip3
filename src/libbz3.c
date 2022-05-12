@@ -198,6 +198,12 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
         }
 
         memmove(buffer, buffer + 8, data_size - 8);
+
+        if(crc32sum(1, buffer, data_size - 8) != crc32) {
+            state->last_error = BZ3_ERR_CRC;
+            return -1;
+        }
+
         return data_size - 8;
     }
 
