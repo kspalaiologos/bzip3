@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+
+  ghrelease:
+    name: Publish sources on GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure
+        run: |
+          ./bootstrap.sh
+          ./configure
+      - name: Build source packages
+        run: |
+          make dist
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bzip3-${{ github.ref_name }}.tar.gz
