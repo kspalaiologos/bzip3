@@ -252,7 +252,7 @@ int main(int argc, char * argv[]) {
             return 1;
         }
 
-        u8 * buffer = malloc(block_size + block_size / 50 + 16);
+        u8 * buffer = malloc(block_size + block_size / 50 + 32);
 
         if (!buffer) {
             fprintf(stderr, "Failed to allocate memory.\n");
@@ -339,7 +339,7 @@ int main(int argc, char * argv[]) {
                 fprintf(stderr, "Failed to create a block encoder state.\n");
                 return 1;
             }
-            buffers[i] = malloc(block_size + block_size / 50 + 16);
+            buffers[i] = malloc(block_size + block_size / 50 + 32);
             if (!buffers[i]) {
                 fprintf(stderr, "Failed to allocate memory.\n");
                 return 1;

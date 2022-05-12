@@ -72,7 +72,7 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
 
     bz3_state->cm_state = malloc(sizeof(state));
 
-    bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 16);
+    bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 32);
     bz3_state->sais_array = malloc(block_size * sizeof(s32));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
@@ -186,7 +186,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
-    if(data_size > state->block_size + state->block_size / 50 + 16 || data_size < 0) {
+    if(data_size > state->block_size + state->block_size / 50 + 32 || data_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -211,13 +211,13 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
     data_size -= p * 4 + 1;
 
-    if (((model & 2) && (lzp_size > state->block_size + state->block_size / 50 + 16 || lzp_size < 0)) ||
-        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 16 || rle_size < 0))) {
+    if (((model & 2) && (lzp_size > state->block_size + state->block_size / 50 + 32 || lzp_size < 0)) ||
+        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 32 || rle_size < 0))) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
-    if(orig_size > state->block_size + state->block_size / 50 + 16 || orig_size < 0) {
+    if(orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -264,7 +264,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
     state->last_error = BZ3_OK;
 
-    if(size_src > state->block_size + state->block_size / 50 + 16 || size_src < 0) {
+    if(size_src > state->block_size + state->block_size / 50 + 32 || size_src < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
