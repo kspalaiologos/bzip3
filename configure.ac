@@ -1,7 +1,7 @@
 AC_PREREQ([2.68])
 AC_INIT([bzip3], [m4_esyscmd(build-aux/git-version-gen .tarball-version)], [https://github.com/kspalaiologos/bzip3])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([foreign subdir-objects tar-pax color-tests])
+AM_INIT_AUTOMAKE([foreign subdir-objects tar-ustar dist-bzip2 dist-xz dist-zip color-tests])
 AM_SILENT_RULES([yes])
 AC_CONFIG_MACRO_DIR([build-aux])
 

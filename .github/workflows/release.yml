@@ -20,11 +20,26 @@ jobs:
       - name: Build source packages
         run: |
           make dist
+          bzip2 -d -k bzip3-${{ github.ref_name }}.tar.bz2
+          zstd -19 bzip3-${{ github.ref_name }}.tar
+          7z a bzip3-${{ github.ref_name}}.tar{.7z,}
+      - name: Build a binary (for dogfooding)
+        run: make
+      - name: Create a dogfood package
+        run: |
+          ./bzip3 -e bzip3-${{ github.ref_name }}.tar
       - name: Publish Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            bzip3-${{ github.ref_name }}.tar
+            bzip3-${{ github.ref_name }}.tar.7z
+            bzip3-${{ github.ref_name }}.tar.bz2
+            bzip3-${{ github.ref_name }}.tar.bz3
             bzip3-${{ github.ref_name }}.tar.gz
+            bzip3-${{ github.ref_name }}.tar.xz
+            bzip3-${{ github.ref_name }}.tar.zst
+            bzip3-${{ github.ref_name }}.zip
       - name: Upload source package artifact
         uses: actions/upload-artifact@v3
         with:
