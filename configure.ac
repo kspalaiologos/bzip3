@@ -27,6 +27,14 @@ AM_COND_IF([ENABLE_ARCH_NATIVE], [
 								  [AC_MSG_ERROR([Compiler does not support native optimizations, use --disable-arch-native])])
 ])
 
+AC_ARG_ENABLE([link-time-optimization],
+			  AS_HELP_STRING([--disable-link-time-optimization], [Disable link time optimization]))
+AM_CONDITIONAL([ENABLE_LINK_TIME_OPTIMIZATION], [test x"$enable_link_time_optimization" != xno])
+AM_COND_IF([ENABLE_LINK_TIME_OPTIMIZATION], [
+			AX_CHECK_COMPILE_FLAG([-flto], [],
+								  [AC_MSG_ERROR([Compiler does not support link time optimization, use --disable-link-time-optimization])])
+])
+
 AC_CONFIG_FILES([Makefile])
 AC_ARG_PROGRAM
 AC_OUTPUT

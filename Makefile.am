@@ -4,6 +4,9 @@ AM_CFLAGS = -I$(top_srcdir)/include
 if ENABLE_ARCH_NATIVE
 AM_CFLAGS += -march=native -mtune=native
 endif
+if ENABLE_LINK_TIME_OPTIMIZATION
+AM_CFLAGS += -flto
+endif
 AM_LDFLAGS = -avoid-version
 
 EXTRA_DIST = LICENSE PORTING.md README.md
