@@ -1,12 +1,15 @@
-
 ## Windows
 
-Crosscompiling to Windows is supported:
+Cross-compiling Windows binaries is supported:
 
-```bash
-CC=i686-w64-mingw32-gcc make
-# or
-CC=x86_64-w64-mingw32-gcc make
+```console
+# For x86_64 (64bit)
+$ ./configure CC=x86_64-w64-mingw32-gcc --host x86_64-w64-mingw32
+$ make
+
+# For i686 (32bit)
+$ ./configure CC=i866-w64-mingw32-gcc --host i686-w64-mingw32
+$ make
 ```
 
 ## M1 MacOS
