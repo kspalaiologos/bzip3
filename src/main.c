@@ -293,7 +293,10 @@ int main(int argc, char * argv[]) {
                     return 1;
                 }
                 old_size = read_neutral_s32(byteswap_buf);
-                fread(buffer, 1, new_size, input_des);
+                if(fread(buffer, 1, new_size, input_des) != new_size) {
+                    fprintf(stderr, "I/O error.\n");
+                    return 1;
+                }
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
@@ -313,7 +316,10 @@ int main(int argc, char * argv[]) {
                     return 1;
                 }
                 old_size = read_neutral_s32(byteswap_buf);
-                fread(buffer, 1, new_size, input_des);
+                if(fread(buffer, 1, new_size, input_des) != new_size) {
+                    fprintf(stderr, "I/O error.\n");
+                    return 1;
+                }
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
