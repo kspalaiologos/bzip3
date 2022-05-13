@@ -49,22 +49,23 @@ void begin(state * s) {
 }
 
 void encode_bytes(state * s, u8 * buf, s32 size) {
+    u32 high = s->high, low = s->low, c1 = s->c1, c2 = s->c2, run = s->run;
     for (s32 i = 0; i < size; i++) {
         u8 c = buf[i];
 
-        if (s->c1 == s->c2)
-            ++s->run;
+        if (c1 == c2)
+            ++run;
         else
-            s->run = 0;
+            run = 0;
 
-        const int f = s->run > 2;
+        const int f = run > 2;
 
         int ctx = 1;
 
         while (ctx < 256) {
             const int p0 = s->C0[ctx];
-            const int p1 = s->C1[s->c1][ctx];
-            const int p2 = s->C1[s->c2][ctx];
+            const int p1 = s->C1[c1][ctx];
+            const int p2 = s->C1[c2][ctx];
             const int p = ((p0 + p1) * 7 + p2 + p2) >> 4;
 
             const int j = p >> 12;
@@ -73,31 +74,31 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
             const int ssep = x1 + (((x2 - x1) * (p & 4095)) >> 12);
 
             if (c & 128) {
-                s->high = s->low + (((u64)(s->high - s->low) * (ssep * 3 + p)) >> 18);
+                high = low + (((u64)(high - low) * (ssep * 3 + p)) >> 18);
 
-                while ((s->low ^ s->high) < (1 << 24)) {
-                    write_out(s, s->low >> 24);
-                    s->low <<= 8;
-                    s->high = (s->high << 8) + 0xFF;
+                while ((low ^ high) < (1 << 24)) {
+                    write_out(s, low >> 24);
+                    low <<= 8;
+                    high = (high << 8) + 0xFF;
                 }
 
                 s->C0[ctx] = update1(s->C0[ctx], 2);
-                s->C1[s->c1][ctx] = update1(s->C1[s->c1][ctx], 4);
+                s->C1[c1][ctx] = update1(s->C1[c1][ctx], 4);
                 s->C2[2 * ctx + f][j] = update1(s->C2[2 * ctx + f][j], 6);
                 s->C2[2 * ctx + f][j + 1] = update1(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx + 1;
             } else {
-                s->low += (((u64)(s->high - s->low) * (ssep * 3 + p)) >> 18) + 1;
+                low += (((u64)(high - low) * (ssep * 3 + p)) >> 18) + 1;
 
                 // Write identical bits.
-                while ((s->low ^ s->high) < (1 << 24)) {
-                    write_out(s, s->low >> 24);  // Same as s->high >> 24
-                    s->low <<= 8;
-                    s->high = (s->high << 8) + 0xFF;
+                while ((low ^ high) < (1 << 24)) {
+                    write_out(s, low >> 24);  // Same as high >> 24
+                    low <<= 8;
+                    high = (high << 8) + 0xFF;
                 }
 
                 s->C0[ctx] = update0(s->C0[ctx], 2);
-                s->C1[s->c1][ctx] = update0(s->C1[s->c1][ctx], 4);
+                s->C1[c1][ctx] = update0(s->C1[c1][ctx], 4);
                 s->C2[2 * ctx + f][j] = update0(s->C2[2 * ctx + f][j], 6);
                 s->C2[2 * ctx + f][j + 1] = update0(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx;
@@ -106,40 +107,48 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
             c <<= 1;
         }
 
-        s->c2 = s->c1;
-        s->c1 = ctx & 255;
+        c2 = c1;
+        c1 = ctx & 255;
     }
 
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+
+    s->high = high;
+    s->low = low;
+    s->c1 = c1;
+    s->c2 = c2;
+    s->run = run;
 }
 
 void decode_bytes(state * s, u8 * c, s32 size) {
-    s->code = (s->code << 8) + read_in(s);
-    s->code = (s->code << 8) + read_in(s);
-    s->code = (s->code << 8) + read_in(s);
-    s->code = (s->code << 8) + read_in(s);
+    u32 high = s->high, low = s->low, c1 = s->c1, c2 = s->c2, run = s->run, code = s->code;
+
+    code = (code << 8) + read_in(s);
+    code = (code << 8) + read_in(s);
+    code = (code << 8) + read_in(s);
+    code = (code << 8) + read_in(s);
 
     for (s32 i = 0; i < size; i++) {
-        if (s->c1 == s->c2)
-            ++s->run;
+        if (c1 == c2)
+            ++run;
         else
-            s->run = 0;
+            run = 0;
 
-        const int f = s->run > 2;
+        const int f = run > 2;
 
         int ctx = 1;
 
         while (ctx < 256) {
             const int p0 = s->C0[ctx];
-            const int p1 = s->C1[s->c1][ctx];
-            const int p2 = s->C1[s->c2][ctx];
+            const int p1 = s->C1[c1][ctx];
+            const int p2 = s->C1[c2][ctx];
             const int p = ((p0 + p1) * 7 + p2 + p2) >> 4;
 
             const int j = p >> 12;
@@ -147,34 +156,41 @@ void decode_bytes(state * s, u8 * c, s32 size) {
             const int x2 = s->C2[2 * ctx + f][j + 1];
             const int ssep = x1 + (((x2 - x1) * (p & 4095)) >> 12);
 
-            const u32 mid = s->low + (((u64)(s->high - s->low) * (ssep * 3 + p)) >> 18);
-            const u8 bit = s->code <= mid;
+            const u32 mid = low + (((u64)(high - low) * (ssep * 3 + p)) >> 18);
+            const u8 bit = code <= mid;
             if (bit)
-                s->high = mid;
+                high = mid;
             else
-                s->low = mid + 1;
-            while ((s->low ^ s->high) < (1 << 24)) {
-                s->low <<= 8;
-                s->high = (s->high << 8) + 255;
-                s->code = (s->code << 8) + read_in(s);
+                low = mid + 1;
+            while ((low ^ high) < (1 << 24)) {
+                low <<= 8;
+                high = (high << 8) + 255;
+                code = (code << 8) + read_in(s);
             }
 
             if (bit) {
                 s->C0[ctx] = update1(s->C0[ctx], 2);
-                s->C1[s->c1][ctx] = update1(s->C1[s->c1][ctx], 4);
+                s->C1[c1][ctx] = update1(s->C1[c1][ctx], 4);
                 s->C2[2 * ctx + f][j] = update1(s->C2[2 * ctx + f][j], 6);
                 s->C2[2 * ctx + f][j + 1] = update1(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx + 1;
             } else {
                 s->C0[ctx] = update0(s->C0[ctx], 2);
-                s->C1[s->c1][ctx] = update0(s->C1[s->c1][ctx], 4);
+                s->C1[c1][ctx] = update0(s->C1[c1][ctx], 4);
                 s->C2[2 * ctx + f][j] = update0(s->C2[2 * ctx + f][j], 6);
                 s->C2[2 * ctx + f][j + 1] = update0(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx;
             }
         }
 
-        s->c2 = s->c1;
-        c[i] = s->c1 = ctx & 255;
+        c2 = c1;
+        c[i] = c1 = ctx & 255;
     }
+
+    s->high = high;
+    s->low = low;
+    s->c1 = c1;
+    s->c2 = c2;
+    s->run = run;
+    s->code = code;
 }
