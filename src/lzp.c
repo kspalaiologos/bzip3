@@ -1,6 +1,7 @@
 
 // Lempel Ziv Prediction code.
-// A heavily modified version of libbsc's LZP predictor. This one has single thread performance and provides better compression ratio. It is also mostly UB-free.
+// A heavily modified version of libbsc's LZP predictor. This one has single thread performance and provides better compression ratio.
+// It is also mostly UB-free and less brittle during AFL fuzzing.
 
 #include <memory.h>
 #include <stdlib.h>
