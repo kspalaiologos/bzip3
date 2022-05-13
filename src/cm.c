@@ -30,17 +30,6 @@
 #define write_out(s, c) (s)->out_queue[(s)->output_ptr++] = (c)
 #define read_in(s) ((s)->input_ptr < (s)->input_max ? (s)->in_queue[(s)->input_ptr++] : -1)
 
-void flush(state * s) {
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-    write_out(s, s->low >> 24);
-    s->low <<= 8;
-}
-
 void init(state * s) {
     s->code = (s->code << 8) + read_in(s);
     s->code = (s->code << 8) + read_in(s);
@@ -127,6 +116,15 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
         s->c2 = s->c1;
         s->c1 = ctx & 255;
     }
+
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
+    write_out(s, s->low >> 24);
+    s->low <<= 8;
 }
 
 void decode_bytes(state * s, u8 * c, s32 size) {

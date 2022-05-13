@@ -16,7 +16,6 @@ typedef struct {
     u16 C0[256], C1[256][256], C2[512][17];
 } state;
 
-void flush(state * s);
 void init(state * s);
 void begin(state * s);
 void encode_bytes(state * s, u8 * c, s32 size);

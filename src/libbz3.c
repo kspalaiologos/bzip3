@@ -165,7 +165,6 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
     state->cm_state->out_queue = b1 + overhead * 4 + 1;
     state->cm_state->output_ptr = 0;
     encode_bytes(state->cm_state, b2, data_size);
-    flush(state->cm_state);
     data_size = state->cm_state->output_ptr;
 
     // Write the header. Starting with common entries.
