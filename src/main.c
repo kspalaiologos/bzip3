@@ -152,7 +152,7 @@ int main(int argc, char * argv[]) {
             output = regular_file;
             if (!force_stdstreams && output == NULL && input != NULL) {
                 // strip the bz3 extension
-                if(strlen(input) > 4 && !strcmp(input + strlen(input) - 4, ".bz3")) {
+                if (strlen(input) > 4 && !strcmp(input + strlen(input) - 4, ".bz3")) {
                     output = malloc(strlen(input));
                     strncpy(output, input, strlen(input) - 4);
                     output[strlen(input) - 4] = '\0';
@@ -163,8 +163,7 @@ int main(int argc, char * argv[]) {
         input = bz3_file != NULL ? bz3_file : regular_file;
     }
 
-    if(input == NULL && output == NULL)
-        force_stdstreams = 1;
+    if (input == NULL && output == NULL) force_stdstreams = 1;
 
     FILE *input_des, *output_des;
 
@@ -293,7 +292,7 @@ int main(int argc, char * argv[]) {
                     return 1;
                 }
                 old_size = read_neutral_s32(byteswap_buf);
-                if(fread(buffer, 1, new_size, input_des) != new_size) {
+                if (fread(buffer, 1, new_size, input_des) != new_size) {
                     fprintf(stderr, "I/O error.\n");
                     return 1;
                 }
@@ -316,7 +315,7 @@ int main(int argc, char * argv[]) {
                     return 1;
                 }
                 old_size = read_neutral_s32(byteswap_buf);
-                if(fread(buffer, 1, new_size, input_des) != new_size) {
+                if (fread(buffer, 1, new_size, input_des) != new_size) {
                     fprintf(stderr, "I/O error.\n");
                     return 1;
                 }

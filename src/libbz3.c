@@ -189,20 +189,20 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
-    if(data_size > state->block_size + state->block_size / 50 + 32 || data_size < 0) {
+    if (data_size > state->block_size + state->block_size / 50 + 32 || data_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
     if (bwt_idx == -1) {
-        if(data_size > 64) {
+        if (data_size > 64) {
             state->last_error = BZ3_ERR_MALFORMED_HEADER;
             return -1;
         }
 
         memmove(buffer, buffer + 8, data_size - 8);
 
-        if(crc32sum(1, buffer, data_size - 8) != crc32) {
+        if (crc32sum(1, buffer, data_size - 8) != crc32) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
         }
@@ -226,7 +226,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
         return -1;
     }
 
-    if(orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
+    if (orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -251,7 +251,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     decode_bytes(state->cm_state, b2, size_src);
     swap(b1, b2);
 
-    if(bwt_idx >= size_src) {
+    if (bwt_idx >= size_src) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -277,7 +277,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
     state->last_error = BZ3_OK;
 
-    if(size_src > state->block_size + state->block_size / 50 + 32 || size_src < 0) {
+    if (size_src > state->block_size + state->block_size / 50 + 32 || size_src < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -297,7 +297,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
 #ifdef PTHREAD
 
-#include <pthread.h>
+    #include <pthread.h>
 
 typedef struct {
     struct bz3_state * state;

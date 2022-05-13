@@ -20,7 +20,7 @@ static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * rest
 
     for (s32 i = 0; i < 4; ++i) *out++ = *in++;
 
-    ctx = ((u32) in[-1]) | (((u32) in[-2]) << 8) | (((u32) in[-3]) << 16) | (((u32) in[-4]) << 24);
+    ctx = ((u32)in[-1]) | (((u32)in[-2]) << 8) | (((u32)in[-3]) << 16) | (((u32)in[-4]) << 24);
 
     while (in < in_end - m_len - 32 && out < out_eob) {
         u32 idx = (ctx >> 15 ^ ctx ^ ctx >> 3) & mask;
@@ -46,7 +46,7 @@ static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * rest
                 len += in[len] == ref[len];
 
                 in += len;
-                ctx = ((u32) in[-1]) | (((u32) in[-2]) << 8) | (((u32) in[-3]) << 16) | (((u32) in[-4]) << 24);
+                ctx = ((u32)in[-1]) | (((u32)in[-2]) << 8) | (((u32)in[-3]) << 16) | (((u32)in[-4]) << 24);
 
                 *out++ = MATCH;
 
@@ -69,7 +69,7 @@ static s32 lzp_encode_block(const u8 * restrict in, const u8 * in_end, u8 * rest
         }
     }
 
-    ctx = ((u32) in[-1]) | (((u32) in[-2]) << 8) | (((u32) in[-3]) << 16) | (((u32) in[-4]) << 24);
+    ctx = ((u32)in[-1]) | (((u32)in[-2]) << 8) | (((u32)in[-3]) << 16) | (((u32)in[-4]) << 24);
 
     while (in < in_end && out < out_eob) {
         u32 idx = (ctx >> 15 ^ ctx ^ ctx >> 3) & mask;
@@ -95,7 +95,7 @@ static s32 lzp_decode_block(const u8 * restrict in, const u8 * in_end, s32 * res
 
     for (s32 i = 0; i < 4; ++i) *out++ = *in++;
 
-    u32 ctx = ((u32) out[-1]) | (((u32) out[-2]) << 8) | (((u32) out[-3]) << 16) | (((u32) out[-4]) << 24);
+    u32 ctx = ((u32)out[-1]) | (((u32)out[-2]) << 8) | (((u32)out[-3]) << 16) | (((u32)out[-4]) << 24);
 
     while (in < in_end) {
         u32 idx = (ctx >> 15 ^ ctx ^ ctx >> 3) & mask;
@@ -115,7 +115,7 @@ static s32 lzp_decode_block(const u8 * restrict in, const u8 * in_end, s32 * res
 
                 while (out < out_end) *out++ = *ref++;
 
-                ctx = ((u32) out[-1]) | (((u32) out[-2]) << 8) | (((u32) out[-3]) << 16) | (((u32) out[-4]) << 24);
+                ctx = ((u32)out[-1]) | (((u32)out[-2]) << 8) | (((u32)out[-3]) << 16) | (((u32)out[-4]) << 24);
             } else {
                 in++;
                 ctx = (ctx << 8) | (*out++ = MATCH);

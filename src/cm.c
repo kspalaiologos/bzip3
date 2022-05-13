@@ -45,11 +45,11 @@ void begin(state * s) {
         for (int j = 0; j < 256; j++) s->C1[i][j] = 1 << 15;
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 256; j++)
-            for (int k = 0; k < 17; k++) s->C2[2 * j + i][k] = (k << 12) - (k == 16);
+            for (int k = 0; k < 17; k++) s->C2[2 * j + i][k] = (k << 12) - (k == 16);  // Firm difference from stdpack.
 }
 
 void encode_bytes(state * s, u8 * buf, s32 size) {
-    for(s32 i = 0; i < size; i++) {
+    for (s32 i = 0; i < size; i++) {
         u8 c = buf[i];
 
         if (s->c1 == s->c2)
@@ -125,8 +125,8 @@ void decode_bytes(state * s, u8 * c, s32 size) {
     s->code = (s->code << 8) + read_in(s);
     s->code = (s->code << 8) + read_in(s);
     s->code = (s->code << 8) + read_in(s);
-    
-    for(s32 i = 0; i < size; i++) {
+
+    for (s32 i = 0; i < size; i++) {
         if (s->c1 == s->c2)
             ++s->run;
         else
