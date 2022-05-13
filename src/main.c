@@ -198,8 +198,8 @@ int main(int argc, char * argv[]) {
         output_des = stdout;
     }
 
-    if (block_size < KiB(65) || block_size > MiB(1023)) {
-        fprintf(stderr, "Block size must be between 65 KiB and 1023 MiB.\n");
+    if (block_size < KiB(65) || block_size > MiB(511)) {
+        fprintf(stderr, "Block size must be between 65 KiB and 511 MiB.\n");
         return 1;
     }
 
@@ -230,7 +230,7 @@ int main(int argc, char * argv[]) {
             fread(byteswap_buf, 4, 1, input_des);
             block_size = read_neutral_s32(byteswap_buf);
 
-            if (block_size < KiB(65) || block_size > MiB(1023)) {
+            if (block_size < KiB(65) || block_size > MiB(511)) {
                 fprintf(stderr,
                         "The input file is corrupted. Reason: Invalid block "
                         "size in the header.\n");

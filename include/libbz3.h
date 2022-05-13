@@ -45,7 +45,7 @@ const char * bz3_strerror(struct bz3_state * state);
 /**
  * @brief Construct a new block encoder state, which will encode blocks as big as the given block size.
  * The decoder will be able to decode blocks at most as big as the given block size.
- * Returns NULL in case allocation fails.
+ * Returns NULL in case allocation fails or the block size is not between 65K and 511M
  */
 struct bz3_state * bz3_new(int32_t block_size);
 

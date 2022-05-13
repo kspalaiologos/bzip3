@@ -64,6 +64,10 @@ PUBLIC_API const char * bz3_strerror(struct bz3_state * state) {
 }
 
 PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
+    if (block_size < KiB(65) || block_size > MiB(511)) {
+        return NULL;
+    }
+
     struct bz3_state * bz3_state = malloc(sizeof(struct bz3_state));
 
     if (!bz3_state) {
