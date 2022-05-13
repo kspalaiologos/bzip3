@@ -26,8 +26,16 @@ bzip3_CFLAGS = $(AM_CFLAGS)
 bzip3_LDDADD = libbzip3.la
 bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
 
+CLEANFILES = $(bin_PROGRAMS)
+
+# End standard generic autotools stuff
+
+# Begin special handling for autoconf VERSION being updated on commit
+
 BUILT_SOURCES = .version
-CLEANFILES = $(BUILT_SOURCES) .version-prev $(bin_PROGRAMS)
+CLEANFILES += $(BUILT_SOURCES) .version-prev .version-next
+
+src/bzip3-main.$(OBJEXT): .version
 
 _BRANCH_REF != $(AWK) '{print ".git/" $$2}' .git/HEAD 2>/dev/null
 
@@ -47,7 +55,7 @@ _BRANCH_REF != $(AWK) '{print ".git/" $$2}' .git/HEAD 2>/dev/null
 dist-hook:
 	printf "$(VERSION)" > "$(distdir)/.tarball-version"
 
-# End standard autotools stuff, begin developer convenience targets
+# Begin developer convenience targets
 
 .PHONY: format
 format: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
