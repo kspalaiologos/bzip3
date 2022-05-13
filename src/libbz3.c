@@ -249,6 +249,11 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     for (s32 i = 0; i < size_src; i++) b2[i] = decode_byte(state->cm_state);
     swap(b1, b2);
 
+    if(bwt_idx >= size_src) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
+    }
+
     // Undo BWT
     if (libsais_unbwt(b1, b2, state->sais_array, size_src, NULL, bwt_idx) < 0) {
         state->last_error = BZ3_ERR_BWT;
