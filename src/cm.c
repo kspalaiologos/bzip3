@@ -30,13 +30,6 @@
 #define write_out(s, c) (s)->out_queue[(s)->output_ptr++] = (c)
 #define read_in(s) ((s)->input_ptr < (s)->input_max ? (s)->in_queue[(s)->input_ptr++] : -1)
 
-void init(state * s) {
-    s->code = (s->code << 8) + read_in(s);
-    s->code = (s->code << 8) + read_in(s);
-    s->code = (s->code << 8) + read_in(s);
-    s->code = (s->code << 8) + read_in(s);
-}
-
 #define update0(p, x) ((p) - ((p) >> x))
 #define update1(p, x) ((p) + (((p) ^ 65535) >> x))
 
@@ -128,6 +121,11 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
 }
 
 void decode_bytes(state * s, u8 * c, s32 size) {
+    s->code = (s->code << 8) + read_in(s);
+    s->code = (s->code << 8) + read_in(s);
+    s->code = (s->code << 8) + read_in(s);
+    s->code = (s->code << 8) + read_in(s);
+    
     for(s32 i = 0; i < size; i++) {
         if (s->c1 == s->c2)
             ++s->run;

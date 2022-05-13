@@ -238,7 +238,6 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     state->cm_state->in_queue = b1 + p * 4 + 1;
     state->cm_state->input_ptr = 0;
     state->cm_state->input_max = data_size;
-    init(state->cm_state);
 
     s32 size_src;
 
