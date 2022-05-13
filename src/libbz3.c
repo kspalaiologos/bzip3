@@ -164,7 +164,7 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
     begin(state->cm_state);
     state->cm_state->out_queue = b1 + overhead * 4 + 1;
     state->cm_state->output_ptr = 0;
-    for (s32 i = 0; i < data_size; i++) encode_byte(state->cm_state, b2[i]);
+    encode_bytes(state->cm_state, b2, data_size);
     flush(state->cm_state);
     data_size = state->cm_state->output_ptr;
 
@@ -250,7 +250,7 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     else
         size_src = orig_size;
 
-    for (s32 i = 0; i < size_src; i++) b2[i] = decode_byte(state->cm_state);
+    decode_bytes(state->cm_state, b2, size_src);
     swap(b1, b2);
 
     if(bwt_idx >= size_src) {

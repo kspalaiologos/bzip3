@@ -19,7 +19,7 @@ typedef struct {
 void flush(state * s);
 void init(state * s);
 void begin(state * s);
-void encode_byte(state * s, u8 c);
-u8 decode_byte(state * s);
+void encode_bytes(state * s, u8 * c, s32 size);
+void decode_bytes(state * s, u8 * c, s32 size);
 
 #endif
