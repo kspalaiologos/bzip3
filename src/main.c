@@ -43,6 +43,7 @@ int is_numeric(const char * str) {
 int main(int argc, char * argv[]) {
     // -1: decode, 0: unspecified, 1: encode, 2: test
     int mode = 0;
+    int args_status = 1;
 
     // input and output file names
     char *input = NULL, *output = NULL;
@@ -97,6 +98,9 @@ int main(int argc, char * argv[]) {
                 workers = atoi(argv[i + 1]);
                 i++;
 #endif
+            } else if (argv[i][1] == 'h') {
+                mode = 0;
+                args_status = 0;
             } else if (argv[i][1] == '-') {
                 double_dash = 1;
             } else {
@@ -123,18 +127,19 @@ int main(int argc, char * argv[]) {
     if (mode == 0) {
         fprintf(stderr, "bzip3 - A better and stronger spiritual successor to bzip2.\n");
         fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
-        fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c] [-b block_size] input output\n");
+        fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c/-h] [-b block_size] input output\n");
         fprintf(stderr, "Operations:\n");
         fprintf(stderr, "  -e: encode\n");
         fprintf(stderr, "  -d: decode\n");
         fprintf(stderr, "  -t: test\n");
+        fprintf(stderr, "  -h: help\n");
         fprintf(stderr, "Extra flags:\n");
         fprintf(stderr, "  -c: force reading/writing from standard streams\n");
         fprintf(stderr, "  -b N: set block size in MiB\n");
 #ifdef PTHREAD
         fprintf(stderr, "  -j N: set the amount of parallel threads\n");
 #endif
-        return 1;
+        return args_status;
     }
 
     if (mode != 2) {
