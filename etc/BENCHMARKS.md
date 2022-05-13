@@ -2,11 +2,11 @@
 [Testing corpus](https://github.com/kspalaiologos/bzip3/releases/download/corpus/corpus.7z)
 
 ```
-17257 bee_movie.txt.bz3
+17256 bee_movie.txt.bz3
 18109 bzip2/bee_movie.txt.bz2
 55315 bee_movie.txt
 
-72319 bzip3-master.tar.bz3
+72320 bzip3-master.tar.bz3
 77575 bzip2/bzip3-master.tar.bz2
 501760 bzip3-master.tar
 
@@ -14,7 +14,7 @@
 285841 bzip2/lua-5.4.4.tar.bz2
 1361920 lua-5.4.4.tar
 
-468273 cantrbry.tar.bz3
+468272 cantrbry.tar.bz3
 570856 bzip2/cantrbry.tar.bz2
 2821120 cantrbry.tar
 
@@ -22,51 +22,51 @@
 891321 bzip2/calgary.tar.bz2
 3265536 calgary.tar
 
-2347279 decoda.tar.bz3
-2580600 bzip2/decoda.tar.bz2
-6154240 decoda.tar
-
-1229841 shakespeare.txt.bz3
+1229840 shakespeare.txt.bz3
 1479261 bzip2/shakespeare.txt.bz2
 5458199 shakespeare.txt
+
+2347278 decoda.tar.bz3
+2580600 bzip2/decoda.tar.bz2
+6154240 decoda.tar
 
 2052611 2b2t_signs.txt.bz3
 2388597 bzip2/2b2t_signs.txt.bz2
 9635520 2b2t_signs.txt
 
-41187302 audio.tar.bz3
+41187299 audio.tar.bz3
 95526840 bzip2/audio.tar.bz2
 115742720 audio.tar
 
-12753535 chinese.txt.bz3
+12753530 chinese.txt.bz3
 17952181 bzip2/chinese.txt.bz2
 79912971 chinese.txt
 
-22677653 enwik8.bz3
+22677651 enwik8.bz3
 29008758 bzip2/enwik8.bz2
 100000000 enwik8
 
-47227869 silesia.tar.bz3
+47227855 silesia.tar.bz3
 54538771 bzip2/silesia.tar.bz2
 211968000 silesia.tar
 
-8437744 lisp.mb.bz3
+8437731 lisp.mb.bz3
 13462295 bzip2/lisp.mb.bz2
 371331415 lisp.mb
 
-83624653 gcc.tar.bz3
+83624620 gcc.tar.bz3
 109065903 bzip2/gcc.tar.bz2
 824309760 gcc.tar
 
-157642135 dna.tar.bz3
+157642102 dna.tar.bz3
 180075480 bzip2/dna.tar.bz2
 685619200 dna.tar
 
-129023226 linux.tar.bz3
+129023171 linux.tar.bz3
 157810434 bzip2/linux.tar.bz2
 1215221760 linux.tar
 
-406343481 Windows NT 4.0.vmdk.bz3
+406343457 Windows NT 4.0.vmdk.bz3
 437184515 bzip2/Windows NT 4.0.vmdk.bz2
 804192256 Windows NT 4.0.vmdk
 ```
