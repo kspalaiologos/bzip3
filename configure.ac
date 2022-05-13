@@ -13,6 +13,9 @@ AC_PROG_CC([clang gcc icc])
 AC_PROG_AWK
 LT_INIT
 
+PKG_PROG_PKG_CONFIG
+PKG_INSTALLDIR
+
 AC_ARG_WITH([pthread],
 			  AS_HELP_STRING([--without-pthread], [Disable use of pthread library]))
 AM_CONDITIONAL([WITH_PTHREAD], [test x"$with_pthread" != xno])
@@ -52,5 +55,6 @@ AM_COND_IF([PASSED_CFLAGS], [
 ])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([bzip3.pc])
 AC_ARG_PROGRAM
 AC_OUTPUT

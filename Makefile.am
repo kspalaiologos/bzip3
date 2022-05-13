@@ -5,6 +5,8 @@ AM_LDFLAGS = -avoid-version
 
 EXTRA_DIST = LICENSE PORTING.md README.md build-aux/git-version-gen
 
+pkgconfig_DATA = bzip3.pc
+
 include_HEADERS = include/libbz3.h
 noinst_HEADERS = include/cm.h \
 						 include/common.h \
