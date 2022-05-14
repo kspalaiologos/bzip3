@@ -17,6 +17,7 @@ bzip3
 bzip3-*
 .version
 .version-prev
+LICENSE2
 
 # Autotools
 .deps/
