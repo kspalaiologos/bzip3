@@ -67,5 +67,5 @@ cloc: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
 
 .PHONY: roundtrip
 roundtrip: $(bin_PROGRAMS)
-	time ./$< -e -b 6 configure
-	time ./$< -d configure.bz3
+	time ./$< -e -b 6 LICENSE
+	time ./$< -d LICENSE.bz3
