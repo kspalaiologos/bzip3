@@ -76,7 +76,6 @@ jobs:
         compiler: [ clang, gcc ]
         feature: [ enable-pthread, disable-pthread ]
         arch: [ armv6, armv7, aarch64, s390x, ppc64le ]
-        os: [ ubuntu20.04, jessie, fedora_latest, alpine_latest ]
     runs-on: ubuntu-latest
     steps:
     - name: Download source package artifact
@@ -89,25 +88,13 @@ jobs:
       name: Run in the container
       with:
         arch: ${{ matrix.arch }}
-        distro: ${{ matrix.os }}
+        distro: jessie
         shell: /bin/sh
         dockerRunArgs: |
           --volume "${PWD}:/bzip3"
         install: |
-            case "${{ matrix.os }}" in
-              ubuntu*|jessie|stretch|buster|bullseye)
-                apt update -q -y
-                apt install -q -y clang gcc
-                ;;
-              fedora*)
-                dnf -y update
-                dnf -y install clang gcc
-                ;;
-              alpine*)
-                apk update
-                apk add clang gcc
-                ;;
-            esac
+          apt update -q -y
+          apt install -q -y clang gcc
         run: |
           cd /bzip3
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
