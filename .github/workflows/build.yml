@@ -31,7 +31,7 @@ jobs:
       matrix:
         platform: [ ubuntu-latest, macos-latest ]
         compiler: [ clang, gcc ]
-        feature: [ enable-pthread, disable-pthread ]
+        feature: [ with-pthread, without-pthread ]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Download source package artifact
@@ -45,7 +45,7 @@ jobs:
     - name: Make
       run: make
     - name: Check
-      run: make check
+      run: make roundtrip
 
   build-bsd:
     name: Build on FreeBSD
@@ -65,7 +65,7 @@ jobs:
         run: |
           ./configure
           make
-          make check
+          make roundtrip
 
   build-archs:
     name: Build Matrix for non-x86 architectures
@@ -98,5 +98,4 @@ jobs:
         run: |
           cd /bzip3
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
-          cat config.log
-          make && make check
+          make && make roundtrip
