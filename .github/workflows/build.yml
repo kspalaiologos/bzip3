@@ -31,7 +31,7 @@ jobs:
       matrix:
         platform: [ ubuntu-latest, macos-latest ]
         compiler: [ clang, gcc ]
-        feature: [ enable-pthread, disable-pthread ]
+        feature: [ with-pthread, without-pthread ]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Download source package artifact
