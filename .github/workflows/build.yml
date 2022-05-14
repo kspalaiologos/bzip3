@@ -45,7 +45,7 @@ jobs:
     - name: Make
       run: make
     - name: Check
-      run: make check
+      run: make roundtrip
 
   build-bsd:
     name: Build on FreeBSD
@@ -63,6 +63,40 @@ jobs:
       with:
         usesh: true
         run: |
-          ./configure
-          make
-          make check
+          pkg install -y llvm gmake
+          MAKE=gmake ./configure
+          gmake
+          gmake roundtrip
+
+  build-archs:
+    name: Build Matrix for non-x86 architectures
+    needs: [ dist ]
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ clang, gcc ]
+        feature: [ with-pthread, without-pthread ]
+        arch: [ armv6, armv7, aarch64, s390x, ppc64le ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download source package artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: bzip3-${{ github.sha }}
+    - name: Extract source package
+      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - uses: uraimo/run-on-arch-action@v2
+      name: Run in the container
+      with:
+        arch: ${{ matrix.arch }}
+        distro: stretch
+        shell: /bin/sh
+        dockerRunArgs: |
+          --volume "${PWD}:/bzip3"
+        install: |
+          apt update -q -y
+          apt install -q -y clang gcc make
+        run: |
+          cd /bzip3
+          ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
+          make && make roundtrip
