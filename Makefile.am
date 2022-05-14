@@ -37,7 +37,7 @@ CLEANFILES += $(BUILT_SOURCES) .version-prev
 
 src/bzip3-main.$(OBJEXT): .version
 
-_BRANCH_REF != $(AWK) '{print ".git/" $$2}' .git/HEAD 2>/dev/null
+_BRANCH_REF != $(AWK) '{print ".git/" $$2}' .git/HEAD 2>/dev/null ||:
 
 .version: $(_BRANCH_REF)
 	@if [ -e "$(srcdir)/.tarball-version" ]; then \
@@ -66,8 +66,11 @@ cloc: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
 
 CLEANFILES += LICENSE2
 .PHONY: roundtrip
-roundtrip: bzip3$(EXEEXT)
+
+BZIP3 := bzip3$(EXEEXT)
+
+roundtrip: $(BZIP3)
 	rm -f LICENSE2
-	./$< -e -b 6 LICENSE
-	./$< -d LICENSE.bz3 LICENSE2
+	./$(BZIP3) -e -b 6 LICENSE
+	./$(BZIP3) -d LICENSE.bz3 LICENSE2
 	cmp LICENSE LICENSE2
