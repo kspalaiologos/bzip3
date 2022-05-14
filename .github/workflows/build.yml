@@ -98,4 +98,5 @@ jobs:
         run: |
           cd /bzip3
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native
+          cat config.log
           make && make check
