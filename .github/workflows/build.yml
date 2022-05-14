@@ -74,7 +74,7 @@ jobs:
       fail-fast: false
       matrix:
         compiler: [ clang, gcc ]
-        feature: [ enable-pthread, disable-pthread ]
+        feature: [ with-pthread, without-pthread ]
         arch: [ armv6, armv7, aarch64, s390x, ppc64le ]
     runs-on: ubuntu-latest
     steps:
