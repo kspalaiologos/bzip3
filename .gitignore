@@ -5,7 +5,7 @@ etc/bitflip
 
 # Editor stuff
 .vscode/
-*.~
+*~
 tags
 
 # Generated
@@ -17,6 +17,7 @@ bzip3
 bzip3-*
 .version
 LICENSE2
+.version-prev
 
 # Autotools
 .deps/
@@ -34,7 +35,3 @@ autom4te.cache/
 !/build-aux/ax_check_compile_flag.m4
 !/build-aux/ax_pthread.m4
 !/build-aux/git-version-gen
-
-.version-prev
-
-configure~

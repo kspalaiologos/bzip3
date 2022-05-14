@@ -33,24 +33,23 @@ CLEANFILES = $(bin_PROGRAMS)
 # Begin special handling for autoconf VERSION being updated on commit
 
 BUILT_SOURCES = .version
-CLEANFILES += $(BUILT_SOURCES) .version-prev .version-next
+CLEANFILES += $(BUILT_SOURCES) .version-prev
 
 src/bzip3-main.$(OBJEXT): .version
 
 _BRANCH_REF != $(AWK) '{print ".git/" $$2}' .git/HEAD 2>/dev/null
 
 .version: $(_BRANCH_REF)
-	if [ -e "$@" ]; then \
-		mv "$@" "$@-prev"; \
+	@if [ -e "$(srcdir)/.tarball-version" ]; then \
+		printf "$(VERSION)" > $@; \
 	else \
-		[ -e "$<" ] && touch "$@-prev" || cp "$(srcdir)/.tarball-version" "$@-prev"; \
-	fi
-	if [ -e "$<" ]; then \
-		./build-aux/git-version-gen "$(srcdir)/.tarball-version"; \
+		touch "$@-prev"; \
+		if [ -e "$@" ]; then \
+			cp "$@" "$@-prev"; \
+		fi; \
+		./build-aux/git-version-gen "$(srcdir)/.tarball-version" > $@; \
 		cmp -s "$@" "$@-prev" || autoreconf configure.ac --force; \
-	else \
-		printf "$(VERSION)"; \
-	fi > $@
+	fi
 
 dist-hook:
 	printf "$(VERSION)" > "$(distdir)/.tarball-version"
