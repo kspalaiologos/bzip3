@@ -63,10 +63,10 @@ jobs:
       with:
         usesh: true
         run: |
-          pkg install -y llvm gmake
-          MAKE=gmake ./configure
-          gmake
-          gmake roundtrip
+          pkg install -y llvm
+          ./configure
+          make
+          make roundtrip
 
   build-archs:
     name: Build Matrix for non-x86 architectures
