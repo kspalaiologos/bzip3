@@ -70,3 +70,4 @@ roundtrip: $(bin_PROGRAMS)
 	./$< -e -b 6 LICENSE
 	./$< -d LICENSE.bz3 LICENSE2
 	cmp LICENSE LICENSE2
+	rm -rf LICENSE2
