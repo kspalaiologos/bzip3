@@ -97,6 +97,6 @@ jobs:
           apt install -q -y clang gcc make
         run: |
           cd /bzip3
-          ( ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native ) || true
+          ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
           cat config.log
           make && make check
