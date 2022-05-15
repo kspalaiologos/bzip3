@@ -43,6 +43,12 @@ The results follow:
 * bzip3 - 1'001'957'587 bytes
 * Zstandard - 3'076'143'660 bytes
 
+Finally, wall clock time decompression times (WD Blue HDD):
+* LZMA (xz) - 4min 40s
+* bzip2 - 9min 22s
+* bzip3 (parallel) - 4min 6s
+* Zstandard - 3min 51s
+
 Then, I used `lrzip` to perform long-range deduplication on the original `.tar` file:
 
 ```
