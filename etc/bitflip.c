@@ -1,4 +1,6 @@
 
+// If it wasn't obvious, you're expected to compile this with UBSan and ASan.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
