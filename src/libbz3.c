@@ -78,6 +78,7 @@ PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
 
     bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 32);
     bz3_state->sais_array = malloc((block_size + 2) * sizeof(s32));
+    memset(bz3_state->sais_array, 0, sizeof(s32) * (block_size + 2));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 

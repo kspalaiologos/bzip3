@@ -5238,6 +5238,7 @@ static sa_sint_t libsais_unbwt_main(const u8 * T, u8 * U, sa_uint_t * P, sa_sint
     sa_uint_t * RESTRICT bucket2 =
         (sa_uint_t *)libsais_alloc_aligned(ALPHABET_SIZE * ALPHABET_SIZE * sizeof(sa_uint_t), 4096);
     u16 * RESTRICT fastbits = (u16 *)libsais_alloc_aligned(((size_t)1 + (size_t)(n >> shift)) * sizeof(u16), 4096);
+    memset(fastbits, 0, ((size_t)1 + (size_t)(n >> shift)) * sizeof(u16));
     sa_uint_t * RESTRICT buckets =
         threads > 1 && n >= 262144
             ? (sa_uint_t *)libsais_alloc_aligned(
