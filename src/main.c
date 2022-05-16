@@ -263,8 +263,8 @@ int main(int argc, char * argv[]) {
     }
 
 #ifdef PTHREAD
-    if (workers > 16 || workers < 0) {
-        fprintf(stderr, "Number of workers must be between 0 and 16.\n");
+    if (workers > 24 || workers < 0) {
+        fprintf(stderr, "Number of workers must be between 0 and 24.\n");
         return 1;
     }
 
