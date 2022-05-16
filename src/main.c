@@ -187,7 +187,7 @@ int main(int argc, char * argv[]) {
 
     if (input == NULL && output == NULL) force_stdstreams = 1;
 
-    FILE *input_des, *output_des;
+    FILE *input_des = NULL, *output_des = NULL;
 
     if (input != NULL) {
         if (is_dir(input)) {
@@ -200,7 +200,7 @@ int main(int argc, char * argv[]) {
             perror("fopen");
             return 1;
         }
-    } else if (force_stdstreams) {
+    } else {
         input_des = stdin;
     }
 
@@ -215,7 +215,7 @@ int main(int argc, char * argv[]) {
             perror("open");
             return 1;
         }
-    } else if (force_stdstreams) {
+    } else {
         output_des = stdout;
     }
 
