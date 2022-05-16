@@ -33,7 +33,7 @@ Then, I put all the resulting `.tar` files in a single `.tar` file and tried to 
 xz -T16 -9 -k all.tar  10829.91s user 26.91s system 1488% cpu 14658M memory 12:09.24 total
 bzip2 -9 -k all.tar  981.78s user 9.77s system 95% cpu 8M memory 17:16.64 total
 bzip3 -e -b 256 -j 12 all.tar  2713.81s user 16.28s system 634% cpu 18301M memory 7:10.10 total
-bzip3 -e -b 511 -j 4 all.tar all511.tar.bz3  717.65s user 12.19s system 170% cpu 12178M memory 7:08.65 total
+bzip3 -e -b 511 -j 4 all.tar  17.65s user 12.19s system 170% cpu 12178M memory 7:08.65 total
 zstd -T12 -16 all.tar  4162.94s user 16.40s system 1056% cpu 687M memory 6:35.62 total
 ```
 
