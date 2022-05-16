@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
     // input and output file names
     char *input = NULL, *output = NULL;
     char *bz3_file = NULL, *regular_file = NULL;
-    int no_bz3_suffix = 0;
+    int no_bz3_suffix = 0, force = 0;
 
     // command line arguments
     int force_stdstreams = 0, workers = 0;
@@ -73,6 +73,8 @@ int main(int argc, char * argv[]) {
                 mode = -1;
             } else if (argv[i][1] == 't') {
                 mode = 2;
+            } else if (argv[i][1] == 'f') {
+                force = 1;
             } else if (argv[i][1] == 'b') {
                 if (i + 1 >= argc) {
                     fprintf(stderr, "Error: -b requires an argument.\n");
@@ -142,6 +144,7 @@ int main(int argc, char * argv[]) {
         fprintf(stderr, "  -d: decode\n");
         fprintf(stderr, "  -t: test\n");
         fprintf(stderr, "  -h: help\n");
+        fprintf(stderr, "  -f: force overwrite output if it already exists\n");
         fprintf(stderr, "  -v: version\n");
         fprintf(stderr, "Extra flags:\n");
         fprintf(stderr, "  -c: force reading/writing from standard streams\n");
@@ -208,6 +211,13 @@ int main(int argc, char * argv[]) {
         if (is_dir(output)) {
             fprintf(stderr, "Error: output is a directory.\n");
             return 1;
+        }
+
+        if(access(output, F_OK) == 0) {
+            if (!force) {
+                fprintf(stderr, "Error: output file already exists. Use -f to force overwrite.\n");
+                return 1;
+            }
         }
 
         output_des = fopen(output, "wb");

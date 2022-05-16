@@ -11,3 +11,5 @@ v1.1.3:
 * fix a serious stdin/stdout CRLF bug on Windows that corrupted the data.
 * imply `-c` when a stream isn't opened thus preventing potential UB.
 * bzip3 file format documentation.
+* increase the maximum amount of parallel workers to 24.
+* prevent accidentally overwriting output; add the `-f` command-line flag.
