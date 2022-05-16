@@ -258,7 +258,11 @@ int main(int argc, char * argv[]) {
                 return 1;
             }
 
-            fread(byteswap_buf, 4, 1, input_des);
+            if(fread(byteswap_buf, 4, 1, input_des) != 1) {
+                fprintf(stderr, "I/O error.\n");
+                return 1;
+            }
+
             block_size = read_neutral_s32(byteswap_buf);
 
             if (block_size < KiB(65) || block_size > MiB(511)) {
