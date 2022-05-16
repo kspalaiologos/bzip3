@@ -179,7 +179,6 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
 
     state->last_error = BZ3_OK;
 
-    // XXX: Better solution
     if (b1 != buffer) memcpy(buffer, b1, data_size + overhead * 4 + 1);
 
     return data_size + overhead * 4 + 1;
@@ -283,7 +282,6 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
         return -1;
     }
 
-    // XXX: Better solution
     if (b1 != buffer) memcpy(buffer, b1, size_src);
 
     if (crc32 != crc32sum(1, buffer, size_src)) {

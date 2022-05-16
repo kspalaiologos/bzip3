@@ -26,8 +26,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #if defined __MSVCRT__
-  #include <fcntl.h>
-  #include <io.h>
+    #include <fcntl.h>
+    #include <io.h>
 #endif
 
 #include "common.h"
@@ -151,13 +151,13 @@ int main(int argc, char * argv[]) {
 #endif
         return args_status;
     }
-    #ifndef O_BINARY
-		#define O_BINARY 0
-    #endif
-    #if defined(__MSVCRT__)
-		setmode(STDIN_FILENO, O_BINARY);
-		setmode(STDOUT_FILENO, O_BINARY);
-    #endif
+#ifndef O_BINARY
+    #define O_BINARY 0
+#endif
+#if defined(__MSVCRT__)
+    setmode(STDIN_FILENO, O_BINARY);
+    setmode(STDOUT_FILENO, O_BINARY);
+#endif
 
     if (mode != 2) {
         if (no_bz3_suffix || mode == 1) {

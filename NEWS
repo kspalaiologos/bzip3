@@ -1,0 +1,12 @@
+
+v1.1.2:
+* fix memory UB in libsais
+* restructure src/cm.c
+* block size check in src/libbz3.c
+* fix shift UB in lzp
+* -h/-v CLI switches
+* change maximum block size to ~512M
+
+v1.1.3:
+* fix a serious stdin/stdout CRLF bug on Windows that corrupted the data.
+* imply `-c` when a stream isn't opened thus preventing potential UB.
