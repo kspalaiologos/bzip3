@@ -28,5 +28,8 @@ If the chunk is smaller than 64 bytes, then compression is not attempted. Instea
 
 Otherwise, the chunk starts with the 32-bit CRC32 checksum value, the Burrows-Wheeler transform permutation index and the compression _model_ - a 8-bit value specifying the compression preset used. As such:
 
-- 2-s bit set in the _model_ - LZP was used and the 32-bit size is appended to the block.
-- 4-s bit set in the _model_ - RLE was used and the 32-bit size is appended to the block.
+- 2-s bit set in the _model_ - LZP was used and the 32-bit size is prepended to the block.
+- 4-s bit set in the _model_ - RLE was used and the 32-bit size is prepended to the block.
+- No other bit can be set in the _model_.
+
+The size of libbz3's block header can be calculated using the formula `popcnt(model) * 4 + 1`.
