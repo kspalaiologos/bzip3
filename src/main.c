@@ -224,7 +224,7 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if ((isatty(fileno(output_des)) && mode == 1) || (isatty(fileno(input_des)) && (mode == -1 || mode == 2))) {
+    if ((mode == 1 && isatty(fileno(output_des))) || ((mode == -1 || mode == 2) && isatty(fileno(input_des)))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
