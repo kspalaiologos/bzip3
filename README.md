@@ -101,3 +101,4 @@ Check etc/BENCHMARKS.md for more results.
 
 - Ilya Grebnov for his `libsais` library used for BWT construction in BZip3 and the LZP encoder which I had used as a reference implementation to improve myself.
 - Caleb Maclennan for configuring autotools as a packaging-friendly build system for BZip3.
+- Ilya Muravyov for his public domain BWT post-coder, a derivative of which is used in this project.
