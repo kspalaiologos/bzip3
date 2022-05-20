@@ -109,7 +109,7 @@ int main(int argc, char * argv[]) {
                 mode = 0;
                 args_status = 0;
             } else if (argv[i][1] == 'v') {
-                fprintf(stderr, "bzip3 %s", VERSION);
+                fprintf(stderr, "bzip3 %s\n", VERSION);
                 return 0;
             } else if (argv[i][1] == '-') {
                 double_dash = 1;
