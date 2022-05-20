@@ -33,6 +33,11 @@
 #include "common.h"
 #include "libbz3.h"
 
+#define MODE_UNSPECIFIED 0
+#define MODE_DECODE -1
+#define MODE_ENCODE 1
+#define MODE_TEST 2
+
 int is_dir(const char * path) {
     struct stat sb;
     if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) return 1;
@@ -46,8 +51,7 @@ int is_numeric(const char * str) {
 }
 
 int main(int argc, char * argv[]) {
-    // -1: decode, 0: unspecified, 1: encode, 2: test
-    int mode = 0;
+    int mode = MODE_UNSPECIFIED;
     int args_status = 1;
 
     // input and output file names
@@ -68,11 +72,11 @@ int main(int argc, char * argv[]) {
                 fprintf(stderr, "Invalid flag '%s'.\n", argv[i]);
                 return 1;
             } else if (argv[i][1] == 'e') {
-                mode = 1;
+                mode = MODE_ENCODE;
             } else if (argv[i][1] == 'd') {
-                mode = -1;
+                mode = MODE_DECODE;
             } else if (argv[i][1] == 't') {
-                mode = 2;
+                mode = MODE_TEST;
             } else if (argv[i][1] == 'f') {
                 force = 1;
             } else if (argv[i][1] == 'b') {
@@ -106,7 +110,7 @@ int main(int argc, char * argv[]) {
                 i++;
 #endif
             } else if (argv[i][1] == 'h') {
-                mode = 0;
+                mode = MODE_UNSPECIFIED;
                 args_status = 0;
             } else if (argv[i][1] == 'v') {
                 fprintf(stderr, "bzip3 %s\n", VERSION);
@@ -134,7 +138,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    if (mode == 0) {
+    if (mode == MODE_UNSPECIFIED) {
         fprintf(stderr, "bzip3 version %s\n", VERSION);
         fprintf(stderr, "- A better and stronger spiritual successor to bzip2.\n");
         fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
@@ -162,8 +166,8 @@ int main(int argc, char * argv[]) {
     setmode(STDOUT_FILENO, O_BINARY);
 #endif
 
-    if (mode != 2) {
-        if (no_bz3_suffix || mode == 1) {
+    if (mode != MODE_TEST) {
+        if (no_bz3_suffix || mode == MODE_ENCODE) {
             input = regular_file;
             output = bz3_file;
             if (!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
@@ -207,7 +211,7 @@ int main(int argc, char * argv[]) {
         input_des = stdin;
     }
 
-    if (output != NULL && mode != 2) {
+    if (output != NULL && mode != MODE_TEST) {
         if (is_dir(output)) {
             fprintf(stderr, "Error: output is a directory.\n");
             return 1;
@@ -234,7 +238,8 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if ((mode == 1 && isatty(fileno(output_des))) || ((mode == -1 || mode == 2) && isatty(fileno(input_des)))) {
+    if ((mode == MODE_ENCODE && isatty(fileno(output_des))) ||
+        ((mode == MODE_DECODE || mode == MODE_TEST) && isatty(fileno(input_des)))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
@@ -242,14 +247,14 @@ int main(int argc, char * argv[]) {
     u8 byteswap_buf[4];
 
     switch (mode) {
-        case 1:
+        case MODE_ENCODE:
             fwrite("BZ3v1", 5, 1, output_des);
 
             write_neutral_s32(byteswap_buf, block_size);
             fwrite(byteswap_buf, 4, 1, output_des);
             break;
-        case -1:
-        case 2: {
+        case MODE_DECODE:
+        case MODE_TEST: {
             char signature[5];
 
             fread(signature, 5, 1, input_des);
@@ -298,7 +303,7 @@ int main(int argc, char * argv[]) {
             return 1;
         }
 
-        if (mode == 1) {
+        if (mode == MODE_ENCODE) {
             s32 read_count;
             while (!feof(input_des)) {
                 read_count = fread(buffer, 1, block_size, input_des);
@@ -315,7 +320,7 @@ int main(int argc, char * argv[]) {
                 fwrite(byteswap_buf, 4, 1, output_des);
                 fwrite(buffer, new_size, 1, output_des);
             }
-        } else if (mode == -1) {
+        } else if (mode == MODE_DECODE) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
                 if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
@@ -338,7 +343,7 @@ int main(int argc, char * argv[]) {
                 }
                 fwrite(buffer, old_size, 1, output_des);
             }
-        } else if (mode == 2) {
+        } else if (mode == MODE_TEST) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
                 if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
@@ -392,7 +397,7 @@ int main(int argc, char * argv[]) {
             }
         }
 
-        if (mode == 1) {
+        if (mode == MODE_ENCODE) {
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
@@ -418,7 +423,7 @@ int main(int argc, char * argv[]) {
                     fwrite(buffers[j], sizes[j], 1, output_des);
                 }
             }
-        } else if (mode == -1) {
+        } else if (mode == MODE_DECODE) {
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
@@ -442,7 +447,7 @@ int main(int argc, char * argv[]) {
                     fwrite(buffers[j], old_sizes[j], 1, output_des);
                 }
             }
-        } else if (mode == 2) {
+        } else if (mode == MODE_TEST) {
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
