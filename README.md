@@ -16,6 +16,10 @@ $ make
 $ sudo make install
 ```
 
+Alternatively, you might be able to install bzip3 using your system's package manager:
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/bzip3.svg)](https://repology.org/project/bzip3/versions)
+
 ## Perl source code benchmark
 
 First, I have downloaded every version of Perl5 ever released and decompressed them.
