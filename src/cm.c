@@ -30,8 +30,8 @@
 #define write_out(s, c) (s)->out_queue[(s)->output_ptr++] = (c)
 #define read_in(s) ((s)->input_ptr < (s)->input_max ? (s)->in_queue[(s)->input_ptr++] : -1)
 
-#define update0(p, x) ((p) - ((p) >> x))
-#define update1(p, x) ((p) + (((p) ^ 65535) >> x))
+#define update0(p, x) (p) = ((p) - ((p) >> x))
+#define update1(p, x) (p) = ((p) + (((p) ^ 65535) >> x))
 
 void begin(state * s) {
     prefetch(s);
@@ -82,10 +82,10 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
                     high = (high << 8) + 0xFF;
                 }
 
-                s->C0[ctx] = update1(s->C0[ctx], 2);
-                s->C1[c1][ctx] = update1(s->C1[c1][ctx], 4);
-                s->C2[2 * ctx + f][j] = update1(s->C2[2 * ctx + f][j], 6);
-                s->C2[2 * ctx + f][j + 1] = update1(s->C2[2 * ctx + f][j + 1], 6);
+                update1(s->C0[ctx], 2);
+                update1(s->C1[c1][ctx], 4);
+                update1(s->C2[2 * ctx + f][j], 6);
+                update1(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx + 1;
             } else {
                 low += (((u64)(high - low) * (ssep * 3 + p)) >> 18) + 1;
@@ -97,10 +97,10 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
                     high = (high << 8) + 0xFF;
                 }
 
-                s->C0[ctx] = update0(s->C0[ctx], 2);
-                s->C1[c1][ctx] = update0(s->C1[c1][ctx], 4);
-                s->C2[2 * ctx + f][j] = update0(s->C2[2 * ctx + f][j], 6);
-                s->C2[2 * ctx + f][j + 1] = update0(s->C2[2 * ctx + f][j + 1], 6);
+                update0(s->C0[ctx], 2);
+                update0(s->C1[c1][ctx], 4);
+                update0(s->C2[2 * ctx + f][j], 6);
+                update0(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx;
             }
 
@@ -169,16 +169,16 @@ void decode_bytes(state * s, u8 * c, s32 size) {
             }
 
             if (bit) {
-                s->C0[ctx] = update1(s->C0[ctx], 2);
-                s->C1[c1][ctx] = update1(s->C1[c1][ctx], 4);
-                s->C2[2 * ctx + f][j] = update1(s->C2[2 * ctx + f][j], 6);
-                s->C2[2 * ctx + f][j + 1] = update1(s->C2[2 * ctx + f][j + 1], 6);
+                update1(s->C0[ctx], 2);
+                update1(s->C1[c1][ctx], 4);
+                update1(s->C2[2 * ctx + f][j], 6);
+                update1(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx + 1;
             } else {
-                s->C0[ctx] = update0(s->C0[ctx], 2);
-                s->C1[c1][ctx] = update0(s->C1[c1][ctx], 4);
-                s->C2[2 * ctx + f][j] = update0(s->C2[2 * ctx + f][j], 6);
-                s->C2[2 * ctx + f][j + 1] = update0(s->C2[2 * ctx + f][j + 1], 6);
+                update0(s->C0[ctx], 2);
+                update0(s->C1[c1][ctx], 4);
+                update0(s->C2[2 * ctx + f][j], 6);
+                update0(s->C2[2 * ctx + f][j + 1], 6);
                 ctx += ctx;
             }
         }
