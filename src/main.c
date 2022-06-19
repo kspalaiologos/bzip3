@@ -217,7 +217,7 @@ int main(int argc, char * argv[]) {
             return 1;
         }
 
-        if(access(output, F_OK) == 0) {
+        if (access(output, F_OK) == 0) {
             if (!force) {
                 fprintf(stderr, "Error: output file already exists. Use -f to force overwrite.\n");
                 return 1;
@@ -263,7 +263,7 @@ int main(int argc, char * argv[]) {
                 return 1;
             }
 
-            if(fread(byteswap_buf, 4, 1, input_des) != 1) {
+            if (fread(byteswap_buf, 4, 1, input_des) != 1) {
                 fprintf(stderr, "I/O error.\n");
                 return 1;
             }
@@ -282,8 +282,8 @@ int main(int argc, char * argv[]) {
     }
 
 #ifdef PTHREAD
-    if (workers > 24 || workers < 0) {
-        fprintf(stderr, "Number of workers must be between 0 and 24.\n");
+    if (workers > 64 || workers < 0) {
+        fprintf(stderr, "Number of workers must be between 0 and 64.\n");
         return 1;
     }
 
