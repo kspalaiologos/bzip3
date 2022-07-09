@@ -320,6 +320,7 @@ int main(int argc, char * argv[]) {
                 fwrite(byteswap_buf, 4, 1, output_des);
                 fwrite(buffer, new_size, 1, output_des);
             }
+            fflush(output_des);
         } else if (mode == MODE_DECODE) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
@@ -343,6 +344,7 @@ int main(int argc, char * argv[]) {
                 }
                 fwrite(buffer, old_size, 1, output_des);
             }
+            fflush(output_des);
         } else if (mode == MODE_TEST) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
@@ -423,6 +425,7 @@ int main(int argc, char * argv[]) {
                     fwrite(buffers[j], sizes[j], 1, output_des);
                 }
             }
+            fflush(output_des);
         } else if (mode == MODE_DECODE) {
             while (!feof(input_des)) {
                 s32 i = 0;
@@ -447,6 +450,7 @@ int main(int argc, char * argv[]) {
                     fwrite(buffers[j], old_sizes[j], 1, output_des);
                 }
             }
+            fflush(output_des);
         } else if (mode == MODE_TEST) {
             while (!feof(input_des)) {
                 s32 i = 0;
