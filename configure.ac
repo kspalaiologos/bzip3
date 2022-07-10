@@ -25,8 +25,6 @@ AM_COND_IF([WITH_PTHREAD], [
 					[AC_MSG_ERROR([pthread.h not found, use --without-pthread to skip])])
 ])
 
-AC_CHECK_HEADERS(getopt.h)
-
 AC_ARG_ENABLE([arch-native],
 			AS_HELP_STRING([--disable-arch-native], [Disable CPU-specific optimizations]))
 AM_CONDITIONAL([ENABLE_ARCH_NATIVE], [test x"$enable_arch_native" != xno])

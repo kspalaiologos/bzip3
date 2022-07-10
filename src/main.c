@@ -30,65 +30,62 @@
     #include <io.h>
 #endif
 
-#ifdef HAVE_GETOPT_H
-    #include "getopt.h"
-#else
-    static int optind;
-    static int opterr = 1;
-    static int optopt;
-    static char *optarg;
+/* Use our own getopt implementation. */
+static int opind;
+static int operr = 1;
+static int opopt;
+static char *oparg;
 
-    static int getopt(int argc, char * const argv[], const char *optstring) {
-        static int optpos = 1;
-        const char *arg;
+static int getopt_impl(int argc, char * const argv[], const char *optstring) {
+    static int optpos = 1;
+    const char *arg;
 
-        /* Reset? */
-        if (optind == 0) {
-            optind = !!argc;
-            optpos = 1;
-        }
+    /* Reset? */
+    if (opind == 0) {
+        opind = !!argc;
+        optpos = 1;
+    }
 
-        arg = argv[optind];
-        if (arg && strcmp(arg, "--") == 0) {
-            optind++;
-            return -1;
-        } else if (!arg || arg[0] != '-' || !isalnum(arg[1])) {
-            return -1;
-        } else {
-            const char *opt = strchr(optstring, arg[optpos]);
-            optopt = arg[optpos];
-            if (!opt) {
-                if (opterr && *optstring != ':')
-                    fprintf(stderr, "%s: illegal option: %c\n", argv[0], optopt);
-                return '?';
-            } else if (opt[1] == ':') {
-                if (arg[optpos + 1]) {
-                    optarg = (char *)arg + optpos + 1;
-                    optind++;
-                    optpos = 1;
-                    return optopt;
-                } else if (argv[optind + 1]) {
-                    optarg = (char *)argv[optind + 1];
-                    optind += 2;
-                    optpos = 1;
-                    return optopt;
-                } else {
-                    if (opterr && *optstring != ':')
-                        fprintf(stderr, 
-                                "%s: option requires an argument: %c\n", 
-                                argv[0], optopt);
-                    return *optstring == ':' ? ':' : '?';
-                }
+    arg = argv[opind];
+    if (arg && strcmp(arg, "--") == 0) {
+        opind++;
+        return -1;
+    } else if (!arg || arg[0] != '-' || !isalnum(arg[1])) {
+        return -1;
+    } else {
+        const char *opt = strchr(optstring, arg[optpos]);
+        opopt = arg[optpos];
+        if (!opt) {
+            if (operr && *optstring != ':')
+                fprintf(stderr, "%s: illegal option: %c\n", argv[0], opopt);
+            return '?';
+        } else if (opt[1] == ':') {
+            if (arg[optpos + 1]) {
+                oparg = (char *)arg + optpos + 1;
+                opind++;
+                optpos = 1;
+                return opopt;
+            } else if (argv[opind + 1]) {
+                oparg = (char *)argv[opind + 1];
+                opind += 2;
+                optpos = 1;
+                return opopt;
             } else {
-                if (!arg[++optpos]) {
-                    optind++;
-                    optpos = 1;
-                }
-                return optopt;
+                if (operr && *optstring != ':')
+                    fprintf(stderr, 
+                            "%s: option requires an argument: %c\n", 
+                            argv[0], opopt);
+                return *optstring == ':' ? ':' : '?';
             }
+        } else {
+            if (!arg[++optpos]) {
+                opind++;
+                optpos = 1;
+            }
+            return opopt;
         }
     }
-#endif
+}
 
 #include "common.h"
 #include "libbz3.h"
@@ -151,10 +148,10 @@ int main(int argc, char * argv[]) {
     const char * getopt_args = "edtfchvb:";
 #endif
 
-    opterr = 1; // Should be set by default, just make sure.
-    while (optind < argc) {
+    operr = 1; // Should be set by default, just make sure.
+    while (opind < argc) {
         int opt;
-        if((opt = getopt(argc, argv, getopt_args)) != -1) {
+        if((opt = getopt_impl(argc, argv, getopt_args)) != -1) {
             // Normal dash argument.
             switch(opt) {
                 case 'e':
@@ -179,19 +176,19 @@ int main(int argc, char * argv[]) {
                     help();
                     return 0;
                 case 'b':
-                    if (is_numeric(optarg)) {
-                        block_size = MiB(atoi(optarg));
+                    if (is_numeric(oparg)) {
+                        block_size = MiB(atoi(oparg));
                     } else {
-                        fprintf(stderr, "Invalid block size: %s\n", optarg);
+                        fprintf(stderr, "Invalid block size: %s\n", oparg);
                         return 1;
                     }
                     break;
 #ifdef PTHREAD
                 case 'j':
-                    if (is_numeric(optarg)) {
-                        workers = atoi(optarg);
+                    if (is_numeric(oparg)) {
+                        workers = atoi(oparg);
                     } else {
-                        fprintf(stderr, "Invalid number of workers: %s\n", optarg);
+                        fprintf(stderr, "Invalid number of workers: %s\n", oparg);
                         return 1;
                     }
                     break;
@@ -199,7 +196,7 @@ int main(int argc, char * argv[]) {
             }
         } else {
             // Positional argument. Likely a file name.
-            char * arg = argv[optind++];
+            char * arg = argv[opind++];
 
             if (bz3_file != NULL && regular_file != NULL) {
                 fprintf(stderr, "Error: too many files specified.\n");
