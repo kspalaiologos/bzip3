@@ -143,7 +143,7 @@ int main(int argc, char * argv[]) {
     int double_dash = 0;
 
     // the block size
-    u32 block_size = MiB(8);
+    u32 block_size = MiB(16);
 
 #ifdef PTHREAD
     const char * getopt_args = "edtfchvb:j:";
