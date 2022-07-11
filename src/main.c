@@ -30,6 +30,63 @@
     #include <io.h>
 #endif
 
+/* Use our own getopt implementation. */
+static int opind;
+static int operr = 1;
+static int opopt;
+static char *oparg;
+
+static int getopt_impl(int argc, char * const argv[], const char *optstring) {
+    static int optpos = 1;
+    const char *arg;
+
+    /* Reset? */
+    if (opind == 0) {
+        opind = !!argc;
+        optpos = 1;
+    }
+
+    arg = argv[opind];
+    if (arg && strcmp(arg, "--") == 0) {
+        opind++;
+        return -1;
+    } else if (!arg || arg[0] != '-' || !isalnum(arg[1])) {
+        return -1;
+    } else {
+        const char *opt = strchr(optstring, arg[optpos]);
+        opopt = arg[optpos];
+        if (!opt) {
+            if (operr && *optstring != ':')
+                fprintf(stderr, "%s: illegal option: %c\n", argv[0], opopt);
+            return '?';
+        } else if (opt[1] == ':') {
+            if (arg[optpos + 1]) {
+                oparg = (char *)arg + optpos + 1;
+                opind++;
+                optpos = 1;
+                return opopt;
+            } else if (argv[opind + 1]) {
+                oparg = (char *)argv[opind + 1];
+                opind += 2;
+                optpos = 1;
+                return opopt;
+            } else {
+                if (operr && *optstring != ':')
+                    fprintf(stderr, 
+                            "%s: option requires an argument: %c\n", 
+                            argv[0], opopt);
+                return *optstring == ':' ? ':' : '?';
+            }
+        } else {
+            if (!arg[++optpos]) {
+                opind++;
+                optpos = 1;
+            }
+            return opopt;
+        }
+    }
+}
+
 #include "common.h"
 #include "libbz3.h"
 
@@ -38,13 +95,33 @@
 #define MODE_ENCODE 1
 #define MODE_TEST 2
 
-int is_dir(const char * path) {
+static void help() {
+    fprintf(stderr, "bzip3 version %s\n", VERSION);
+    fprintf(stderr, "- A better and stronger spiritual successor to bzip2.\n");
+    fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
+    fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c/-h/-v] [-b block_size] [-j jobs] files...\n");
+    fprintf(stderr, "Operations:\n");
+    fprintf(stderr, "  -e: encode\n");
+    fprintf(stderr, "  -d: decode\n");
+    fprintf(stderr, "  -t: test\n");
+    fprintf(stderr, "  -h: help\n");
+    fprintf(stderr, "  -f: force overwrite output if it already exists\n");
+    fprintf(stderr, "  -v: version\n");
+    fprintf(stderr, "Extra flags:\n");
+    fprintf(stderr, "  -c: force reading/writing from standard streams\n");
+    fprintf(stderr, "  -b N: set block size in MiB\n");
+#ifdef PTHREAD
+    fprintf(stderr, "  -j N: set the amount of parallel threads\n");
+#endif
+}
+
+static int is_dir(const char * path) {
     struct stat sb;
     if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) return 1;
     return 0;
 }
 
-int is_numeric(const char * str) {
+static int is_numeric(const char * str) {
     for (; *str; str++)
         if (!isdigit(*str)) return 0;
     return 1;
@@ -52,7 +129,6 @@ int is_numeric(const char * str) {
 
 int main(int argc, char * argv[]) {
     int mode = MODE_UNSPECIFIED;
-    int args_status = 1;
 
     // input and output file names
     char *input = NULL, *output = NULL;
@@ -64,99 +140,83 @@ int main(int argc, char * argv[]) {
     int double_dash = 0;
 
     // the block size
-    u32 block_size = MiB(8);
+    u32 block_size = MiB(16);
 
-    for (int i = 1; i < argc; i++) {
-        if (argv[i][0] == '-' && !double_dash) {
-            if (strlen(argv[i]) < 2) {
-                fprintf(stderr, "Invalid flag '%s'.\n", argv[i]);
-                return 1;
-            } else if (argv[i][1] == 'e') {
-                mode = MODE_ENCODE;
-            } else if (argv[i][1] == 'd') {
-                mode = MODE_DECODE;
-            } else if (argv[i][1] == 't') {
-                mode = MODE_TEST;
-            } else if (argv[i][1] == 'f') {
-                force = 1;
-            } else if (argv[i][1] == 'b') {
-                if (i + 1 >= argc) {
-                    fprintf(stderr, "Error: -b requires an argument.\n");
-                    return 1;
-                }
-
-                if (!is_numeric(argv[i + 1])) {
-                    fprintf(stderr, "Error: -b requires an integer argument.\n");
-                    return 1;
-                }
-
-                block_size = MiB(atoi(argv[i + 1]));
-                i++;
-            } else if (argv[i][1] == 'c') {
-                force_stdstreams = 1;
 #ifdef PTHREAD
-            } else if (argv[i][1] == 'j') {
-                if (i + 1 >= argc) {
-                    fprintf(stderr, "Error: -j requires an argument.\n");
-                    return 1;
-                }
-
-                if (!is_numeric(argv[i + 1])) {
-                    fprintf(stderr, "Error: -j requires an integer argument.\n");
-                    return 1;
-                }
-
-                workers = atoi(argv[i + 1]);
-                i++;
+    const char * getopt_args = "edtfchvb:j:";
+#else
+    const char * getopt_args = "edtfchvb:";
 #endif
-            } else if (argv[i][1] == 'h') {
-                mode = MODE_UNSPECIFIED;
-                args_status = 0;
-            } else if (argv[i][1] == 'v') {
-                fprintf(stderr, "bzip3 %s\n", VERSION);
-                return 0;
-            } else if (argv[i][1] == '-') {
-                double_dash = 1;
-            } else {
-                fprintf(stderr, "Invalid flag '%s'.\n", argv[i]);
-                return 1;
+
+    operr = 1; // Should be set by default, just make sure.
+    while (opind < argc) {
+        int opt;
+        if((opt = getopt_impl(argc, argv, getopt_args)) != -1) {
+            // Normal dash argument.
+            switch(opt) {
+                case 'e':
+                    mode = MODE_ENCODE;
+                    break;
+                case 'd':
+                    mode = MODE_DECODE;
+                    break;
+                case 't':
+                    mode = MODE_TEST;
+                    break;
+                case 'f':
+                    force = 1;
+                    break;
+                case 'c':
+                    force_stdstreams = 1;
+                    break;
+                case 'v':
+                    fprintf(stderr, "bzip3 %s\n", VERSION);
+                    return 0;
+                case 'h':
+                    help();
+                    return 0;
+                case 'b':
+                    if (is_numeric(oparg)) {
+                        block_size = MiB(atoi(oparg));
+                    } else {
+                        fprintf(stderr, "Invalid block size: %s\n", oparg);
+                        return 1;
+                    }
+                    break;
+#ifdef PTHREAD
+                case 'j':
+                    if (is_numeric(oparg)) {
+                        workers = atoi(oparg);
+                    } else {
+                        fprintf(stderr, "Invalid number of workers: %s\n", oparg);
+                        return 1;
+                    }
+                    break;
+#endif
             }
         } else {
+            // Positional argument. Likely a file name.
+            char * arg = argv[opind++];
+
             if (bz3_file != NULL && regular_file != NULL) {
                 fprintf(stderr, "Error: too many files specified.\n");
                 return 1;
             }
 
-            int has_bz3_suffix = strlen(argv[i]) > 4 && !strcmp(argv[i] + strlen(argv[i]) - 4, ".bz3");
+            int has_bz3_suffix = strlen(arg) > 4 && !strcmp(arg + strlen(arg) - 4, ".bz3");
 
             if (has_bz3_suffix || regular_file != NULL) {
-                bz3_file = argv[i];
+                bz3_file = arg;
                 no_bz3_suffix = !has_bz3_suffix;
             } else {
-                regular_file = argv[i];
+                regular_file = arg;
             }
         }
     }
 
     if (mode == MODE_UNSPECIFIED) {
-        fprintf(stderr, "bzip3 version %s\n", VERSION);
-        fprintf(stderr, "- A better and stronger spiritual successor to bzip2.\n");
-        fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
-        fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c/-h/-v] [-b block_size] input output\n");
-        fprintf(stderr, "Operations:\n");
-        fprintf(stderr, "  -e: encode\n");
-        fprintf(stderr, "  -d: decode\n");
-        fprintf(stderr, "  -t: test\n");
-        fprintf(stderr, "  -h: help\n");
-        fprintf(stderr, "  -f: force overwrite output if it already exists\n");
-        fprintf(stderr, "  -v: version\n");
-        fprintf(stderr, "Extra flags:\n");
-        fprintf(stderr, "  -c: force reading/writing from standard streams\n");
-        fprintf(stderr, "  -b N: set block size in MiB\n");
-#ifdef PTHREAD
-        fprintf(stderr, "  -j N: set the amount of parallel threads\n");
-#endif
-        return args_status;
+        help();
+        return 0;
     }
 #ifndef O_BINARY
     #define O_BINARY 0
@@ -432,7 +492,10 @@ int main(int argc, char * argv[]) {
                 for (; i < workers; i++) {
                     if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
+                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
+                        fprintf(stderr, "I/O error.\n");
+                        return 1;
+                    }
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
                     if (fread(buffers[i], 1, sizes[i], input_des) != sizes[i]) {
                         fprintf(stderr, "I/O error.\n");
@@ -457,7 +520,10 @@ int main(int argc, char * argv[]) {
                 for (; i < workers; i++) {
                     if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) break;
+                    if (fread(&byteswap_buf, 1, 4, input_des) != 4) {
+                        fprintf(stderr, "I/O error.\n");
+                        return 1;
+                    }
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
                     if (fread(buffers[i], 1, sizes[i], input_des) != sizes[i]) {
                         fprintf(stderr, "I/O error.\n");
