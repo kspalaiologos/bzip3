@@ -31,7 +31,7 @@
 #endif
 
 /* Use our own getopt implementation. */
-static int opind;
+static int opind = 1;
 static int operr = 1;
 static int opopt;
 static char *oparg;
