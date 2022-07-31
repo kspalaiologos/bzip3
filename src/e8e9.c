@@ -64,12 +64,12 @@ static int32_t e8e9_fb(struct e8e9 * s, int32_t c) {
             x = s->x0 - 0xFF000000;
             if (x < 0x02000000) {
                 x = (x + s->i) & 0x01FFFFFF;
-                x = x_swap(x);
+                x = e8e9_x_swap(x);
                 s->x0 = x + 0xFF000000;
             }
         }
     }
-    return cache_byte(s, c);
+    return e8e9_cache_byte(s, c);
 }
 
 static int32_t e8e9_bb(struct e8e9 * s, int32_t c) {
@@ -79,20 +79,20 @@ static int32_t e8e9_bb(struct e8e9 * s, int32_t c) {
             s->k = s->i + 4;
             x = s->x0 - 0xFF000000;
             if (x < 0x02000000) {
-                x = y_swap(x);
+                x = e8e9_y_swap(x);
                 x = (x - s->i) & 0x01FFFFFF;
                 s->x0 = x + 0xFF000000;
             }
         }
     }
-    return cache_byte(s, c);
+    return e8e9_cache_byte(s, c);
 }
 
 static int32_t e8e9_flush(struct e8e9 * s) {
     int32_t d;
     if (s->cs != 0xFF) {
-        while (s->cs & 0x80) cache_byte(s, 0), ++s->cs;
-        d = cache_byte(s, 0);
+        while (s->cs & 0x80) e8e9_cache_byte(s, 0), ++s->cs;
+        d = e8e9_cache_byte(s, 0);
         ++s->cs;
         return d;
     } else {
@@ -123,7 +123,7 @@ s32 e8e9_forward(u8 * restrict in, s32 inlen, u8 * restrict out) {
             if (c >= 0) out[out_ptr++] = c;
         }
         int c;
-        while ((c = flush()) >= 0)
+        while ((c = e8e9_flush()) >= 0)
             out[out_ptr++] = c;
         return out_ptr;
     } else {
@@ -139,7 +139,7 @@ s32 e8e9_backward(u8 * restrict in, s32 inlen, u8 * restrict out) {
         if (c >= 0) out[out_ptr++] = c;
     }
     int c;
-    while ((c = flush()) >= 0)
+    while ((c = e8e9_flush()) >= 0)
         out[out_ptr++] = c;
     return out_ptr;
 }
