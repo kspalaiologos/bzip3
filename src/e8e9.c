@@ -123,7 +123,7 @@ s32 e8e9_forward(u8 * restrict in, s32 inlen, u8 * restrict out) {
             if (c >= 0) out[out_ptr++] = c;
         }
         int c;
-        while ((c = e8e9_flush()) >= 0)
+        while ((c = e8e9_flush(&s)) >= 0)
             out[out_ptr++] = c;
         return out_ptr;
     } else {
@@ -139,7 +139,7 @@ s32 e8e9_backward(u8 * restrict in, s32 inlen, u8 * restrict out) {
         if (c >= 0) out[out_ptr++] = c;
     }
     int c;
-    while ((c = e8e9_flush()) >= 0)
+    while ((c = e8e9_flush(&s)) >= 0)
         out[out_ptr++] = c;
     return out_ptr;
 }
