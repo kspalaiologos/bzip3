@@ -233,17 +233,13 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     data_size -= p * 4 + 1;
 
     if (((model & 2) && (lzp_size > state->block_size + state->block_size / 50 + 32 || lzp_size < 0)) ||
-        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 32 || rle_size < 0))) {
+        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 32 || rle_size < 0)) ||
+        ((model & 8) && (e8e9_size > state->block_size + state->block_size / 50 + 32 || e8e9_size < 0))) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
     if (orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
-        state->last_error = BZ3_ERR_MALFORMED_HEADER;
-        return -1;
-    }
-
-    if (e8e9_size > state->block_size + state->block_size / 50 + 32 || e8e9_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }

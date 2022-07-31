@@ -115,9 +115,9 @@ s32 e8e9_forward(u8 * restrict in, s32 inlen, u8 * restrict out) {
 
     struct e8e9 s = e8e9_init();
 
-    /* All of the octets should be less than 2% of the data. */
+    /* All of the octets should be less than 2% of the data and more than 0.5% of the data. */
     s32 p = oct * 1000 / inlen;
-    if(p < 20) {
+    if(p < 20 && p > 10) {
         for(s32 i = 0; i < inlen; i++) {
             int c = e8e9_fb(&s, in[i]);
             if (c >= 0) out[out_ptr++] = c;
