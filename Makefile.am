@@ -13,7 +13,8 @@ noinst_HEADERS = include/cm.h \
 						 include/crc32.h \
 						 include/libsais.h \
 						 include/lzp.h \
-						 include/rle.h
+						 include/rle.h \
+						 include/e8e9.h
 
 lib_LTLIBRARIES = libbzip3.la
 libbzip3_la_SOURCES = src/cm.c \
@@ -21,7 +22,8 @@ libbzip3_la_SOURCES = src/cm.c \
 					  src/libbz3.c \
 					  src/libsais.c \
 					  src/lzp.c \
-					  src/rle.c
+					  src/rle.c \
+					  src/e8e9.c
 
 bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)
