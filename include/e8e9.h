@@ -26,6 +26,6 @@
 #include "common.h"
 
 s32 e8e9_forward(u8 * in, s32 inlen, u8 * out);
-void e8e9_backward(u8 * in, u8 * out, s32 outlen);
+s32 e8e9_backward(u8 * in, s32 inlen, u8 * out);
 
 #endif

@@ -35,11 +35,6 @@
 
 void begin(state * s) {
     prefetch(s);
-    s->c1 = s->c2 = 0;
-    s->run = 0;
-    s->low = 0;
-    s->high = 0xFFFFFFFF;
-    s->code = 0;
     for (int i = 0; i < 256; i++) s->C0[i] = 1 << 15;
     for (int i = 0; i < 256; i++)
         for (int j = 0; j < 256; j++) s->C1[i][j] = 1 << 15;
@@ -49,7 +44,9 @@ void begin(state * s) {
 }
 
 void encode_bytes(state * s, u8 * buf, s32 size) {
-    u32 high = s->high, low = s->low, c1 = s->c1, c2 = s->c2, run = s->run;
+    u32 low = 0, high = 0xFFFFFFFF, code = 0;
+    s32 c1 = 0, c2 = 0, run = 0;
+    
     for (s32 i = 0; i < size; i++) {
         u8 c = buf[i];
 
@@ -119,16 +116,11 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
     low <<= 8;
     write_out(s, low >> 24);
     low <<= 8;
-
-    s->high = high;
-    s->low = low;
-    s->c1 = c1;
-    s->c2 = c2;
-    s->run = run;
 }
 
 void decode_bytes(state * s, u8 * c, s32 size) {
-    u32 high = s->high, low = s->low, c1 = s->c1, c2 = s->c2, run = s->run, code = s->code;
+    u32 low = 0, high = 0xFFFFFFFF, code = 0;
+    s32 c1 = 0, c2 = 0, run = 0;
 
     code = (code << 8) + read_in(s);
     code = (code << 8) + read_in(s);
@@ -186,11 +178,4 @@ void decode_bytes(state * s, u8 * c, s32 size) {
         c2 = c1;
         c[i] = c1 = ctx & 255;
     }
-
-    s->high = high;
-    s->low = low;
-    s->c1 = c1;
-    s->c2 = c2;
-    s->run = run;
-    s->code = code;
 }

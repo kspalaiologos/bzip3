@@ -8,8 +8,6 @@
 #include "common.h"
 
 typedef struct {
-    u32 low, high, code;
-    s32 c1, c2, run;
     u8 *in_queue, *out_queue;
     s32 input_ptr, output_ptr, input_max;
 

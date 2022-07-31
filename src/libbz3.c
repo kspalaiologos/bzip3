@@ -28,6 +28,7 @@
 #include "libsais.h"
 #include "lzp.h"
 #include "rle.h"
+#include "e8e9.h"
 
 #define LZP_DICTIONARY 18
 #define LZP_MIN_MATCH 40
@@ -134,8 +135,16 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
     // Back to front:
     // bit 1: lzp | no lzp
     // bit 2: srt | no srt
+    // bit 3: e8e9 | no e8e9
     s8 model = 0;
-    s32 lzp_size, rle_size;
+    s32 lzp_size, rle_size, e8e9_size;
+
+    e8e9_size = e8e9_forward(b1, data_size, b2);
+    if(e8e9_size != -1) {
+        swap(b1, b2);
+        data_size = e8e9_size;
+        model |= 8;
+    }
 
     rle_size = mrlec(b1, data_size, b2);
     if (rle_size < data_size + 64) {
@@ -161,6 +170,7 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
     s32 overhead = 2;           // CRC32 + BWT index
     if (model & 2) overhead++;  // LZP
     if (model & 4) overhead++;  // RLE
+    if (model & 8) overhead++;  // E8E9
 
     begin(state->cm_state);
     state->cm_state->out_queue = b1 + overhead * 4 + 1;
@@ -176,6 +186,7 @@ PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_
     s32 p = 0;
     if (model & 2) write_neutral_s32(b1 + 9 + 4 * p++, lzp_size);
     if (model & 4) write_neutral_s32(b1 + 9 + 4 * p++, rle_size);
+    if (model & 8) write_neutral_s32(b1 + 9 + 4 * p++, e8e9_size);
 
     state->last_error = BZ3_OK;
 
@@ -211,10 +222,11 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     }
 
     s8 model = buffer[8];
-    s32 lzp_size = -1, rle_size = -1, p = 0;
+    s32 lzp_size = -1, rle_size = -1, e8e9_size = -1, p = 0;
 
     if (model & 2) lzp_size = read_neutral_s32(buffer + 9 + 4 * p++);
     if (model & 4) rle_size = read_neutral_s32(buffer + 9 + 4 * p++);
+    if (model & 8) e8e9_size = read_neutral_s32(buffer + 9 + 4 * p++);
 
     p += 2;
 
@@ -227,6 +239,11 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
     }
 
     if (orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
+        state->last_error = BZ3_ERR_MALFORMED_HEADER;
+        return -1;
+    }
+
+    if (e8e9_size > state->block_size + state->block_size / 50 + 32 || e8e9_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -245,6 +262,8 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
         size_src = lzp_size;
     else if (model & 4)
         size_src = rle_size;
+    else if (model & 8)
+        size_src = e8e9_size;
     else
         size_src = orig_size;
 
@@ -269,8 +288,16 @@ PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_
         swap(b1, b2);
     }
 
+    // Undo RLE
     if (model & 4) {
         mrled(b1, b2, orig_size);
+        size_src = model & 8 ? e8e9_size : orig_size;
+        swap(b1, b2);
+    }
+
+    // Undo E8E9
+    if (model & 8) {
+        e8e9_backward(b1, size_src, b2);
         size_src = orig_size;
         swap(b1, b2);
     }
