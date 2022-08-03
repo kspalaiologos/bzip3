@@ -50,7 +50,7 @@ jobs:
   build-bsd:
     name: Build on FreeBSD
     needs: [ dist ]
-    runs-on: macos-10.15
+    runs-on: macos-12
     steps:
     - name: Download source package artifact
       uses: actions/download-artifact@v3
