@@ -56,8 +56,10 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
         const char *opt = strchr(optstring, arg[optpos]);
         opopt = arg[optpos];
         if (!opt) {
-            if (operr && *optstring != ':')
+            if (operr) {
                 fprintf(stderr, "%s: illegal option: %c\n", argv[0], opopt);
+                exit(1);
+            }
             return '?';
         } else if (opt[1] == ':') {
             if (arg[optpos + 1]) {
@@ -71,10 +73,12 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
                 optpos = 1;
                 return opopt;
             } else {
-                if (operr && *optstring != ':')
+                if (operr) {
                     fprintf(stderr, 
                             "%s: option requires an argument: %c\n", 
                             argv[0], opopt);
+                    exit(1);
+                }
                 return *optstring == ':' ? ':' : '?';
             }
         } else {
