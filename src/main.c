@@ -132,7 +132,7 @@ static int is_numeric(const char * str) {
 }
 
 int main(int argc, char * argv[]) {
-    int mode = MODE_UNSPECIFIED;
+    int mode = MODE_ENCODE;
 
     // input and output file names
     char *input = NULL, *output = NULL;
