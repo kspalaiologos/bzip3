@@ -52,4 +52,13 @@ static void write_neutral_s32(u8 * data, s32 value) {
     #define PUBLIC_API
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define RESTRICT __restrict__
+#elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
+    #define RESTRICT __restrict
+#else
+    #define RESTRICT restrict
+    #warning Your compiler, configuration or platform might not be supported.
+#endif
+
 #endif

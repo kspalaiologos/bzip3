@@ -18,6 +18,7 @@
  */
 
 #include "rle.h"
+#include "common.h"
 
 s32 mrlec(u8 * in, s32 inlen, u8 * out) {
     u8 *ip = in, *in_end = in + inlen;
@@ -57,7 +58,7 @@ s32 mrlec(u8 * in, s32 inlen, u8 * out) {
     return op;
 }
 
-void mrled(u8 * restrict in, u8 * restrict out, s32 outlen) {
+void mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen) {
     s32 op = 0, ip = 0;
 
     s32 c, pc = -1;

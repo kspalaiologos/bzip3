@@ -22,6 +22,7 @@ Please see the file LICENSE for full copyright information.
 --*/
 
 #include "libsais.h"
+#include "common.h"
 
 #include <limits.h>
 #include <stddef.h>
@@ -83,14 +84,6 @@ typedef struct LIBSAIS_UNBWT_CONTEXT {
     sa_uint_t * buckets;
     fast_sint_t threads;
 } LIBSAIS_UNBWT_CONTEXT;
-
-#if defined(__GNUC__) || defined(__clang__)
-    #define RESTRICT __restrict__
-#elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
-    #define RESTRICT __restrict
-#else
-    #error Your compiler, configuration or platform is not supported.
-#endif
 
 #if defined(__has_builtin)
     #if __has_builtin(__builtin_prefetch)
