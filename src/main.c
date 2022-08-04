@@ -108,7 +108,7 @@ static void help() {
     fprintf(stderr, "  -f: force overwrite output if it already exists\n");
     fprintf(stderr, "  -v: version\n");
     fprintf(stderr, "Extra flags:\n");
-    fprintf(stderr, "  -1 .. -9: set compression level {5}\n");
+    fprintf(stderr, "  -1 .. -9: set block size to 1,2,4,8,16... MiB {5}\n");
     fprintf(stderr, "  -c: force reading/writing from standard streams\n");
     fprintf(stderr, "  -b N: set block size in MiB {16}\n");
 #ifdef PTHREAD
@@ -142,7 +142,7 @@ int main(int argc, char * argv[]) {
 
     // the block size
     u32 block_size = MiB(16);
-    u32 comp_lv_map[] = { KiB(0), KiB(65), KiB(256), MiB(1), MiB(4), MiB(16), MiB(64), MiB(128), MiB(256), MiB(511) };
+    u32 comp_lv_map[] = { KiB(0), MiB(1<<0), MiB(1<<2), MiB(1<<2), MiB(1<<3), MiB(1<<4), MiB(1<<5), MiB(1<<6), MiB(1<<7), MiB(1<<8) };
 #ifdef PTHREAD
     const char * getopt_args = "123456789b:cdefhj:tV";
 #else
@@ -155,7 +155,7 @@ int main(int argc, char * argv[]) {
         if((opt = getopt_impl(argc, argv, getopt_args)) != -1) {
             // Normal dash argument.
             switch(opt) {
-                case '0': case '1': case '2': case '3': case '4':
+                case '1': case '2': case '3': case '4':
                 case '5': case '6': case '7': case '8': case '9':
                     block_size = comp_lv_map[opt - '0'];
                     break;
