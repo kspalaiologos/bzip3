@@ -100,20 +100,20 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
 #define MODE_TEST 2
 
 static void help() {
+    fprintf(stderr, "Bzip3 - better and stronger spiritual successor to bzip2.\n");
     fprintf(stderr, "bzip3 version %s\n", VERSION);
-    fprintf(stderr, "- A better and stronger spiritual successor to bzip2.\n");
     fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
-    fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c/-h/-v] [-b block_size] [-j jobs] files...\n");
+    fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c/-h/-V] [-b block_size] [-j jobs] files...\n");
     fprintf(stderr, "Operations:\n");
     fprintf(stderr, "  -e: encode\n");
     fprintf(stderr, "  -d: decode\n");
     fprintf(stderr, "  -t: test\n");
     fprintf(stderr, "  -h: help\n");
     fprintf(stderr, "  -f: force overwrite output if it already exists\n");
-    fprintf(stderr, "  -v: version\n");
+    fprintf(stderr, "  -V: version\n");
     fprintf(stderr, "Extra flags:\n");
     fprintf(stderr, "  -c: force reading/writing from standard streams\n");
-    fprintf(stderr, "  -b N: set block size in MiB\n");
+    fprintf(stderr, "  -b N: set block size in MiB {16}\n");
 #ifdef PTHREAD
     fprintf(stderr, "  -j N: set the amount of parallel threads\n");
 #endif
@@ -147,9 +147,9 @@ int main(int argc, char * argv[]) {
     u32 block_size = MiB(16);
 
 #ifdef PTHREAD
-    const char * getopt_args = "edtfchvb:j:";
+    const char * getopt_args = "b:cdefhj:tV";
 #else
-    const char * getopt_args = "edtfchvb:";
+    const char * getopt_args = "b:cdefhtV";
 #endif
 
     operr = 1; // Should be set by default, just make sure.
@@ -173,7 +173,7 @@ int main(int argc, char * argv[]) {
                 case 'c':
                     force_stdstreams = 1;
                     break;
-                case 'v':
+                case 'V':
                     fprintf(stderr, "bzip3 %s\n", VERSION);
                     return 0;
                 case 'h':
