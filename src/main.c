@@ -94,8 +94,7 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
 #include "common.h"
 #include "libbz3.h"
 
-#define MODE_UNSPECIFIED 0
-#define MODE_DECODE -1
+#define MODE_DECODE 0
 #define MODE_ENCODE 1
 #define MODE_TEST 2
 
@@ -216,11 +215,6 @@ int main(int argc, char * argv[]) {
                 regular_file = arg;
             }
         }
-    }
-
-    if (mode == MODE_UNSPECIFIED) {
-        help();
-        return 0;
     }
 #ifndef O_BINARY
     #define O_BINARY 0
