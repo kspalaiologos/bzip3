@@ -108,8 +108,9 @@ static void help() {
     fprintf(stderr, "  -f: force overwrite output if it already exists\n");
     fprintf(stderr, "  -v: version\n");
     fprintf(stderr, "Extra flags:\n");
+    fprintf(stderr, "  -1 .. -9: set compression level {5}\n");
     fprintf(stderr, "  -c: force reading/writing from standard streams\n");
-    fprintf(stderr, "  -b N: set block size in MiB\n");
+    fprintf(stderr, "  -b N: set block size in MiB {16}\n");
 #ifdef PTHREAD
     fprintf(stderr, "  -j N: set the amount of parallel threads\n");
 #endif
@@ -141,11 +142,11 @@ int main(int argc, char * argv[]) {
 
     // the block size
     u32 block_size = MiB(16);
-
+    u32 comp_lv_map[] = { KiB(0), KiB(65), KiB(256), MiB(1), MiB(4), MiB(16), MiB(64), MiB(128), MiB(256), MiB(511) };
 #ifdef PTHREAD
-    const char * getopt_args = "edtfchvb:j:";
+    const char * getopt_args = "123456789b:cdefhj:tV";
 #else
-    const char * getopt_args = "edtfchvb:";
+    const char * getopt_args = "123456789b:cdefhtV";
 #endif
 
     operr = 1; // Should be set by default, just make sure.
@@ -154,6 +155,10 @@ int main(int argc, char * argv[]) {
         if((opt = getopt_impl(argc, argv, getopt_args)) != -1) {
             // Normal dash argument.
             switch(opt) {
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7': case '8': case '9':
+                    block_size = comp_lv_map[opt - '0'];
+                    break;
                 case 'e':
                     mode = MODE_ENCODE;
                     break;
