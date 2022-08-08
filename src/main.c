@@ -74,8 +74,8 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
                 return opopt;
             } else {
                 if (operr) {
-                    fprintf(stderr, 
-                            "%s: option requires an argument: %c\n", 
+                    fprintf(stderr,
+                            "%s: option requires an argument: %c\n",
                             argv[0], opopt);
                     exit(1);
                 }
@@ -98,24 +98,33 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
 #define MODE_ENCODE 1
 #define MODE_TEST 2
 
+static void version() {
+    fprintf(stdout,
+            "bzip3 "VERSION"\n"
+            "Copyright (C) by Kamila Szewczyk, 2022.\n"
+            "License: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n");
+    }
+
 static void help() {
-    fprintf(stderr, "Bzip3 - better and stronger spiritual successor to bzip2.\n");
-    fprintf(stderr, "bzip3 version %s\n", VERSION);
-    fprintf(stderr, "Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms of LGPLv3.\n");
-    fprintf(stderr, "Usage: bzip3 [-e/-d/-t/-c/-h/-V] [-b block_size] [-j jobs] files...\n");
-    fprintf(stderr, "Operations:\n");
-    fprintf(stderr, "  -e: encode\n");
-    fprintf(stderr, "  -d: decode\n");
-    fprintf(stderr, "  -t: test\n");
-    fprintf(stderr, "  -h: help\n");
-    fprintf(stderr, "  -f: force overwrite output if it already exists\n");
-    fprintf(stderr, "  -V: version\n");
-    fprintf(stderr, "Extra flags:\n");
-    fprintf(stderr, "  -c: force reading/writing from standard streams\n");
-    fprintf(stderr, "  -b N: set block size in MiB {16}\n");
+    fprintf(stdout,
+            "Bzip3 - better and stronger spiritual successor to bzip2.\n"
+            "Usage: bzip3 [-e/-d/-t/-c/-h/-V] [-b block_size] [-j jobs] files...\n"
+            "Operations:\n"
+            "  -e: encode\n"
+            "  -d: decode\n"
+            "  -t: test\n"
+            "  -h: help\n"
+            "  -f: force overwrite output if it already exists\n"
+            "  -V: version\n"
+            "Extra flags:\n"
+            "  -c: force reading/writing from standard streams\n"
+            "  -b N: set block size in MiB {16}\n"
 #ifdef PTHREAD
-    fprintf(stderr, "  -j N: set the amount of parallel threads\n");
+            "  -j N: set the amount of parallel threads\n"
 #endif
+            "\n"
+            "Report bugs to: https://github.com/kspalaiologos/bzip3\n"
+            "\n");
 }
 
 static int is_dir(const char * path) {
@@ -173,7 +182,7 @@ int main(int argc, char * argv[]) {
                     force_stdstreams = 1;
                     break;
                 case 'V':
-                    fprintf(stderr, "bzip3 %s\n", VERSION);
+                    version();
                     return 0;
                 case 'h':
                     help();
