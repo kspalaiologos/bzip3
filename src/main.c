@@ -102,7 +102,7 @@ static void version() {
     fprintf(stdout,
             "bzip3 "VERSION"\n"
             "Copyright (C) by Kamila Szewczyk, 2022.\n"
-            "License: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n");
+            "License: GNU Lesser GPL version 3 <https://www.gnu.org/licenses/lgpl-3.0.en.html>\n");
     }
 
 static void help() {
