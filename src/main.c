@@ -100,7 +100,7 @@ static int getopt_impl(int argc, char * const argv[], const char *optstring) {
 
 static void version() {
     fprintf(stdout,
-            "bzip3 "VERSION"\n"
+            "bzip3 \"VERSION\"\n"
             "Copyright (C) by Kamila Szewczyk, 2022.\n"
             "License: GNU Lesser GPL version 3 <https://www.gnu.org/licenses/lgpl-3.0.en.html>\n");
     }
