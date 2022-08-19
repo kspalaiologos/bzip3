@@ -144,8 +144,8 @@ int main(int argc, char * argv[]) {
 
     // input and output file names
     char *input = NULL, *output = NULL;
-    char *bz3_file = NULL, *regular_file = NULL;
-    int no_bz3_suffix = 0, force = 0;
+    char *f1 = NULL, *f2 = NULL;
+    int force = 0;
 
     // command line arguments
     int force_stdstreams = 0, workers = 0;
@@ -210,19 +210,17 @@ int main(int argc, char * argv[]) {
             // Positional argument. Likely a file name.
             char * arg = argv[opind++];
 
-            if (bz3_file != NULL && regular_file != NULL) {
+            if (f1 != NULL && f2 != NULL) {
                 fprintf(stderr, "Error: too many files specified.\n");
                 return 1;
             }
 
-            int has_bz3_suffix = strlen(arg) > 4 && !strcmp(arg + strlen(arg) - 4, ".bz3");
+            // int has_bz3_suffix = strlen(arg) > 4 && !strcmp(arg + strlen(arg) - 4, ".bz3");
 
-            if ((has_bz3_suffix || regular_file != NULL) && bz3_file == NULL) {
-                bz3_file = arg;
-                no_bz3_suffix = !has_bz3_suffix;
-            } else {
-                regular_file = arg;
-            }
+            if (f1 == NULL)
+                f1 = arg;
+            else
+                f2 = arg;
         }
     }
 #ifndef O_BINARY
@@ -233,34 +231,47 @@ int main(int argc, char * argv[]) {
     setmode(STDOUT_FILENO, O_BINARY);
 #endif
 
-    if (mode != MODE_TEST) {
-        if (no_bz3_suffix || mode == MODE_ENCODE) {
-            input = regular_file;
-            output = bz3_file;
-            if (!force_stdstreams && !no_bz3_suffix && output == NULL && input != NULL) {
-                // add the bz3 extension
-                output = malloc(strlen(input) + 5);
-                strcpy(output, input);
-                strcat(output, ".bz3");
-            }
-        } else {
-            input = bz3_file;
-            output = regular_file;
-            if (!force_stdstreams && output == NULL && input != NULL) {
-                // strip the bz3 extension
-                if (strlen(input) > 4 && !strcmp(input + strlen(input) - 4, ".bz3")) {
-                    output = malloc(strlen(input));
-                    strncpy(output, input, strlen(input) - 4);
-                    output[strlen(input) - 4] = '\0';
+    if (mode == MODE_TEST)
+        input = f1;
+    else {
+        if (mode == MODE_ENCODE) {
+            if(f2 == NULL) {
+                // encode from f1.
+                input = f1;
+                if(force_stdstreams)
+                    output = NULL;
+                else {
+                    output = (char *)malloc(strlen(f1) + 5);
+                    strcpy(output, f1);
+                    strcat(output, ".bz3");
                 }
+            } else {
+                // encode from f1 to f2.
+                input = f1; output = f2;
+            }
+        } else if(mode == MODE_DECODE) {
+            if(f2 == NULL) {
+                // decode from f1 to stdout.
+                input = f1;
+                if(force_stdstreams)
+                    output = NULL;
+                else {
+                    output = (char *)malloc(strlen(f1) + 1);
+                    strcpy(output, f1);
+                    if(strlen(output) > 4 && !strcmp(output + strlen(output) - 4, ".bz3"))
+                        output[strlen(output) - 4] = 0;
+                    else {
+                        fprintf(stderr, "Warning: file %s has an unknown extension, skipping.\n", f1);
+                        return 1;
+                    }
+                }
+            } else {
+                // decode from f1 to f2.
+                input = f1; output = f2;
             }
         }
-    } else {
-        input = bz3_file != NULL ? bz3_file : regular_file;
     }
-
-    if (input == NULL && output == NULL) force_stdstreams = 1;
-
+    
     FILE *input_des = NULL, *output_des = NULL;
 
     if (input != NULL) {
