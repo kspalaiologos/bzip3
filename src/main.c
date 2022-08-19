@@ -217,7 +217,7 @@ int main(int argc, char * argv[]) {
 
             int has_bz3_suffix = strlen(arg) > 4 && !strcmp(arg + strlen(arg) - 4, ".bz3");
 
-            if (has_bz3_suffix || regular_file != NULL) {
+            if ((has_bz3_suffix || regular_file != NULL) && bz3_file == NULL) {
                 bz3_file = arg;
                 no_bz3_suffix = !has_bz3_suffix;
             } else {
