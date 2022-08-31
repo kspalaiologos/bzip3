@@ -215,8 +215,6 @@ int main(int argc, char * argv[]) {
                 return 1;
             }
 
-            // int has_bz3_suffix = strlen(arg) > 4 && !strcmp(arg + strlen(arg) - 4, ".bz3");
-
             if (f1 == NULL)
                 f1 = arg;
             else
