@@ -32,4 +32,4 @@ Otherwise, the chunk starts with the 32-bit CRC32 checksum value, the Burrows-Wh
 - 4-s bit set in the _model_ - RLE was used and the 32-bit size is prepended to the block.
 - No other bit can be set in the _model_.
 
-The size of libbz3's block header can be calculated using the formula `popcnt(model) * 4 + 1`.
+The size of libbz3's block header can be calculated using the formula `popcnt(model) * 4 + 9`.
