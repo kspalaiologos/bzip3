@@ -18,6 +18,7 @@
  */
 
 #include "crc32.h"
+
 #include "common.h"
 
 static const u32 crc32Table[256] = {

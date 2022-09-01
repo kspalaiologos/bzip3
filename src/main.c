@@ -25,7 +25,13 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <getopt.h>
+
+#ifdef HAVE_GETOPT_LONG
+    #include <getopt.h>
+#else
+    #include "getopt-shim.h"
+#endif
+
 #if defined __MSVCRT__
     #include <fcntl.h>
     #include <io.h>
@@ -39,11 +45,11 @@
 #define MODE_TEST 2
 
 static void version() {
-    fprintf(stdout,
-            "bzip3 "VERSION"\n"
-            "Copyright (C) by Kamila Szewczyk, 2022.\n"
-            "License: GNU Lesser GPL version 3 <https://www.gnu.org/licenses/lgpl-3.0.en.html>\n");
-    }
+    fprintf(stdout, "bzip3 " VERSION
+                    "\n"
+                    "Copyright (C) by Kamila Szewczyk, 2022.\n"
+                    "License: GNU Lesser GPL version 3 <https://www.gnu.org/licenses/lgpl-3.0.en.html>\n");
+}
 
 static void help() {
     fprintf(stdout,
@@ -99,27 +105,25 @@ int main(int argc, char * argv[]) {
     const char * short_options = "b:cdefhtV";
 #endif
 
-    static struct option long_options[] = {
-        {"encode",  no_argument,       0, 'e'},
-        {"decode",  no_argument,       0, 'd'},
-        {"test",    no_argument,       0, 't'},
-        {"stdout",  no_argument,       0, 'c'},
-        {"force",   no_argument,       0, 'f'},
-        {"help",    no_argument,       0, 'h'},
-        {"version", no_argument,       0, 'V'},
-        {"block",   required_argument, 0, 'b'},
+    static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
+                                            { "decode", no_argument, 0, 'd' },
+                                            { "test", no_argument, 0, 't' },
+                                            { "stdout", no_argument, 0, 'c' },
+                                            { "force", no_argument, 0, 'f' },
+                                            { "help", no_argument, 0, 'h' },
+                                            { "version", no_argument, 0, 'V' },
+                                            { "block", required_argument, 0, 'b' },
 #ifdef PTHREAD
-        {"jobs",    required_argument, 0, 'j'},
+                                            { "jobs", required_argument, 0, 'j' },
 #endif
-        {0,         0,                 0,  0 }
-    };
+                                            { 0, 0, 0, 0 } };
 
-    while(1) {
+    while (1) {
         int option_index = 0;
         int c = getopt_long(argc, argv, short_options, long_options, &option_index);
         if (c == -1) break;
 
-        switch(c) {
+        switch (c) {
             case '?':
                 fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
                 return 1;
@@ -192,10 +196,10 @@ int main(int argc, char * argv[]) {
         input = f1;
     else {
         if (mode == MODE_ENCODE) {
-            if(f2 == NULL) {
+            if (f2 == NULL) {
                 // encode from f1?
                 input = f1;
-                if(force_stdstreams)
+                if (force_stdstreams)
                     output = NULL;
                 else {
                     output = (char *)malloc(strlen(f1) + 5);
@@ -204,18 +208,19 @@ int main(int argc, char * argv[]) {
                 }
             } else {
                 // encode from f1 to f2.
-                input = f1; output = f2;
+                input = f1;
+                output = f2;
             }
-        } else if(mode == MODE_DECODE) {
-            if(f2 == NULL) {
+        } else if (mode == MODE_DECODE) {
+            if (f2 == NULL) {
                 // decode from f1 to stdout.
                 input = f1;
-                if(force_stdstreams)
+                if (force_stdstreams)
                     output = NULL;
                 else {
                     output = (char *)malloc(strlen(f1) + 1);
                     strcpy(output, f1);
-                    if(strlen(output) > 4 && !strcmp(output + strlen(output) - 4, ".bz3"))
+                    if (strlen(output) > 4 && !strcmp(output + strlen(output) - 4, ".bz3"))
                         output[strlen(output) - 4] = 0;
                     else {
                         fprintf(stderr, "Warning: file %s has an unknown extension, skipping.\n", f1);
@@ -224,11 +229,12 @@ int main(int argc, char * argv[]) {
                 }
             } else {
                 // decode from f1 to f2.
-                input = f1; output = f2;
+                input = f1;
+                output = f2;
             }
         }
     }
-    
+
     FILE *input_des = NULL, *output_des = NULL;
 
     if (input != NULL) {

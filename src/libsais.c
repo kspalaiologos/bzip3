@@ -22,13 +22,14 @@ Please see the file LICENSE for full copyright information.
 --*/
 
 #include "libsais.h"
-#include "common.h"
 
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "common.h"
 
 #define UNUSED(_x) (void)(_x)
 

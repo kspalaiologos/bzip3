@@ -18,6 +18,7 @@
  */
 
 #include "rle.h"
+
 #include "common.h"
 
 s32 mrlec(u8 * in, s32 inlen, u8 * out) {

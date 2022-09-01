@@ -16,6 +16,9 @@ LT_INIT
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
+AC_CHECK_HEADERS([getopt.h])
+AC_CHECK_FUNCS([getopt_long])
+
 AC_ARG_WITH([pthread],
 			  AS_HELP_STRING([--without-pthread], [Disable use of pthread library]))
 AM_CONDITIONAL([WITH_PTHREAD], [test x"$with_pthread" != xno])

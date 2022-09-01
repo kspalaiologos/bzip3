@@ -14,6 +14,7 @@ noinst_HEADERS = include/cm.h \
 						 include/libsais.h \
 						 include/lzp.h \
 						 include/rle.h
+						 include/getopt-shim.h
 
 lib_LTLIBRARIES = libbzip3.la
 libbzip3_la_SOURCES = src/cm.c \
