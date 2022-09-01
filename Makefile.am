@@ -31,7 +31,7 @@ bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
 
 dist_man_MANS = bzip3.1 bz3cat.1 bz3more.1
 
-dist_bin_SCRIPTS = bz3cat bz3more
+dist_bin_SCRIPTS = bz3cat bz3more unbzip3
 
 CLEANFILES = $(bin_PROGRAMS)
 
