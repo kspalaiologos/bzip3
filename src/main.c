@@ -63,8 +63,9 @@ static void help() {
             "  -f, --force\tforce overwriting output if it already exists\n"
             "  -V, --version\tdisplay version information\n"
             "Extra flags:\n"
-            "  -c, --stdout: force writing to standard output\n"
-            "  -b N, --block=N: set block size in MiB {16}\n"
+            "  -c, --stdout\tforce writing to standard output\n"
+            "  -b N, --block=N\tset block size in MiB {16}\n"
+            "  -B, --batch\tprocess all files specified as inputs\n"
 #ifdef PTHREAD
             "  -j N, --jobs=N: set the amount of parallel threads\n"
 #endif
@@ -73,212 +74,7 @@ static void help() {
             "\n");
 }
 
-static int is_dir(const char * path) {
-    struct stat sb;
-    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) return 1;
-    return 0;
-}
-
-static int is_numeric(const char * str) {
-    for (; *str; str++)
-        if (!isdigit(*str)) return 0;
-    return 1;
-}
-
-int main(int argc, char * argv[]) {
-    int mode = MODE_ENCODE;
-
-    // input and output file names
-    char *input = NULL, *output = NULL;
-    char *f1 = NULL, *f2 = NULL;
-    int force = 0;
-
-    // command line arguments
-    int force_stdstreams = 0, workers = 0;
-
-    // the block size
-    u32 block_size = MiB(16);
-
-#ifdef PTHREAD
-    const char * short_options = "b:cdefhj:tV";
-#else
-    const char * short_options = "b:cdefhtV";
-#endif
-
-    static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
-                                            { "decode", no_argument, 0, 'd' },
-                                            { "test", no_argument, 0, 't' },
-                                            { "stdout", no_argument, 0, 'c' },
-                                            { "force", no_argument, 0, 'f' },
-                                            { "help", no_argument, 0, 'h' },
-                                            { "version", no_argument, 0, 'V' },
-                                            { "block", required_argument, 0, 'b' },
-#ifdef PTHREAD
-                                            { "jobs", required_argument, 0, 'j' },
-#endif
-                                            { 0, 0, 0, 0 } };
-
-    while (1) {
-        int option_index = 0;
-        int c = getopt_long(argc, argv, short_options, long_options, &option_index);
-        if (c == -1) break;
-
-        switch (c) {
-            case '?':
-                fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
-                return 1;
-            case 'e':
-                mode = MODE_ENCODE;
-                break;
-            case 'd':
-                mode = MODE_DECODE;
-                break;
-            case 't':
-                mode = MODE_TEST;
-                break;
-            case 'c':
-                force_stdstreams = 1;
-                break;
-            case 'f':
-                force = 1;
-                break;
-            case 'h':
-                help();
-                return 0;
-            case 'V':
-                version();
-                return 0;
-            case 'b':
-                if (!is_numeric(optarg)) {
-                    fprintf(stderr, "bzip3: invalid block size: %s", optarg);
-                    return 1;
-                }
-                block_size = MiB(atoi(optarg));
-                break;
-#ifdef PTHREAD
-            case 'j':
-                if (!is_numeric(optarg)) {
-                    fprintf(stderr, "bzip3: invalid amount of jobs: %s", optarg);
-                    return 1;
-                }
-                workers = atoi(optarg);
-                break;
-#endif
-        }
-    }
-
-    while (optind < argc) {
-        // Positional argument. Likely a file name.
-        char * arg = argv[optind++];
-
-        if (f1 != NULL && f2 != NULL) {
-            fprintf(stderr, "Error: too many files specified.\n");
-            return 1;
-        }
-
-        if (f1 == NULL)
-            f1 = arg;
-        else
-            f2 = arg;
-    }
-
-#ifndef O_BINARY
-    #define O_BINARY 0
-#endif
-#if defined(__MSVCRT__)
-    setmode(STDIN_FILENO, O_BINARY);
-    setmode(STDOUT_FILENO, O_BINARY);
-#endif
-
-    if (f1 == NULL && f2 == NULL)
-        input = NULL, output = NULL;
-    else if (mode == MODE_TEST)
-        input = f1;
-    else {
-        if (mode == MODE_ENCODE) {
-            if (f2 == NULL) {
-                // encode from f1?
-                input = f1;
-                if (force_stdstreams)
-                    output = NULL;
-                else {
-                    output = (char *)malloc(strlen(f1) + 5);
-                    strcpy(output, f1);
-                    strcat(output, ".bz3");
-                }
-            } else {
-                // encode from f1 to f2.
-                input = f1;
-                output = f2;
-            }
-        } else if (mode == MODE_DECODE) {
-            if (f2 == NULL) {
-                // decode from f1 to stdout.
-                input = f1;
-                if (force_stdstreams)
-                    output = NULL;
-                else {
-                    output = (char *)malloc(strlen(f1) + 1);
-                    strcpy(output, f1);
-                    if (strlen(output) > 4 && !strcmp(output + strlen(output) - 4, ".bz3"))
-                        output[strlen(output) - 4] = 0;
-                    else {
-                        fprintf(stderr, "Warning: file %s has an unknown extension, skipping.\n", f1);
-                        return 1;
-                    }
-                }
-            } else {
-                // decode from f1 to f2.
-                input = f1;
-                output = f2;
-            }
-        }
-    }
-
-    FILE *input_des = NULL, *output_des = NULL;
-
-    if (input != NULL) {
-        if (is_dir(input)) {
-            fprintf(stderr, "Error: input is a directory.\n");
-            return 1;
-        }
-
-        input_des = fopen(input, "rb");
-        if (input_des == NULL) {
-            perror("fopen");
-            return 1;
-        }
-    } else {
-        input_des = stdin;
-    }
-
-    if (output != NULL && mode != MODE_TEST) {
-        if (is_dir(output)) {
-            fprintf(stderr, "Error: output is a directory.\n");
-            return 1;
-        }
-
-        if (access(output, F_OK) == 0) {
-            if (!force) {
-                fprintf(stderr, "Error: output file already exists. Use -f to force overwrite.\n");
-                return 1;
-            }
-        }
-
-        output_des = fopen(output, "wb");
-        if (output_des == NULL) {
-            perror("open");
-            return 1;
-        }
-    } else {
-        output_des = stdout;
-    }
-
-    if (block_size < KiB(65) || block_size > MiB(511)) {
-        fprintf(stderr, "Block size must be between 65 KiB and 511 MiB.\n");
-        return 1;
-    }
-
+static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers) {
     if ((mode == MODE_ENCODE && isatty(fileno(output_des))) ||
         ((mode == MODE_DECODE || mode == MODE_TEST) && isatty(fileno(input_des)))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
@@ -418,9 +214,6 @@ int main(int argc, char * argv[]) {
         free(buffer);
 
         bz3_free(state);
-
-        fclose(input_des);
-        fclose(output_des);
 #ifdef PTHREAD
     } else {
         struct bz3_state * states[workers];
@@ -527,4 +320,317 @@ int main(int argc, char * argv[]) {
         }
     }
 #endif
+
+    return 0;
+}
+
+static int is_dir(const char * path) {
+    struct stat sb;
+    if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) return 1;
+    return 0;
+}
+
+static int is_numeric(const char * str) {
+    for (; *str; str++)
+        if (!isdigit(*str)) return 0;
+    return 1;
+}
+
+FILE * open_output(char * output, int force) {
+    FILE * output_des = NULL;
+
+    if (output != NULL) {
+        if (is_dir(output)) {
+            fprintf(stderr, "Error: output file `%s' is a directory.\n", output);
+            exit(1);
+        }
+
+        if (access(output, F_OK) == 0) {
+            if (!force) {
+                fprintf(stderr, "Error: output file `%s' already exists. Use -f to force overwrite.\n", output);
+                exit(1);
+            }
+        }
+
+        output_des = fopen(output, "wb");
+        if (output_des == NULL) {
+            fprintf(stderr, "Error: failed to open output file `%s': %s\n", output, strerror(errno));
+            exit(1);
+        }
+    } else {
+        output_des = stdout;
+    }
+
+    return output_des;
+}
+
+FILE * open_input(char * input) {
+    FILE * input_des = NULL;
+
+    if (input != NULL) {
+        if (is_dir(input)) {
+            fprintf(stderr, "Error: input `%s' is a directory.\n", input);
+            exit(1);
+        }
+
+        input_des = fopen(input, "rb");
+        if (input_des == NULL) {
+            fprintf(stderr, "Error: failed to open input file `%s': %s\n", input, strerror(errno));
+            exit(1);
+        }
+    } else {
+        input_des = stdin;
+    }
+
+    return input_des;
+}
+
+void close_data_file(FILE * des) {
+    if (des != NULL && des != stdin && des != stdout)
+        fclose(des);
+}
+
+int main(int argc, char * argv[]) {
+    int mode = MODE_ENCODE;
+
+    // input and output file names
+    char *input = NULL, *output = NULL;
+    char *f1 = NULL, *f2 = NULL;
+    int force = 0;
+
+    // command line arguments
+    int force_stdstreams = 0, workers = 0, batch = 0;
+
+    // the block size
+    u32 block_size = MiB(16);
+
+#ifdef PTHREAD
+    const char * short_options = "Bb:cdefhj:tV";
+#else
+    const char * short_options = "Bb:cdefhtV";
+#endif
+
+    static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
+                                            { "decode", no_argument, 0, 'd' },
+                                            { "test", no_argument, 0, 't' },
+                                            { "stdout", no_argument, 0, 'c' },
+                                            { "force", no_argument, 0, 'f' },
+                                            { "help", no_argument, 0, 'h' },
+                                            { "version", no_argument, 0, 'V' },
+                                            { "block", required_argument, 0, 'b' },
+                                            { "batch", no_argument, 0, 'B' },
+#ifdef PTHREAD
+                                            { "jobs", required_argument, 0, 'j' },
+#endif
+                                            { 0, 0, 0, 0 } };
+
+    while (1) {
+        int option_index = 0;
+        int c = getopt_long(argc, argv, short_options, long_options, &option_index);
+        if (c == -1) break;
+
+        switch (c) {
+            case '?':
+                fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
+                return 1;
+            case 'e':
+                mode = MODE_ENCODE;
+                break;
+            case 'd':
+                mode = MODE_DECODE;
+                break;
+            case 't':
+                mode = MODE_TEST;
+                break;
+            case 'c':
+                force_stdstreams = 1;
+                break;
+            case 'f':
+                force = 1;
+                break;
+            case 'h':
+                help();
+                return 0;
+            case 'V':
+                version();
+                return 0;
+            case 'B':
+                batch = 1;
+                break;
+            case 'b':
+                if (!is_numeric(optarg)) {
+                    fprintf(stderr, "bzip3: invalid block size: %s", optarg);
+                    return 1;
+                }
+                block_size = MiB(atoi(optarg));
+                break;
+#ifdef PTHREAD
+            case 'j':
+                if (!is_numeric(optarg)) {
+                    fprintf(stderr, "bzip3: invalid amount of jobs: %s", optarg);
+                    return 1;
+                }
+                workers = atoi(optarg);
+                break;
+#endif
+        }
+    }
+
+#ifndef O_BINARY
+    #define O_BINARY 0
+#endif
+#if defined(__MSVCRT__)
+    setmode(STDIN_FILENO, O_BINARY);
+    setmode(STDOUT_FILENO, O_BINARY);
+#endif
+
+    if (block_size < KiB(65) || block_size > MiB(511)) {
+        fprintf(stderr, "Block size must be between 65 KiB and 511 MiB.\n");
+        return 1;
+    }
+
+    if(batch) {
+        switch(mode) {
+            case MODE_ENCODE:
+                /* Encode each of the files. */
+                while(optind < argc) {
+                    char * arg = argv[optind++];
+
+                    FILE * input_des = open_input(arg);
+                    char * output_name;
+                    if(force_stdstreams)
+                        output_name = NULL;
+                    else {
+                        output_name = (char *)malloc(strlen(arg) + 5);
+                        strcpy(output_name, arg);
+                        strcat(output_name, ".bz3");
+                    }
+
+                    FILE * output_des = open_output(output_name, force);
+                    process(input_des, output_des, mode, block_size, workers);
+                    
+                    close_data_file(input_des);
+                    close_data_file(output_des);
+                    if(!force_stdstreams)
+                        free(output_name);
+                }
+                break;
+            case MODE_DECODE:
+                /* Decode each of the files. */
+                while(optind < argc) {
+                    char * arg = argv[optind++];
+
+                    FILE * input_des = open_input(arg);
+                    char * output_name;
+                    if(force_stdstreams)
+                        output_name = NULL;
+                    else {
+                        output_name = (char *)malloc(strlen(arg) + 1);
+                        strcpy(output_name, arg);
+                        if (strlen(output_name) > 4 && !strcmp(output_name + strlen(output_name) - 4, ".bz3"))
+                            output_name[strlen(output_name) - 4] = 0;
+                        else {
+                            fprintf(stderr, "Warning: file %s has an unknown extension, skipping.\n", arg);
+                            return 1;
+                        }
+                    }
+
+                    FILE * output_des = open_output(output_name, force);
+                    process(input_des, output_des, mode, block_size, workers);
+
+                    close_data_file(input_des);
+                    close_data_file(output_des);
+                    if(!force_stdstreams)
+                        free(output_name);
+                }
+                break;
+            case MODE_TEST:
+                /* Test each of the files. */
+                while (optind < argc) {
+                    char * arg = argv[optind++];
+
+                    FILE * input_des = open_input(arg);
+                    process(input_des, NULL, mode, block_size, workers);
+                    close_data_file(input_des);
+                }
+                break;
+        }
+        return 0;
+    }
+
+    while (optind < argc) {
+        // Positional argument. Likely a file name.
+        char * arg = argv[optind++];
+
+        if (f1 != NULL && f2 != NULL) {
+            fprintf(stderr, "Error: too many files specified.\n");
+            return 1;
+        }
+
+        if (f1 == NULL)
+            f1 = arg;
+        else
+            f2 = arg;
+    }
+
+    if (f1 == NULL && f2 == NULL)
+        input = NULL, output = NULL;
+    else if (mode == MODE_TEST)
+        input = f1;
+    else {
+        if (mode == MODE_ENCODE) {
+            if (f2 == NULL) {
+                // encode from f1?
+                input = f1;
+                if (force_stdstreams)
+                    output = NULL;
+                else {
+                    output = (char *)malloc(strlen(f1) + 5);
+                    strcpy(output, f1);
+                    strcat(output, ".bz3");
+                }
+            } else {
+                // encode from f1 to f2.
+                input = f1;
+                output = f2;
+            }
+        } else if (mode == MODE_DECODE) {
+            if (f2 == NULL) {
+                // decode from f1 to stdout.
+                input = f1;
+                if (force_stdstreams)
+                    output = NULL;
+                else {
+                    output = (char *)malloc(strlen(f1) + 1);
+                    strcpy(output, f1);
+                    if (strlen(output) > 4 && !strcmp(output + strlen(output) - 4, ".bz3"))
+                        output[strlen(output) - 4] = 0;
+                    else {
+                        fprintf(stderr, "Warning: file %s has an unknown extension, skipping.\n", f1);
+                        return 1;
+                    }
+                }
+            } else {
+                // decode from f1 to f2.
+                input = f1;
+                output = f2;
+            }
+        }
+    }
+
+    FILE *input_des = NULL, *output_des = NULL;
+
+    output_des = mode != MODE_TEST ? open_output(output, force) : NULL;
+    input_des = open_input(input);
+
+    int r = process(input_des, output_des, mode, block_size, workers);
+
+    close_data_file(input_des);
+    close_data_file(output_des);
+
+    /* Clean up. */
+    if(f2 != NULL && !force_stdstreams)
+        free(output);
+
+    return r;
 }
