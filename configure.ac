@@ -57,6 +57,6 @@ AM_COND_IF([PASSED_CFLAGS], [
 	])
 ])
 
-AC_CONFIG_FILES([Makefile bzip3.pc bz3cat])
+AC_CONFIG_FILES([Makefile bzip3.pc])
 AC_ARG_PROGRAM
 AC_OUTPUT

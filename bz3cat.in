@@ -1,9 +1,0 @@
-#!/bin/sh
-
-bindir=@bindir@
-case $1 in
---__bindir) bindir=${2?}; shift; shift;;
-esac
-PATH=$bindir:$PATH
-
-exec bzip3 -Bcd "$@"
