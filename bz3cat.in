@@ -6,4 +6,4 @@ case $1 in
 esac
 PATH=$bindir:$PATH
 
-exec bzip3 -cd "$@"
+exec bzip3 -Bcd "$@"
