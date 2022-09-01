@@ -29,7 +29,9 @@ bzip3_CFLAGS = $(AM_CFLAGS)
 bzip3_LDDADD = libbzip3.la
 bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
 
-dist_man_MANS = bzip3.1
+dist_man_MANS = bzip3.1 bz3cat.1
+
+dist_bin_SCRIPTS = bz3cat
 
 CLEANFILES = $(bin_PROGRAMS)
 

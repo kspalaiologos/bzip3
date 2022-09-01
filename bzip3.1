@@ -8,6 +8,11 @@ bzip3 \- an efficient statistical file compressor and spiritual successor to bzi
 [
 .I "filenames \&..."
 ]
+.
+.P
+.B bz3cat
+is equivalent to
+.B bzip3 \-dc
 .SH DESCRIPTION
 Compress or decompress a file using run length encoding and Lempel Ziv
 prediction, followed by the Burrows-Wheeler transform and arithmetic coding.
@@ -33,7 +38,8 @@ will compress from standard input to standard output, refusing
 to output binary data to a terminal. The \-e flag (encode) is implied.
 
 .BR bzip3
-\-d decompresses data from standard input to the standard output,
+.B \-d
+decompresses data from standard input to the standard output,
 refusing to read from a terminal.
 
 If two files are specified, the first one is used in place of

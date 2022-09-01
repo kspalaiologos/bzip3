@@ -38,3 +38,5 @@ autom4te.cache/
 !/build-aux/git-version-gen
 
 bzip3.pc
+
+bz3cat
