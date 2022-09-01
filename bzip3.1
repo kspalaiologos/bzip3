@@ -1,4 +1,4 @@
-.TH bzip3 1
+.TH BZIP3 1
 .SH NAME
 bzip3 \- an efficient statistical file compressor and spiritual successor to bzip2
 
@@ -16,28 +16,28 @@ is equivalent to
 .SH DESCRIPTION
 Compress or decompress a file using run length encoding and Lempel Ziv
 prediction, followed by the Burrows-Wheeler transform and arithmetic coding.
-.BR bzip3 ,
+.B bzip3 ,
 like its ancestor
-.BR bzip2 ,
+.B bzip2 ,
 excels at compressing text or source code.
 
 The command-line options are deliberately very similar to
 those of
-.BR bzip2,
+.B bzip2,
 but they are not identical.
 .PP
-.BR bzip3
+.B bzip3
 expects at most two filenames intertwined with flags.
-.BR bzip3
+.B bzip3
 will by default not overwrite existing files.
 If this behaviour is intended, use the \-f flag.
 
 If no file names are specified,
-.BR bzip3
+.B bzip3
 will compress from standard input to standard output, refusing
 to output binary data to a terminal. The \-e flag (encode) is implied.
 
-.BR bzip3
+.B bzip3
 .B \-d
 decompresses data from standard input to the standard output,
 refusing to read from a terminal.
@@ -48,7 +48,7 @@ output.
 
 If the \-c flag is present, bzip3 will read from the specified
 file and output data to standard output instead. Otherwise, if decoding,
-.BR bzip3
+.B bzip3
 will try to guess the decompressed filename by removing the
 .I .bz3
 extension. If not present, an error will be reported. If encoding,
@@ -60,10 +60,10 @@ extension to the input filename.
 .TP
 .B \-B --batch
 Enable batch mode. By default,
-.BR bzip3
+.B bzip3
 will error if more than two files are passed, and the two files specified
 are always treated as input and output. The batch mode makes
-.BR bzip3
+.B bzip3
 treat every file as input, so for example
 .I bzip3 -Bd *.bz3
 will decompress all
@@ -108,7 +108,7 @@ is written to the file. The file format has constant overhead of 9 bytes per
 file and from 9 to 17 bytes per block. Random data is coded so that expansion
 is generally under 0.8%.
 
-.BR bzip3
+.B bzip3
 uses 32-bit CRC to ensure that the decompressed version of a file is
 identical to the original. This guards against corruption of the
 compressed data. 
@@ -135,3 +135,6 @@ https://github.com/kspalaiologos/bzip3
 Thanks to: Ilya Grebnov, Chloe Strachan, Caleb Maclennan, Ilya Muravyov and everyone
 who sent patches, helped with portability problems, encouraged me to work on bzip3
 and lent me machines for performance tests.
+
+.SH "SEE ALSO"
+\fBbzip2 (1)\fR

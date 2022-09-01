@@ -4,5 +4,5 @@ for FILE
 do
   test $# -lt 2 ||
     printf '::::::::::::::\n%s\n::::::::::::::\n' "$FILE" || break
-  bzip3 -Bcd -- "$FILE"
+  bz3cat -- "$FILE"
 done 2>&1 | eval ${PAGER-more}
