@@ -25,71 +25,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <getopt.h>
 #if defined __MSVCRT__
     #include <fcntl.h>
     #include <io.h>
 #endif
-
-/* Use our own getopt implementation. */
-static int opind = 1;
-static int operr = 1;
-static int opopt;
-static char *oparg;
-
-static int getopt_impl(int argc, char * const argv[], const char *optstring) {
-    static int optpos = 1;
-    const char *arg;
-
-    /* Reset? */
-    if (opind == 0) {
-        opind = !!argc;
-        optpos = 1;
-    }
-
-    arg = argv[opind];
-    if (arg && strcmp(arg, "--") == 0) {
-        opind++;
-        return -1;
-    } else if (!arg || arg[0] != '-' || !isalnum(arg[1])) {
-        return -1;
-    } else {
-        const char *opt = strchr(optstring, arg[optpos]);
-        opopt = arg[optpos];
-        if (!opt) {
-            if (operr) {
-                fprintf(stderr, "%s: illegal option: %c\n", argv[0], opopt);
-                exit(1);
-            }
-            return '?';
-        } else if (opt[1] == ':') {
-            if (arg[optpos + 1]) {
-                oparg = (char *)arg + optpos + 1;
-                opind++;
-                optpos = 1;
-                return opopt;
-            } else if (argv[opind + 1]) {
-                oparg = (char *)argv[opind + 1];
-                opind += 2;
-                optpos = 1;
-                return opopt;
-            } else {
-                if (operr) {
-                    fprintf(stderr,
-                            "%s: option requires an argument: %c\n",
-                            argv[0], opopt);
-                    exit(1);
-                }
-                return *optstring == ':' ? ':' : '?';
-            }
-        } else {
-            if (!arg[++optpos]) {
-                opind++;
-                optpos = 1;
-            }
-            return opopt;
-        }
-    }
-}
 
 #include "common.h"
 #include "libbz3.h"
@@ -107,20 +47,20 @@ static void version() {
 
 static void help() {
     fprintf(stdout,
-            "Bzip3 - better and stronger spiritual successor to bzip2.\n"
+            "bzip3 - better and stronger spiritual successor to bzip2.\n"
             "Usage: bzip3 [-e/-d/-t/-c/-h/-V] [-b block_size] [-j jobs] files...\n"
             "Operations:\n"
-            "  -e: encode\n"
-            "  -d: decode\n"
-            "  -t: test\n"
-            "  -h: help\n"
-            "  -f: force overwrite output if it already exists\n"
-            "  -V: version\n"
+            "  -e, --encode\tcompress data (default)\n"
+            "  -d, --decode\tdecompress data\n"
+            "  -t, --test\tverify validity of compressed data\n"
+            "  -h, --help\tdisplay an usage overview\n"
+            "  -f, --force\tforce overwriting output if it already exists\n"
+            "  -V, --version\tdisplay version information\n"
             "Extra flags:\n"
-            "  -c: force reading/writing from standard streams\n"
-            "  -b N: set block size in MiB {16}\n"
+            "  -c, --stdout: force writing to standard output\n"
+            "  -b N, --block=N: set block size in MiB {16}\n"
 #ifdef PTHREAD
-            "  -j N: set the amount of parallel threads\n"
+            "  -j N, --jobs=N: set the amount of parallel threads\n"
 #endif
             "\n"
             "Report bugs to: https://github.com/kspalaiologos/bzip3\n"
@@ -149,78 +89,95 @@ int main(int argc, char * argv[]) {
 
     // command line arguments
     int force_stdstreams = 0, workers = 0;
-    int double_dash = 0;
 
     // the block size
     u32 block_size = MiB(16);
 
 #ifdef PTHREAD
-    const char * getopt_args = "b:cdefhj:tV";
+    const char * short_options = "b:cdefhj:tV";
 #else
-    const char * getopt_args = "b:cdefhtV";
+    const char * short_options = "b:cdefhtV";
 #endif
 
-    operr = 1; // Should be set by default, just make sure.
-    while (opind < argc) {
-        int opt;
-        if((opt = getopt_impl(argc, argv, getopt_args)) != -1) {
-            // Normal dash argument.
-            switch(opt) {
-                case 'e':
-                    mode = MODE_ENCODE;
-                    break;
-                case 'd':
-                    mode = MODE_DECODE;
-                    break;
-                case 't':
-                    mode = MODE_TEST;
-                    break;
-                case 'f':
-                    force = 1;
-                    break;
-                case 'c':
-                    force_stdstreams = 1;
-                    break;
-                case 'V':
-                    version();
-                    return 0;
-                case 'h':
-                    help();
-                    return 0;
-                case 'b':
-                    if (is_numeric(oparg)) {
-                        block_size = MiB(atoi(oparg));
-                    } else {
-                        fprintf(stderr, "Invalid block size: %s\n", oparg);
-                        return 1;
-                    }
-                    break;
+    static struct option long_options[] = {
+        {"encode",  no_argument,       0, 'e'},
+        {"decode",  no_argument,       0, 'd'},
+        {"test",    no_argument,       0, 't'},
+        {"stdout",  no_argument,       0, 'c'},
+        {"force",   no_argument,       0, 'f'},
+        {"help",    no_argument,       0, 'h'},
+        {"version", no_argument,       0, 'V'},
+        {"block",   required_argument, 0, 'b'},
 #ifdef PTHREAD
-                case 'j':
-                    if (is_numeric(oparg)) {
-                        workers = atoi(oparg);
-                    } else {
-                        fprintf(stderr, "Invalid number of workers: %s\n", oparg);
-                        return 1;
-                    }
-                    break;
+        {"jobs",    required_argument, 0, 'j'},
 #endif
-            }
-        } else {
-            // Positional argument. Likely a file name.
-            char * arg = argv[opind++];
+        {0,         0,                 0,  0 }
+    };
 
-            if (f1 != NULL && f2 != NULL) {
-                fprintf(stderr, "Error: too many files specified.\n");
+    while(1) {
+        int option_index = 0;
+        int c = getopt_long(argc, argv, short_options, long_options, &option_index);
+        if (c == -1) break;
+
+        switch(c) {
+            case '?':
+                fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
                 return 1;
-            }
-
-            if (f1 == NULL)
-                f1 = arg;
-            else
-                f2 = arg;
+            case 'e':
+                mode = MODE_ENCODE;
+                break;
+            case 'd':
+                mode = MODE_DECODE;
+                break;
+            case 't':
+                mode = MODE_TEST;
+                break;
+            case 'c':
+                force_stdstreams = 1;
+                break;
+            case 'f':
+                force = 1;
+                break;
+            case 'h':
+                help();
+                return 0;
+            case 'V':
+                version();
+                return 0;
+            case 'b':
+                if (!is_numeric(optarg)) {
+                    fprintf(stderr, "bzip3: invalid block size: %s", optarg);
+                    return 1;
+                }
+                block_size = MiB(atoi(optarg));
+                break;
+#ifdef PTHREAD
+            case 'j':
+                if (!is_numeric(optarg)) {
+                    fprintf(stderr, "bzip3: invalid amount of jobs: %s", optarg);
+                    return 1;
+                }
+                workers = atoi(optarg);
+                break;
+#endif
         }
     }
+
+    while (optind < argc) {
+        // Positional argument. Likely a file name.
+        char * arg = argv[optind++];
+
+        if (f1 != NULL && f2 != NULL) {
+            fprintf(stderr, "Error: too many files specified.\n");
+            return 1;
+        }
+
+        if (f1 == NULL)
+            f1 = arg;
+        else
+            f2 = arg;
+    }
+
 #ifndef O_BINARY
     #define O_BINARY 0
 #endif
@@ -229,12 +186,14 @@ int main(int argc, char * argv[]) {
     setmode(STDOUT_FILENO, O_BINARY);
 #endif
 
-    if (mode == MODE_TEST)
+    if (f1 == NULL && f2 == NULL)
+        input = NULL, output = NULL;
+    else if (mode == MODE_TEST)
         input = f1;
     else {
         if (mode == MODE_ENCODE) {
             if(f2 == NULL) {
-                // encode from f1.
+                // encode from f1?
                 input = f1;
                 if(force_stdstreams)
                     output = NULL;
