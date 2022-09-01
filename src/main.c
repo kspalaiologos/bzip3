@@ -628,9 +628,5 @@ int main(int argc, char * argv[]) {
     close_data_file(input_des);
     close_data_file(output_des);
 
-    /* Clean up. */
-    if(f2 != NULL && !force_stdstreams)
-        free(output);
-
     return r;
 }
