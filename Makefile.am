@@ -29,6 +29,8 @@ bzip3_CFLAGS = $(AM_CFLAGS)
 bzip3_LDDADD = libbzip3.la
 bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
 
+dist_man_MANS = bzip3.1
+
 CLEANFILES = $(bin_PROGRAMS)
 
 # End standard generic autotools stuff
