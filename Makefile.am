@@ -24,6 +24,8 @@ libbzip3_la_SOURCES = src/cm.c \
 					  src/lzp.c \
 					  src/rle.c
 
+libbzip3_la_LDFLAGS = -export-symbols-regex '^bz3_'
+
 bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)
 bzip3_LDDADD = libbzip3.la
