@@ -1,0 +1,2 @@
+#!/bin/sh
+bz3cat "$@" | less

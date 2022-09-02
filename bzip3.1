@@ -1,6 +1,7 @@
 .TH BZIP3 1
 .SH NAME
-bzip3 \- an efficient statistical file compressor and spiritual successor to bzip2
+bzip3 \- an efficient statistical file compressor and spiritual successor
+to bzip2
 
 .SH SYNOPSIS
 .B bzip3
@@ -13,9 +14,14 @@ bzip3 \- an efficient statistical file compressor and spiritual successor to bzi
 .B bz3cat
 is equivalent to
 .B bzip3 \-dc
+.P
+.B unbzip3
+is equivalent to
+.B bzip3 \-d
 .SH DESCRIPTION
 Compress or decompress a file using run length encoding and Lempel Ziv
-prediction, followed by the Burrows-Wheeler transform and arithmetic coding.
+prediction, followed by the Burrows-Wheeler transform and arithmetic
+coding.
 .B bzip3,
 like its ancestor
 .B bzip2,
@@ -40,8 +46,8 @@ to output binary data to a terminal. The \-e flag (encode) is implied.
 .B unbzip3
 (or,
 .B bzip3 \-d
-equivalently) decompresses data from standard input to the standard output,
-refusing to read from a terminal.
+equivalently) decompresses data from standard input to the standard
+output, refusing to read from a terminal.
 
 If two files are specified, the first one is used in place of
 standard input, and the second one is used in place of standard
@@ -72,10 +78,12 @@ will decompress all
 files in the current directory.
 .TP
 .B \-b --block N
-Set the block size to N mebibytes. The minimum is 1MiB, the maximum is 511MiB.
+Set the block size to N mebibytes. The minimum is 1MiB, the maximum is
+511MiB.
 .TP
 .B \-c --stdout
-Force writing output data to the standard output if one file is specified.
+Force writing output data to the standard output if one file is
+specified.
 .TP
 .B \-d --decode
 Force decompression.
@@ -99,14 +107,15 @@ Set the amount of parallel worker threads that process one block each.
 Verify the validity of compressed blocks.
 .TP
 .B \--
-Treat all subsequent arguments as file names, even if they start with a dash.
-This is so you can handle files with names beginning with a dash.
+Treat all subsequent arguments as file names, even if they start with
+a dash. This is so you can handle files with names beginning with a dash.
 .SH FILE FORMAT
 
-Compression is performed as long as the input block is longer than 64 bytes.
-Otherwise, it's coded as a literal block. In all other cases, the compressed data
-is written to the file. The file format has constant overhead of 9 bytes per
-file and from 9 to 17 bytes per block. Random data is coded so that expansion
+Compression is performed as long as the input block is longer
+than 64 bytes. Otherwise, it's coded as a literal block. In all
+other cases, the compressed data is written to the file. The
+file format has constant overhead of 9 bytes per file and from
+9 to 17 bytes per block. Random data is coded so that expansion
 is generally under 0.8%.
 
 .B bzip3
@@ -116,8 +125,8 @@ compressed data.
 
 .SH MEMORY MANAGEMENT
 
-The \-b flag sets the block size in mebibytes (MiB). The default is 16 MiB.
-Compression and decompression memory usage can be estimated as:
+The \-b flag sets the block size in mebibytes (MiB). The default is 16
+MiB. Compression and decompression memory usage can be estimated as:
 
        6 x block size
 
@@ -133,9 +142,9 @@ Kamila Szewczyk, kspalaiologos@gmail.com.
 
 https://github.com/kspalaiologos/bzip3
 
-Thanks to: Ilya Grebnov, Chloe Strachan, Caleb Maclennan, Ilya Muravyov and everyone
-who sent patches, helped with portability problems, encouraged me to work on bzip3
-and lent me machines for performance tests.
+Thanks to: Ilya Grebnov, Chloe Strachan, Caleb Maclennan, Ilya Muravyov
+and everyone who sent patches, helped with portability problems,
+encouraged me to work on bzip3 and lent me machines for performance tests.
 
 .SH "SEE ALSO"
-\fBbzip2 (1)\fR
+\fBbzip2 (1)\fR, \fBbz3less (1)\fR, \fBbz3more (1)\fR, \fBbz3grep (1)\fR
