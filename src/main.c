@@ -386,8 +386,7 @@ FILE * open_input(char * input) {
 }
 
 void close_data_file(FILE * des) {
-    if (des != NULL && des != stdin && des != stdout)
-        fclose(des);
+    if (des != NULL && des != stdin && des != stdout) fclose(des);
 }
 
 int main(int argc, char * argv[]) {
@@ -489,16 +488,16 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if(batch) {
-        switch(mode) {
+    if (batch) {
+        switch (mode) {
             case MODE_ENCODE:
                 /* Encode each of the files. */
-                while(optind < argc) {
+                while (optind < argc) {
                     char * arg = argv[optind++];
 
                     FILE * input_des = open_input(arg);
                     char * output_name;
-                    if(force_stdstreams)
+                    if (force_stdstreams)
                         output_name = NULL;
                     else {
                         output_name = (char *)malloc(strlen(arg) + 5);
@@ -508,21 +507,20 @@ int main(int argc, char * argv[]) {
 
                     FILE * output_des = open_output(output_name, force);
                     process(input_des, output_des, mode, block_size, workers);
-                    
+
                     close_data_file(input_des);
                     close_data_file(output_des);
-                    if(!force_stdstreams)
-                        free(output_name);
+                    if (!force_stdstreams) free(output_name);
                 }
                 break;
             case MODE_DECODE:
                 /* Decode each of the files. */
-                while(optind < argc) {
+                while (optind < argc) {
                     char * arg = argv[optind++];
 
                     FILE * input_des = open_input(arg);
                     char * output_name;
-                    if(force_stdstreams)
+                    if (force_stdstreams)
                         output_name = NULL;
                     else {
                         output_name = (char *)malloc(strlen(arg) + 1);
@@ -540,8 +538,7 @@ int main(int argc, char * argv[]) {
 
                     close_data_file(input_des);
                     close_data_file(output_des);
-                    if(!force_stdstreams)
-                        free(output_name);
+                    if (!force_stdstreams) free(output_name);
                 }
                 break;
             case MODE_TEST:
