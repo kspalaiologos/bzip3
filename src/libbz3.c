@@ -40,9 +40,9 @@ struct bz3_state {
     s8 last_error;
 };
 
-s8 bz3_last_error(struct bz3_state * state) { return state->last_error; }
+PUBLIC_API s8 bz3_last_error(struct bz3_state * state) { return state->last_error; }
 
-const char * bz3_strerror(struct bz3_state * state) {
+PUBLIC_API const char * bz3_strerror(struct bz3_state * state) {
     switch (state->last_error) {
         case BZ3_OK:
             return "No error";
@@ -63,7 +63,7 @@ const char * bz3_strerror(struct bz3_state * state) {
     }
 }
 
-struct bz3_state * bz3_new(s32 block_size) {
+PUBLIC_API struct bz3_state * bz3_new(s32 block_size) {
     if (block_size < KiB(65) || block_size > MiB(511)) {
         return NULL;
     }
@@ -98,7 +98,7 @@ struct bz3_state * bz3_new(s32 block_size) {
     return bz3_state;
 }
 
-void bz3_free(struct bz3_state * state) {
+PUBLIC_API void bz3_free(struct bz3_state * state) {
     free(state->swap_buffer);
     free(state->sais_array);
     free(state->cm_state);
@@ -113,7 +113,7 @@ void bz3_free(struct bz3_state * state) {
         y = tmp;      \
     }
 
-s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
+PUBLIC_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     u8 *b1 = buffer, *b2 = state->swap_buffer;
 
     if (data_size > state->block_size) {
@@ -184,7 +184,7 @@ s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_size) {
     return data_size + overhead * 4 + 1;
 }
 
-s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 orig_size) {
+PUBLIC_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 orig_size) {
     // Read the header.
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
@@ -325,7 +325,7 @@ static void * bz3_init_decode_thread(void * _msg) {
     return NULL;  // unreachable
 }
 
-void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
+PUBLIC_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
     encode_thread_msg messages[n];
     pthread_t threads[n];
     for (int32_t i = 0; i < n; i++) {
@@ -338,7 +338,7 @@ void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t
     for (int32_t i = 0; i < n; i++) sizes[i] = messages[i].size;
 }
 
-void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
+PUBLIC_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
                                   int32_t orig_sizes[], int32_t n) {
     decode_thread_msg messages[n];
     pthread_t threads[n];
