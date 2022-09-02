@@ -70,7 +70,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.target[2] }}
       - name: Configure
-        run: ./configure --bindir=/ --program-suffix=-${{ matrix.target[0] }} ${{ matrix.target[1] }}
+        run: ./configure --bindir=/ --program-suffix=-${{ matrix.target[0] }} ${{ matrix.target[1] }} "CFLAGS=-O2 -flto"
       - name: Make
         run: |
           make
