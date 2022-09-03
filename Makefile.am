@@ -10,18 +10,14 @@ pkgconfig_DATA = bzip3.pc
 include_HEADERS = include/libbz3.h
 noinst_HEADERS = include/cm.h \
 						 include/common.h \
-						 include/crc32.h \
 						 include/libsais.h \
-						 include/lzp.h \
-						 include/rle.h
+						 include/rle.h \
 						 include/getopt-shim.h
 
 lib_LTLIBRARIES = libbzip3.la
 libbzip3_la_SOURCES = src/cm.c \
-					  src/crc32.c \
 					  src/libbz3.c \
 					  src/libsais.c \
-					  src/lzp.c \
 					  src/rle.c
 
 bin_PROGRAMS = bzip3
