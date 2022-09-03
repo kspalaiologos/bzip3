@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
 #include "libsais.h"
 
 /* CRC32 implementation. Since CRC32 generally takes less than 1% of the runtime on real-world data (e.g. the

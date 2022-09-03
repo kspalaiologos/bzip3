@@ -13,8 +13,7 @@ noinst_HEADERS = include/common.h \
 						 include/getopt-shim.h
 
 lib_LTLIBRARIES = libbzip3.la
-libbzip3_la_SOURCES = src/libbz3.c \
-					  src/libsais.c
+libbzip3_la_SOURCES = src/libbz3.c
 
 bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)

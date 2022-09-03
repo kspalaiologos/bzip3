@@ -61,6 +61,7 @@ static void write_neutral_s32(u8 * data, s32 value) {
     #warning Your compiler, configuration or platform might not be supported.
 #endif
 
+
 #if defined(__has_builtin)
     #if __has_builtin(__builtin_prefetch)
         #define HAS_BUILTIN_PREFECTCH
@@ -69,19 +70,61 @@ static void write_neutral_s32(u8 * data, s32 value) {
     #define HAS_BUILTIN_PREFECTCH
 #endif
 
+#if defined(__has_builtin)
+    #if __has_builtin(__builtin_bswap16)
+        #define HAS_BUILTIN_BSWAP16
+    #endif
+#elif defined(__GNUC__) && (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8)) || (__GNUC__ >= 5))
+    #define HAS_BUILTIN_BSWAP16
+#endif
+
 #if defined(HAS_BUILTIN_PREFECTCH)
     #define prefetch(address) __builtin_prefetch((const void *)(address), 0, 0)
+    #define prefetchw(address) __builtin_prefetch((const void *)(address), 1, 0)
 #elif defined(_M_IX86) || defined(_M_AMD64)
     #include <intrin.h>
     #define prefetch(address) _mm_prefetch((const void *)(address), _MM_HINT_NTA)
+    #define prefetchw(address) _m_prefetchw((const void *)(address))
 #elif defined(_M_ARM)
     #include <intrin.h>
     #define prefetch(address) __prefetch((const void *)(address))
+    #define prefetchw(address) __prefetchw((const void *)(address))
 #elif defined(_M_ARM64)
     #include <intrin.h>
     #define prefetch(address) __prefetch2((const void *)(address), 1)
+    #define prefetchw(address) __prefetch2((const void *)(address), 17)
 #else
-    #define prefetch(address)
+    #error Your compiler, configuration or platform is not supported.
+#endif
+
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+    #if defined(_LITTLE_ENDIAN) || (defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && BYTE_ORDER == LITTLE_ENDIAN) || \
+        (defined(_BYTE_ORDER) && defined(_LITTLE_ENDIAN) && _BYTE_ORDER == _LITTLE_ENDIAN) ||                        \
+        (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN) ||                    \
+        (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+        #define __LITTLE_ENDIAN__
+    #elif defined(_BIG_ENDIAN) || (defined(BYTE_ORDER) && defined(BIG_ENDIAN) && BYTE_ORDER == BIG_ENDIAN) || \
+        (defined(_BYTE_ORDER) && defined(_BIG_ENDIAN) && _BYTE_ORDER == _BIG_ENDIAN) ||                       \
+        (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN) ||                   \
+        (defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+        #define __BIG_ENDIAN__
+    #elif defined(_WIN32)
+        #define __LITTLE_ENDIAN__
+    #endif
+#endif
+
+#if defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+    #if defined(HAS_BUILTIN_BSWAP16)
+        #define bswap16(x) (__builtin_bswap16(x))
+    #elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        #define bswap16(x) (_byteswap_ushort(x))
+    #else
+        #define bswap16(x) ((u16)(x >> 8) | (u16)(x << 8))
+    #endif
+#elif !defined(__LITTLE_ENDIAN__) && defined(__BIG_ENDIAN__)
+    #define bswap16(x) (x)
+#else
+    #error Your compiler, configuration or platform is not supported.
 #endif
 
 #endif
