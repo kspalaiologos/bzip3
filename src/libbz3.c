@@ -291,7 +291,6 @@ typedef struct {
     u16 C0[256], C1[256][256], C2[512][17];
 } state;
 
-
 #define write_out(s, c) (s)->out_queue[(s)->output_ptr++] = (c)
 #define read_in(s) ((s)->input_ptr < (s)->input_max ? (s)->in_queue[(s)->input_ptr++] : -1)
 

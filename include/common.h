@@ -61,7 +61,6 @@ static void write_neutral_s32(u8 * data, s32 value) {
     #warning Your compiler, configuration or platform might not be supported.
 #endif
 
-
 #if defined(__has_builtin)
     #if __has_builtin(__builtin_prefetch)
         #define HAS_BUILTIN_PREFECTCH

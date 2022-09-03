@@ -4172,7 +4172,8 @@ static s32 libsais_bwt_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 
     return index;
 }
 
-static s32 libsais_bwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq, s32 r, s32 * I) {
+static s32 libsais_bwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, s32 fs, s32 * freq, s32 r,
+                               s32 * I) {
     if ((ctx == NULL) || (T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || (fs < 0) || (r < 2) ||
         ((r & (r - 1)) != 0) || (I == NULL)) {
         return -1;
@@ -5225,7 +5226,7 @@ static s32 libsais_unbwt_aux(const u8 * T, u8 * U, s32 * A, s32 n, const s32 * f
 }
 
 static s32 libsais_unbwt_aux_ctx(const void * ctx, const u8 * T, u8 * U, s32 * A, s32 n, const s32 * freq, s32 r,
-                          const s32 * I) {
+                                 const s32 * I) {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || ((r != n) && ((r < 2) || ((r & (r - 1)) != 0))) ||
         (I == NULL)) {
         return -1;
