@@ -22,10 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cm.h"
 #include "common.h"
 #include "libsais.h"
-#include "rle.h"
 
 /* CRC32 implementation. Since CRC32 generally takes less than 1% of the runtime on real-world data (e.g. the
    Silesia corpus), I decided against using hardware CRC32. This implementation is simple, fast, fool-proof and
@@ -85,7 +83,8 @@ static u32 crc32sum(u32 crc, u8 * RESTRICT buf, size_t size) {
 
 static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * RESTRICT out, u8 * out_end,
                             s32 * RESTRICT lut) {
-    const u8 * ins = in, * outs = out;
+    const u8 * ins = in;
+    const u8 * outs = out;
     const u8 * out_eob = out_end - 8;
     const u8 * heur = in;
 
@@ -101,7 +100,8 @@ static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * REST
         lut[idx] = in - ins;
         if (val > 0) {
             const u8 * RESTRICT ref = ins + val;
-            if (memcmp(in + LZP_MIN_MATCH - 4, ref + LZP_MIN_MATCH - 4, sizeof(u32)) == 0 && memcmp(in, ref, sizeof(u32)) == 0) {
+            if (memcmp(in + LZP_MIN_MATCH - 4, ref + LZP_MIN_MATCH - 4, sizeof(u32)) == 0 &&
+                memcmp(in, ref, sizeof(u32)) == 0) {
                 if (heur > in && *(u32 *)heur != *(u32 *)(ref + (heur - in))) goto not_found;
 
                 s32 len = 4;
@@ -209,6 +209,240 @@ static s32 lzp_decompress(const u8 * RESTRICT in, u8 * RESTRICT out, s32 n, s32 
     memset(lut, 0, sizeof(s32) * (1 << LZP_DICTIONARY));
 
     return lzp_decode_block(in, in + n, lut, out);
+}
+
+/* RLE code. Unlike RLE in other compressors, we collapse all runs if they yield a net gain
+   for a given character and encode this as a set bit in the RLE metadata. This improves the
+   performance and reduces the amount of collapsing done in normal blocks (so that BWT+AC can
+   be more efficient) while we still filter out all the pathological data. */
+
+static s32 mrlec(u8 * in, s32 inlen, u8 * out) {
+    u8 * ip = in;
+    u8 * in_end = in + inlen;
+    s32 op = 0;
+    s32 c, pc = -1;
+    s32 t[256] = { 0 };
+    s32 run = 0;
+    while ((c = (ip < in_end ? *ip++ : -1)) != -1) {
+        if (c == pc)
+            t[c] += (++run % 255) != 0;
+        else
+            --t[c], run = 0;
+        pc = c;
+    }
+    for (s32 i = 0; i < 32; ++i) {
+        c = 0;
+        for (s32 j = 0; j < 8; ++j) c += (t[i * 8 + j] > 0) << j;
+        out[op++] = c;
+    }
+    ip = in;
+    c = pc = -1;
+    run = 0;
+    do {
+        c = ip < in_end ? *ip++ : -1;
+        if (c == pc)
+            ++run;
+        else if (run > 0 && t[pc] > 0) {
+            out[op++] = pc;
+            for (; run > 255; run -= 255) out[op++] = 255;
+            out[op++] = run - 1;
+            run = 1;
+        } else
+            for (++run; run > 1; --run) out[op++] = pc;
+        pc = c;
+    } while (c != -1);
+
+    return op;
+}
+
+static void mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen) {
+    s32 op = 0, ip = 0;
+
+    s32 c, pc = -1;
+    s32 t[256] = { 0 };
+    s32 run = 0;
+
+    for (s32 i = 0; i < 32; ++i) {
+        c = in[ip++];
+        for (s32 j = 0; j < 8; ++j) t[i * 8 + j] = (c >> j) & 1;
+    }
+
+    while (op < outlen) {
+        c = in[ip++];
+        if (t[c]) {
+            for (run = 0; (pc = in[ip++]) == 255; run += 255)
+                ;
+            run += pc + 1;
+            for (; run > 0; --run) out[op++] = c;
+        } else
+            out[op++] = c;
+    }
+}
+
+/* The entropy coder. Uses an arithmetic coder implementation outlined in Matt Mahoney's DCE. */
+
+typedef struct {
+    /* Input/output. */
+    u8 *in_queue, *out_queue;
+    s32 input_ptr, output_ptr, input_max;
+
+    /* C0, C1 - used for making the initial prediction, C2 used for an APM with a slightly low
+       learning rate (6) and 512 contexts. kanzi merges C0 and C1, uses slightly different
+       counter initialisation code and prediction code which from my tests tends to be suboptimal. */
+    u16 C0[256], C1[256][256], C2[512][17];
+} state;
+
+
+#define write_out(s, c) (s)->out_queue[(s)->output_ptr++] = (c)
+#define read_in(s) ((s)->input_ptr < (s)->input_max ? (s)->in_queue[(s)->input_ptr++] : -1)
+
+#define update0(p, x) (p) = ((p) - ((p) >> x))
+#define update1(p, x) (p) = ((p) + (((p) ^ 65535) >> x))
+
+void begin(state * s) {
+    prefetch(s);
+    for (int i = 0; i < 256; i++) s->C0[i] = 1 << 15;
+    for (int i = 0; i < 256; i++)
+        for (int j = 0; j < 256; j++) s->C1[i][j] = 1 << 15;
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 256; j++)
+            for (int k = 0; k < 17; k++) s->C2[2 * j + i][k] = (k << 12) - (k == 16);  // Firm difference from stdpack.
+}
+
+void encode_bytes(state * s, u8 * buf, s32 size) {
+    /* Arithmetic coding, detecting runs of characters in the file */
+    u32 high = 0xFFFFFFFF, low = 0, c1 = 0, c2 = 0, run = 0;
+
+    for (s32 i = 0; i < size; i++) {
+        u8 c = buf[i];
+
+        if (c1 == c2)
+            ++run;
+        else
+            run = 0;
+
+        const int f = run > 2;
+
+        int ctx = 1;
+
+        while (ctx < 256) {
+            const int p0 = s->C0[ctx];
+            const int p1 = s->C1[c1][ctx];
+            const int p2 = s->C1[c2][ctx];
+            const int p = ((p0 + p1) * 7 + p2 + p2) >> 4;
+
+            const int j = p >> 12;
+            const int x1 = s->C2[2 * ctx + f][j];
+            const int x2 = s->C2[2 * ctx + f][j + 1];
+            const int ssep = x1 + (((x2 - x1) * (p & 4095)) >> 12);
+
+            if (c & 128) {
+                high = low + (((u64)(high - low) * (ssep * 3 + p)) >> 18);
+
+                while ((low ^ high) < (1 << 24)) {
+                    write_out(s, low >> 24);
+                    low <<= 8;
+                    high = (high << 8) + 0xFF;
+                }
+
+                update1(s->C0[ctx], 2);
+                update1(s->C1[c1][ctx], 4);
+                update1(s->C2[2 * ctx + f][j], 6);
+                update1(s->C2[2 * ctx + f][j + 1], 6);
+                ctx += ctx + 1;
+            } else {
+                low += (((u64)(high - low) * (ssep * 3 + p)) >> 18) + 1;
+
+                // Write identical bits.
+                while ((low ^ high) < (1 << 24)) {
+                    write_out(s, low >> 24);  // Same as high >> 24
+                    low <<= 8;
+                    high = (high << 8) + 0xFF;
+                }
+
+                update0(s->C0[ctx], 2);
+                update0(s->C1[c1][ctx], 4);
+                update0(s->C2[2 * ctx + f][j], 6);
+                update0(s->C2[2 * ctx + f][j + 1], 6);
+                ctx += ctx;
+            }
+
+            c <<= 1;
+        }
+
+        c2 = c1;
+        c1 = ctx & 255;
+    }
+
+    write_out(s, low >> 24);
+    low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+    write_out(s, low >> 24);
+    low <<= 8;
+}
+
+void decode_bytes(state * s, u8 * c, s32 size) {
+    u32 high = 0xFFFFFFFF, low = 0, c1 = 0, c2 = 0, run = 0, code = 0;
+
+    code = (code << 8) + read_in(s);
+    code = (code << 8) + read_in(s);
+    code = (code << 8) + read_in(s);
+    code = (code << 8) + read_in(s);
+
+    for (s32 i = 0; i < size; i++) {
+        if (c1 == c2)
+            ++run;
+        else
+            run = 0;
+
+        const int f = run > 2;
+
+        int ctx = 1;
+
+        while (ctx < 256) {
+            const int p0 = s->C0[ctx];
+            const int p1 = s->C1[c1][ctx];
+            const int p2 = s->C1[c2][ctx];
+            const int p = ((p0 + p1) * 7 + p2 + p2) >> 4;
+
+            const int j = p >> 12;
+            const int x1 = s->C2[2 * ctx + f][j];
+            const int x2 = s->C2[2 * ctx + f][j + 1];
+            const int ssep = x1 + (((x2 - x1) * (p & 4095)) >> 12);
+
+            const u32 mid = low + (((u64)(high - low) * (ssep * 3 + p)) >> 18);
+            const u8 bit = code <= mid;
+            if (bit)
+                high = mid;
+            else
+                low = mid + 1;
+            while ((low ^ high) < (1 << 24)) {
+                low <<= 8;
+                high = (high << 8) + 255;
+                code = (code << 8) + read_in(s);
+            }
+
+            if (bit) {
+                update1(s->C0[ctx], 2);
+                update1(s->C1[c1][ctx], 4);
+                update1(s->C2[2 * ctx + f][j], 6);
+                update1(s->C2[2 * ctx + f][j + 1], 6);
+                ctx += ctx + 1;
+            } else {
+                update0(s->C0[ctx], 2);
+                update0(s->C1[c1][ctx], 4);
+                update0(s->C2[2 * ctx + f][j], 6);
+                update0(s->C2[2 * ctx + f][j + 1], 6);
+                ctx += ctx;
+            }
+        }
+
+        c2 = c1;
+        c[i] = c1 = ctx & 255;
+    }
 }
 
 /* Public API. */

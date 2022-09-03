@@ -61,4 +61,27 @@ static void write_neutral_s32(u8 * data, s32 value) {
     #warning Your compiler, configuration or platform might not be supported.
 #endif
 
+#if defined(__has_builtin)
+    #if __has_builtin(__builtin_prefetch)
+        #define HAS_BUILTIN_PREFECTCH
+    #endif
+#elif defined(__GNUC__) && (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4))
+    #define HAS_BUILTIN_PREFECTCH
+#endif
+
+#if defined(HAS_BUILTIN_PREFECTCH)
+    #define prefetch(address) __builtin_prefetch((const void *)(address), 0, 0)
+#elif defined(_M_IX86) || defined(_M_AMD64)
+    #include <intrin.h>
+    #define prefetch(address) _mm_prefetch((const void *)(address), _MM_HINT_NTA)
+#elif defined(_M_ARM)
+    #include <intrin.h>
+    #define prefetch(address) __prefetch((const void *)(address))
+#elif defined(_M_ARM64)
+    #include <intrin.h>
+    #define prefetch(address) __prefetch2((const void *)(address), 1)
+#else
+    #define prefetch(address)
+#endif
+
 #endif

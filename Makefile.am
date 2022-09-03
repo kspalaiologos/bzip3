@@ -8,17 +8,13 @@ EXTRA_DIST = LICENSE PORTING.md README.md build-aux/git-version-gen
 pkgconfig_DATA = bzip3.pc
 
 include_HEADERS = include/libbz3.h
-noinst_HEADERS = include/cm.h \
-						 include/common.h \
+noinst_HEADERS = include/common.h \
 						 include/libsais.h \
-						 include/rle.h \
 						 include/getopt-shim.h
 
 lib_LTLIBRARIES = libbzip3.la
-libbzip3_la_SOURCES = src/cm.c \
-					  src/libbz3.c \
-					  src/libsais.c \
-					  src/rle.c
+libbzip3_la_SOURCES = src/libbz3.c \
+					  src/libsais.c
 
 bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)
