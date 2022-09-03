@@ -298,7 +298,7 @@ typedef struct {
 #define update0(p, x) (p) = ((p) - ((p) >> x))
 #define update1(p, x) (p) = ((p) + (((p) ^ 65535) >> x))
 
-void begin(state * s) {
+static void begin(state * s) {
     prefetch(s);
     for (int i = 0; i < 256; i++) s->C0[i] = 1 << 15;
     for (int i = 0; i < 256; i++)
@@ -308,7 +308,7 @@ void begin(state * s) {
             for (int k = 0; k < 17; k++) s->C2[2 * j + i][k] = (k << 12) - (k == 16);  // Firm difference from stdpack.
 }
 
-void encode_bytes(state * s, u8 * buf, s32 size) {
+static void encode_bytes(state * s, u8 * buf, s32 size) {
     /* Arithmetic coding, detecting runs of characters in the file */
     u32 high = 0xFFFFFFFF, low = 0, c1 = 0, c2 = 0, run = 0;
 
@@ -383,7 +383,7 @@ void encode_bytes(state * s, u8 * buf, s32 size) {
     low <<= 8;
 }
 
-void decode_bytes(state * s, u8 * c, s32 size) {
+static void decode_bytes(state * s, u8 * c, s32 size) {
     u32 high = 0xFFFFFFFF, low = 0, c1 = 0, c2 = 0, run = 0, code = 0;
 
     code = (code << 8) + read_in(s);
