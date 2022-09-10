@@ -24,6 +24,11 @@
 #ifndef _GETOPT_H
 #define _GETOPT_H
 
+#ifdef WIN32
+static void flockfile(FILE *f) { _lock_file(f); }
+static void funlockfile(FILE *f) { _unlock_file(f); }
+#endif
+
 int getopt(int, char * const[], const char *);
 extern char * optarg;
 extern int optind, opterr, optopt, optreset;
