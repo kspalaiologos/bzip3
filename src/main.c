@@ -70,8 +70,7 @@ static void help() {
             "  -j N, --jobs=N    set the amount of parallel threads\n"
 #endif
             "\n"
-            "Report bugs to: https://github.com/kspalaiologos/bzip3\n"
-            "\n");
+            "Report bugs to: https://github.com/kspalaiologos/bzip3\n");
 }
 
 static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers) {
@@ -458,7 +457,7 @@ int main(int argc, char * argv[]) {
                 break;
             case 'b':
                 if (!is_numeric(optarg)) {
-                    fprintf(stderr, "bzip3: invalid block size: %s", optarg);
+                    fprintf(stderr, "bzip3: invalid block size: %s\n", optarg);
                     return 1;
                 }
                 block_size = MiB(atoi(optarg));
@@ -466,7 +465,7 @@ int main(int argc, char * argv[]) {
 #ifdef PTHREAD
             case 'j':
                 if (!is_numeric(optarg)) {
-                    fprintf(stderr, "bzip3: invalid amount of jobs: %s", optarg);
+                    fprintf(stderr, "bzip3: invalid amount of jobs: %s\n", optarg);
                     return 1;
                 }
                 workers = atoi(optarg);
