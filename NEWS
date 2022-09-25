@@ -1,4 +1,4 @@
-
+**8*
 v1.1.2:
 * fix memory UB in libsais
 * restructure src/cm.c
@@ -13,3 +13,17 @@ v1.1.3:
 * bzip3 file format documentation.
 * increase the maximum amount of parallel workers to 24.
 * prevent accidentally overwriting output; add the `-f` command-line flag.
+
+v1.1.4:
+* increase the maximum allowed amount of parallel workers to 64.
+* clean up the cm code
+* set up pkg-config support
+* CLI robustness improvements
+
+v1.1.5:
+* rework the argument parsing schema to resemble UNIX utilities more.
+* make compression the default action
+* replace -v with -V for version information
+* manual pages
+* bz3cat, bz3more, bz3less, bz3grep, unbzip3 utilities
+* disable architecture-specific optimisations in github release builds
