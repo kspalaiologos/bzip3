@@ -38,6 +38,10 @@ AC_ARG_ENABLE([link-time-optimization],
 			AS_HELP_STRING([--disable-link-time-optimization], [Disable link time optimization]))
 AM_CONDITIONAL([ENABLE_LINK_TIME_OPTIMIZATION], [test x"$enable_link_time_optimization" != xno])
 
+AC_ARG_ENABLE([static-exe],
+			AS_HELP_STRING([--enable-static-exe], [Enable static builds of the executable.]))
+AM_CONDITIONAL([ENABLE_STATIC], [test x"$enable_static_exe" != x])
+
 AM_COND_IF([PASSED_CFLAGS], [
 	AC_MSG_NOTICE([skipping compiler feature detection, using '$CFLAGS'])
 ], [
@@ -56,6 +60,11 @@ AM_COND_IF([PASSED_CFLAGS], [
 	AM_COND_IF([ENABLE_LINK_TIME_OPTIMIZATION], [
 				AX_CHECK_COMPILE_FLAG([-flto], [CFLAGS="$CFLAGS -flto"],
 									[AC_MSG_ERROR([Compiler does not support link time optimization, use --disable-link-time-optimization])])
+	])
+
+	AM_COND_IF([ENABLE_STATIC], [
+				AX_CHECK_COMPILE_FLAG([-static], [CFLAGS="$CFLAGS -static"],
+									[AC_MSG_ERROR([Compiler does not support static linking.])])
 	])
 ])
 
