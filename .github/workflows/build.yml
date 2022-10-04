@@ -47,27 +47,6 @@ jobs:
     - name: Check
       run: make roundtrip
 
-  build-bsd:
-    name: Build on FreeBSD
-    needs: [ dist ]
-    runs-on: macos-12
-    steps:
-    - name: Download source package artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: bzip3-${{ github.sha }}
-    - name: Extract source package
-      run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
-    - name: Build in FreeBSD VM
-      uses: vmactions/freebsd-vm@v0.1.5
-      with:
-        usesh: true
-        run: |
-          pkg install -y llvm
-          ./configure
-          make
-          make roundtrip
-
   build-archs:
     name: Build Matrix for non-x86 architectures
     needs: [ dist ]
