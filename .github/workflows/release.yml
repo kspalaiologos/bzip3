@@ -55,8 +55,8 @@ jobs:
       matrix:
         target:
           - [ "x86_64-linux", "", "" ]
-          - [ "x86_64", "CC=x86_64-w64-mingw32-gcc --host x86_64-w64-mingw32", "gcc-mingw-w64-x86-64" ]
-          - [ "i686", "CC=i686-w64-mingw32-gcc --host i686-w64-mingw32", "gcc-mingw-w64-i686" ]
+          - [ "x86_64", "CC=x86_64-w64-mingw32-gcc --host x86_64-w64-mingw32 --enable-static-exe", "gcc-mingw-w64-x86-64" ]
+          - [ "i686", "CC=i686-w64-mingw32-gcc --host i686-w64-mingw32 --enable-static-exe", "gcc-mingw-w64-i686" ]
     steps:
       - name: Download source package artifact
         uses: actions/download-artifact@v3
