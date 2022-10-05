@@ -27,3 +27,9 @@ v1.1.5:
 * manual pages
 * bz3cat, bz3more, bz3less, bz3grep, unbzip3 utilities
 * disable architecture-specific optimisations in github release builds
+
+v1.1.6:
+* fixed tickets: #53, #50, #45, #46 (portability issues & a verbatim block
+  decompression diagnostic issue)
+* package unbzip3 manpage
+* flockfile/funlockfile calls for WIN32
