@@ -63,7 +63,7 @@ AM_COND_IF([PASSED_CFLAGS], [
 	])
 
 	AM_COND_IF([ENABLE_STATIC], [
-				AX_CHECK_COMPILE_FLAG([-static], [CFLAGS="$CFLAGS -static"],
+				AX_CHECK_COMPILE_FLAG([-static], [LIBS="$LIBS -all-static"],
 									[AC_MSG_ERROR([Compiler does not support static linking.])])
 	])
 ])
