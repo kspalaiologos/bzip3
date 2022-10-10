@@ -172,8 +172,8 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         case MODE_TEST: {
             char signature[5];
 
-            fread(signature, 5, 1, input_des);
-            if (strncmp(signature, "BZ3v1", 5) != 0) {
+            if (fread(signature, 5, 1, input_des) != 1
+                || strncmp(signature, "BZ3v1", 5) != 0) {
                 fprintf(stderr, "Invalid signature.\n");
                 return 1;
             }
