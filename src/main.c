@@ -80,57 +80,50 @@ static void xwrite(const void * data, size_t size, size_t len, FILE * des) {
     }
 }
 
-static int read_errcheck(void * data, size_t size, size_t len, FILE * des, size_t * out) {
-    *out = fread(data, size, len, des);
+/* Read any amount of items (from 0 to len) as long as there is no error */
+static size_t xread(void * data, size_t size, size_t len, FILE * des) {
+    size_t written = fread(data, size, len, des);
     if (ferror(des)) {
         fprintf(stderr, "Read error: %s\n", strerror(errno));
-        return -1;
+        exit(1);
     }
-    return 0;
+    return written;
 }
 
-/* 0: expected eof
- * 1: read succeeded
- * -1: unexpected eof or error
- */
-static int read_eofcheck(void * data, size_t size, size_t len, FILE * des) {
-    size_t val = fread(data, size, len, des);
-    if (!val)
+/* Either read 0 (due to eof) items or exactly len items */
+static size_t xread_eofcheck(void * data, size_t size, size_t len, FILE * des) {
+    size_t written = xread(data, size, len, des);
+    /* feof will be true */
+    if (!written)
         return 0;
-    if (val == len)
-        return 1;
     if (feof (des)) {
         fprintf(stderr, "Error: Corrupt file\n");
-        return -1;
+        exit(1);
     }
-    fprintf(stderr, "Read error: %s\n", strerror(errno));
-    return -1;
+    return written;
 }
 
-static int read_fullcheck(void * data, size_t size, size_t len, FILE * des) {
-    switch (read_eofcheck (data, size, len, des)) {
-        case 0:
-            fprintf(stderr, "Error: Corrupt file\n");
-        default:
-            return -1;
-        case 1:
-            return 0;
+/* Always read len items */
+static void xread_noeof(void * data, size_t size, size_t len, FILE * des) {
+    if (!xread_eofcheck (data, size, len, des)) {
+        fprintf(stderr, "Error: Corrupt file\n");
+        exit(1);
     }
 }
 
 static void close_out_file(FILE * des) {
     if (des) {
         int outfd = fileno(des);
-        int status;
 
         if (fflush(des)) {
             fprintf(stderr, "Error: Failed on fflush: %s\n", strerror(errno));
             exit(1);
         }
 
-        /* would have to use || outfd != -1 && !FlushFileBuffers(_get_osfhandle(outfd)) and then use GetLastError + FormatMessage(A?) */
+        /* would have to use outfd != -1 && !FlushFileBuffers(_get_osfhandle(outfd)) and then use GetLastError + FormatMessage(A?) */
 #ifndef __MSVCRT__
         while (1) {
+            int status;
             status = fsync(outfd);
             if (status == -1) {
                 if (errno == EINVAL)
@@ -172,14 +165,13 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         case MODE_TEST: {
             char signature[5];
 
-            if (fread(signature, 5, 1, input_des) != 1
+            if (xread(signature, 5, 1, input_des) != 1
                 || strncmp(signature, "BZ3v1", 5) != 0) {
                 fprintf(stderr, "Invalid signature.\n");
                 return 1;
             }
 
-            if (read_fullcheck(byteswap_buf, 4, 1, input_des))
-                return 1;
+            xread_noeof(byteswap_buf, 4, 1, input_des);
 
             block_size = read_neutral_s32(byteswap_buf);
 
@@ -219,10 +211,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         if (mode == MODE_ENCODE) {
             s32 read_count;
             while (!feof(input_des)) {
-                size_t read_count_sizet;
-                if (read_errcheck(buffer, 1, block_size, input_des, &read_count_sizet))
-                    return 1;
-                read_count = read_count_sizet;
+                read_count = xread(buffer, 1, block_size, input_des);
 
                 s32 new_size = bz3_encode_block(state, buffer, read_count);
                 if (new_size == -1) {
@@ -240,19 +229,13 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         } else if (mode == MODE_DECODE) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
-                switch (read_eofcheck(&byteswap_buf, 1, 4, input_des)) {
-                    case -1:
-                        return 1;
-                    case 0:
-                        continue;
-                }
+                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
+                    continue;
 
                 new_size = read_neutral_s32(byteswap_buf);
-                if (read_fullcheck(&byteswap_buf, 1, 4, input_des))
-                    return 1;
+                xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if (read_fullcheck(buffer, 1, new_size, input_des))
-                    return 1;
+                xread_noeof(buffer, 1, new_size, input_des);
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
@@ -263,18 +246,12 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         } else if (mode == MODE_TEST) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
-                switch (read_eofcheck(&byteswap_buf, 1, 4, input_des)) {
-                    case -1:
-                        return 1;
-                    case 0:
-                        continue;
-                }
+                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
+                    continue;
                 new_size = read_neutral_s32(byteswap_buf);
-                if (read_fullcheck(&byteswap_buf, 1, 4, input_des))
-                    return 1;
+                xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if (read_fullcheck(buffer, 1, new_size, input_des))
-                    return 1;
+                xread_noeof(buffer, 1, new_size, input_des);
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
@@ -313,9 +290,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
-                    size_t read_count;
-                    if (read_errcheck(buffers[i], 1, block_size, input_des, &read_count))
-                        return 1;
+                    size_t read_count = xread(buffers[i], 1, block_size, input_des);
                     sizes[i] = old_sizes[i] = read_count;
                     if (read_count < block_size) {
                         i++;
@@ -342,17 +317,12 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
-                    int status = read_eofcheck(&byteswap_buf, 1, 4, input_des);
-                    if (status == -1)
-                        return 1;
-                    if (status == 0)
+                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
                         break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (read_fullcheck(&byteswap_buf, 1, 4, input_des))
-                        return 1;
+                    xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (read_fullcheck(buffers[i], 1, sizes[i], input_des))
-                        return 1;
+                    xread_noeof(buffers[i], 1, sizes[i], input_des);
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
                 for (s32 j = 0; j < i; j++) {
@@ -370,17 +340,12 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
-                    int status = read_eofcheck(&byteswap_buf, 1, 4, input_des);
-                    if (status == -1)
-                        return 1;
-                    if (status == 0)
+                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
                         break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (read_fullcheck(&byteswap_buf, 1, 4, input_des))
-                        return 1;
+                    xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (read_fullcheck(buffers[i], 1, sizes[i], input_des))
-                        return 1;
+                    xread_noeof(buffers[i], 1, sizes[i], input_des);
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
                 for (s32 j = 0; j < i; j++) {
