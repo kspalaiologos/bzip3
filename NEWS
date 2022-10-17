@@ -33,3 +33,6 @@ v1.1.6:
   decompression diagnostic issue)
 * package unbzip3 manpage
 * flockfile/funlockfile calls for WIN32
+
+v1.1.7:
+* rename unbzip3 as bunzip3 for bzip2/gzip/lzip/... compatibility.
