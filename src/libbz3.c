@@ -769,8 +769,12 @@ BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], u8 * buffers[], s3
 
 #endif
 
+/* High level API implementations. */
+
 BZIP3_API int bz3_compress(u32 block_size, const u8 * in, u8 * out, size_t in_size, size_t * out_size) {
-    struct bz3_state * state = bz3_init(block_size);
+    if(block_size > in_size) block_size = in_size;
+
+    struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
 
     size_t buf_max = *out_size;
