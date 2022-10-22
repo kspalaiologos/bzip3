@@ -78,6 +78,11 @@ BZIP3_API struct bz3_state * bz3_new(int32_t block_size);
  */
 BZIP3_API void bz3_free(struct bz3_state * state);
 
+/**
+ * @brief Return the recommended size of the output buffer for the compression functions.
+ */
+BZIP3_API size_t bz3_bound(size_t input_size);
+
 /* ** HIGH LEVEL APIs ** */
 
 /**
@@ -85,7 +90,8 @@ BZIP3_API void bz3_free(struct bz3_state * state);
  * by itself, consider using the low level `bz3_encode_blocks()` function instead.
  * Using the low level API might provide better performance.
  * Returns a bzip3 error code; BZ3_OK when the operation is successful.
- * Make sure to set out_size to the size of the output buffer before the operation.
+ * Make sure to set out_size to the size of the output buffer before the operation;
+ * out_size must be at least equal to `bz3_bound(in_size)'.
  */
 BZIP3_API int bz3_compress(uint32_t block_size, const uint8_t * in, uint8_t * out, size_t in_size, size_t * out_size);
 
@@ -102,15 +108,15 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
 
 /**
  * @brief Encode a single block. Returns the amount of bytes written to `buffer'.
- * `buffer' must be able to hold at least `size + size / 50 + 32' bytes. The size must not
+ * `buffer' must be able to hold at least `bz3_bound(size)' bytes. The size must not
  * exceed the block size associated with the state.
  */
 BZIP3_API int32_t bz3_encode_block(struct bz3_state * state, uint8_t * buffer, int32_t size);
 
 /**
  * @brief Decode a single block.
- * `buffer' must be able to hold at least `size + size / 50 + 32' bytes. The size must not exceed
- * the block size associated with the state.
+ * `buffer' must be able to hold at least `orig_size' bytes. The size must not exceed the block size
+ * associated with the state.
  * @param size The size of the compressed data in `buffer'
  * @param orig_size The original size of the data before compression.
  */
