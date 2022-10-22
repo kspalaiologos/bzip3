@@ -455,6 +455,8 @@ struct bz3_state {
 
 BZIP3_API s8 bz3_last_error(struct bz3_state * state) { return state->last_error; }
 
+BZIP3_API const char * bz3_version(void) { return VERSION; }
+
 BZIP3_API const char * bz3_strerror(struct bz3_state * state) {
     switch (state->last_error) {
         case BZ3_OK:
@@ -713,15 +715,15 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
 typedef struct {
     struct bz3_state * state;
-    uint8_t * buffer;
-    int32_t size;
+    u8 * buffer;
+    s32 size;
 } encode_thread_msg;
 
 typedef struct {
     struct bz3_state * state;
-    uint8_t * buffer;
-    int32_t size;
-    int32_t orig_size;
+    u8 * buffer;
+    s32 size;
+    s32 orig_size;
 } decode_thread_msg;
 
 static void * bz3_init_encode_thread(void * _msg) {
@@ -738,31 +740,31 @@ static void * bz3_init_decode_thread(void * _msg) {
     return NULL;  // unreachable
 }
 
-BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[], int32_t n) {
+BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], u8 * buffers[], s32 sizes[], s32 n) {
     encode_thread_msg messages[n];
     pthread_t threads[n];
-    for (int32_t i = 0; i < n; i++) {
+    for (s32 i = 0; i < n; i++) {
         messages[i].state = states[i];
         messages[i].buffer = buffers[i];
         messages[i].size = sizes[i];
         pthread_create(&threads[i], NULL, bz3_init_encode_thread, &messages[i]);
     }
-    for (int32_t i = 0; i < n; i++) pthread_join(threads[i], NULL);
-    for (int32_t i = 0; i < n; i++) sizes[i] = messages[i].size;
+    for (s32 i = 0; i < n; i++) pthread_join(threads[i], NULL);
+    for (s32 i = 0; i < n; i++) sizes[i] = messages[i].size;
 }
 
-BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
-                                 int32_t orig_sizes[], int32_t n) {
+BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], u8 * buffers[], s32 sizes[],
+                                 s32 orig_sizes[], s32 n) {
     decode_thread_msg messages[n];
     pthread_t threads[n];
-    for (int32_t i = 0; i < n; i++) {
+    for (s32 i = 0; i < n; i++) {
         messages[i].state = states[i];
         messages[i].buffer = buffers[i];
         messages[i].size = sizes[i];
         messages[i].orig_size = orig_sizes[i];
         pthread_create(&threads[i], NULL, bz3_init_decode_thread, &messages[i]);
     }
-    for (int32_t i = 0; i < n; i++) pthread_join(threads[i], NULL);
+    for (s32 i = 0; i < n; i++) pthread_join(threads[i], NULL);
 }
 
 #endif

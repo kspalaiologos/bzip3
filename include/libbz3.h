@@ -50,6 +50,11 @@
 struct bz3_state;
 
 /**
+ * @brief Get bzip3 version.
+ */
+BZIP3_API const char * bz3_version(void);
+
+/**
  * @brief Get the last error number associated with a given state.
  */
 BZIP3_API int8_t bz3_last_error(struct bz3_state * state);
