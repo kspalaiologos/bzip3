@@ -20,21 +20,21 @@
 #ifndef _LIBBZ3_H
 #define _LIBBZ3_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* Symbol visibility control. */
 #ifndef BZIP3_VISIBLE
     #if defined(__GNUC__) && (__GNUC__ >= 4) && !defined(__MINGW32__)
-        #define BZIP3_VISIBLE __attribute__ ((visibility ("default")))
+        #define BZIP3_VISIBLE __attribute__((visibility("default")))
     #else
         #define BZIP3_VISIBLE
     #endif
 #endif
 
-#if defined(BZIP3_DLL_EXPORT) && (BZIP3_DLL_EXPORT==1)
+#if defined(BZIP3_DLL_EXPORT) && (BZIP3_DLL_EXPORT == 1)
     #define BZIP3_API __declspec(dllexport) BZIP3_VISIBLE
-#elif defined(BZIP3_DLL_IMPORT) && (BZIP3_DLL_IMPORT==1)
+#elif defined(BZIP3_DLL_IMPORT) && (BZIP3_DLL_IMPORT == 1)
     #define BZIP3_API __declspec(dllimport) BZIP3_VISIBLE
 #else
     #define BZIP3_API BZIP3_VISIBLE

@@ -94,9 +94,8 @@ static size_t xread(void * data, size_t size, size_t len, FILE * des) {
 static size_t xread_eofcheck(void * data, size_t size, size_t len, FILE * des) {
     size_t written = xread(data, size, len, des);
     /* feof will be true */
-    if (!written)
-        return 0;
-    if (feof (des)) {
+    if (!written) return 0;
+    if (feof(des)) {
         fprintf(stderr, "Error: Corrupt file\n");
         exit(1);
     }
@@ -105,7 +104,7 @@ static size_t xread_eofcheck(void * data, size_t size, size_t len, FILE * des) {
 
 /* Always read len items */
 static void xread_noeof(void * data, size_t size, size_t len, FILE * des) {
-    if (!xread_eofcheck (data, size, len, des)) {
+    if (!xread_eofcheck(data, size, len, des)) {
         fprintf(stderr, "Error: Corrupt file\n");
         exit(1);
     }
@@ -124,10 +123,8 @@ static void close_out_file(FILE * des) {
         while (1) {
             int status = fsync(outfd);
             if (status == -1) {
-                if (errno == EINVAL)
-                    break;
-                if (errno == EINTR)
-                    continue;
+                if (errno == EINVAL) break;
+                if (errno == EINTR) continue;
                 fprintf(stderr, "Error: Failed on fsync: %s\n", strerror(errno));
                 exit(1);
             }
@@ -135,8 +132,7 @@ static void close_out_file(FILE * des) {
         }
 #endif
 
-        if (des != stdout
-            && fclose(des)) {
+        if (des != stdout && fclose(des)) {
             fprintf(stderr, "Error: Failed on fclose: %s\n", strerror(errno));
             exit(1);
         }
@@ -163,8 +159,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         case MODE_TEST: {
             char signature[5];
 
-            if (xread(signature, 5, 1, input_des) != 1
-                || strncmp(signature, "BZ3v1", 5) != 0) {
+            if (xread(signature, 5, 1, input_des) != 1 || strncmp(signature, "BZ3v1", 5) != 0) {
                 fprintf(stderr, "Invalid signature.\n");
                 return 1;
             }
@@ -227,8 +222,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         } else if (mode == MODE_DECODE) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
-                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
-                    continue;
+                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des)) continue;
 
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
@@ -244,8 +238,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         } else if (mode == MODE_TEST) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
-                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
-                    continue;
+                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des)) continue;
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
@@ -315,8 +308,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
-                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
-                        break;
+                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des)) break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
@@ -338,8 +330,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
-                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des))
-                        break;
+                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des)) break;
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);

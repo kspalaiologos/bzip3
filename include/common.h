@@ -20,8 +20,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#define KiB(x) ((x) * 1024)
-#define MiB(x) ((x) * 1024 * 1024)
+#define KiB(x) ((x)*1024)
+#define MiB(x) ((x)*1024 * 1024)
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -74,11 +74,13 @@ static void write_neutral_s32(u8 * data, s32 value) {
 #if defined(HAS_BUILTIN_PREFECTCH)
     #define prefetch(address) __builtin_prefetch((const void *)(address), 0, 0)
     #define prefetchw(address) __builtin_prefetch((const void *)(address), 1, 0)
-#elif defined(_M_IX86) || defined(_M_AMD64) || defined(__x86_64__) || defined(i386) || defined(__i386__) || defined(__i386)
+#elif defined(_M_IX86) || defined(_M_AMD64) || defined(__x86_64__) || defined(i386) || defined(__i386__) || \
+    defined(__i386)
     #include <intrin.h>
     #define prefetch(address) _mm_prefetch((const void *)(address), _MM_HINT_NTA)
     #define prefetchw(address) _m_prefetchw((const void *)(address))
-#elif defined(_M_ARM) || defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+#elif defined(_M_ARM) || defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || \
+    defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
     #include <intrin.h>
     #define prefetch(address) __prefetch((const void *)(address))
     #define prefetchw(address) __prefetchw((const void *)(address))
