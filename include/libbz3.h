@@ -21,6 +21,7 @@
 #define _LIBBZ3_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 /* Symbol visibility control. */
 #ifndef BZIP3_VISIBLE
@@ -46,6 +47,7 @@
 #define BZ3_ERR_MALFORMED_HEADER -4
 #define BZ3_ERR_TRUNCATED_DATA -5
 #define BZ3_ERR_DATA_TOO_BIG -6
+#define BZ3_ERR_INIT -7
 
 struct bz3_state;
 
@@ -75,6 +77,28 @@ BZIP3_API struct bz3_state * bz3_new(int32_t block_size);
  * @brief Free the memory occupied by a block encoder state.
  */
 BZIP3_API void bz3_free(struct bz3_state * state);
+
+/* ** HIGH LEVEL APIs ** */
+
+/**
+ * @brief Compress a block of data. This function does not support parallelism
+ * by itself, consider using the low level `bz3_encode_blocks()` function instead.
+ * Using the low level API might provide better performance.
+ * Returns a bzip3 error code; BZ3_OK when the operation is successful.
+ * Make sure to set out_size to the size of the output buffer before the operation.
+ */
+BZIP3_API int bz3_compress(uint32_t block_size, const uint8_t * in, uint8_t * out, size_t in_size, size_t * out_size);
+
+/**
+ * @brief Decompress a block of data. This function does not support parallelism
+ * by itself, consider using the low level `bz3_decode_blocks()` function instad.
+ * Using the low level API might provide better performance.
+ * Returns a bzip3 error code; BZ3_OK when the operation is successful.
+ * Make sure to set out_size to the size of the output buffer before the operation.
+ */
+BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, size_t * out_size);
+
+/* ** LOW LEVEL APIs ** */
 
 /**
  * @brief Encode a single block. Returns the amount of bytes written to `buffer'.

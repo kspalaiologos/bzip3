@@ -20,8 +20,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#define KiB(x) ((x)*1024)
-#define MiB(x) ((x)*1024 * 1024)
+#define KiB(x) ((x) * 1024)
+#define MiB(x) ((x) * 1024 * 1024)
 
 #include <inttypes.h>
 #include <stdint.h>
