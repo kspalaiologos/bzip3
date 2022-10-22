@@ -120,11 +120,9 @@ static void close_out_file(FILE * des) {
             exit(1);
         }
 
-        /* would have to use outfd != -1 && !FlushFileBuffers(_get_osfhandle(outfd)) and then use GetLastError + FormatMessage(A?) */
-#ifndef __MSVCRT__
+#ifdef __linux__
         while (1) {
-            int status;
-            status = fsync(outfd);
+            int status = fsync(outfd);
             if (status == -1) {
                 if (errno == EINVAL)
                     break;
