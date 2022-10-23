@@ -29,6 +29,10 @@ int main(int argc, char ** argv) {
 
     // Decompress the file:
     size_t orig_size = *(size_t *)buffer;
+    if(orig_size >= 0x10000000) {
+        // Sanity check: don't allocate more than 256MB.
+        return 0;
+    }
     uint8_t * outbuf = malloc(orig_size);
     int bzerr = bz3_decompress(buffer + sizeof(size_t), outbuf, size - sizeof(size_t), &orig_size);
     if (bzerr != BZ3_OK) {
