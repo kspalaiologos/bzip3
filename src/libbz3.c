@@ -860,7 +860,11 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
         }
         s32 size = read_neutral_s32(in);
         if (size < 0 || size > block_size) goto malformed_header;
-        if (in_size < size + 8) goto malformed_header;
+        if (in_size < size + 8) {
+            bz3_free(state);
+            free(compression_buf);
+            return BZ3_ERR_TRUNCATED_DATA;
+        }
         s32 orig_size = read_neutral_s32(in + 4);
         if (orig_size < 0) goto malformed_header;
         if (buf_max < *out_size + orig_size) {
