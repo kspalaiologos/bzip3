@@ -39,3 +39,7 @@ autom4te.cache/
 bzip3.pc
 
 examples/hl-api
+
+examples/compress-file
+
+examples/decompress-file
