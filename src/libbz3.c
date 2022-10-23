@@ -774,6 +774,7 @@ BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], u8 * buffers[], s3
 
 BZIP3_API int bz3_compress(u32 block_size, const u8 * const in, u8 * out, size_t in_size, size_t * out_size) {
     if (block_size > in_size) block_size = in_size + 16;
+    block_size = block_size <= KiB(65) ? KiB(65) : block_size;
 
     struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
@@ -858,7 +859,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
             return BZ3_ERR_MALFORMED_HEADER;
         }
         s32 size = read_neutral_s32(in);
-        if (size < 0) goto malformed_header;
+        if (size < 0 || size > block_size) goto malformed_header;
         s32 orig_size = read_neutral_s32(in + 4);
         if (orig_size < 0) goto malformed_header;
         if (buf_max < *out_size + orig_size) {
