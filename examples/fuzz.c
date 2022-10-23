@@ -1,15 +1,16 @@
 
 /* A tiny utility for fuzzing bzip3.
- * 
+ *
  * Instructions:
  * mkdir -p afl_in && mkdir -p afl_out
  * ./compress-file ../Makefile afl_in/a.bz3
  * afl-clang examples/fuzz.c -Iinclude src/libbz3.c -o examples/fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
  * AFL_SKIP_CPUFREQ=1 afl-fuzz -i afl_in -o afl_out -- ./decompress-fuzz @@
- * 
+ *
  * If you find a crash, consider also doing the following:
- * gcc examples/fuzz.c src/libbz3.c -g3 -O3 -march=native -o examples/fuzz_asan -Iinclude "-DVERSION=\"0.0.0\"" -fsanitize=undefined -fsanitize=address
- * 
+ * gcc examples/fuzz.c src/libbz3.c -g3 -O3 -march=native -o examples/fuzz_asan -Iinclude "-DVERSION=\"0.0.0\""
+ * -fsanitize=undefined -fsanitize=address
+ *
  * And run fuzz_asan on the crashing test case. Attach the test case /and/ the output of fuzz_asan to the bug report.
  */
 
@@ -29,7 +30,7 @@ int main(int argc, char ** argv) {
 
     // Decompress the file:
     size_t orig_size = *(size_t *)buffer;
-    if(orig_size >= 0x10000000) {
+    if (orig_size >= 0x10000000) {
         // Sanity check: don't allocate more than 256MB.
         return 0;
     }

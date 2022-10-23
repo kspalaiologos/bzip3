@@ -156,7 +156,8 @@ static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * REST
     return out >= out_eob ? -1 : (s32)(out - outs);
 }
 
-static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RESTRICT lut, u8 * RESTRICT out, const u8 * out_end) {
+static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RESTRICT lut, u8 * RESTRICT out,
+                            const u8 * out_end) {
     const u8 * outs = out;
 
     for (s32 i = 0; i < 4; ++i) *out++ = *in++;
@@ -179,7 +180,7 @@ static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RES
 
                 const u8 * ref = outs + val;
                 u8 * oe = out + len;
-                if(oe > out_end) return -1;
+                if (oe > out_end) return -1;
 
                 while (out < oe) *out++ = *ref++;
 
@@ -685,7 +686,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     // Undo LZP
     if (model & 2) {
         size_src = lzp_decompress(b1, b2, lzp_size, state->block_size, state->lzp_lut);
-        if(size_src == -1) {
+        if (size_src == -1) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
         }
