@@ -36,3 +36,9 @@ v1.1.6:
 
 v1.1.7:
 * rename unbzip3 as bunzip3 for bzip2/gzip/lzip/... compatibility.
+* high level api for libbzip3: `bz3_bound`, `bz3_compress` and `bz3_decompress`.
+* more robust decompression; safety checks for the RLE and LZP steps.
+* documentation for the frame format.
+* examples of bzip3 API usage, AFL fuzzing instructions.
+* `bz3_version` API function
+* more robust I/O handling and fsync (linux only) calls to ensure a correct I/O transaction.

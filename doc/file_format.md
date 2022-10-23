@@ -1,7 +1,7 @@
 
 # The bzip3 file format
 
-## The header
+## The file header
 
 Each bzip3-compressed file starts with the marker `BZ3v1`. After the signature, the compressor encodes a 32-bit number signifying the maximum block size in bytes in the file. As such, no block after decompression in the stream can exceed it. The maximum block size must be between 65KiB and 511MiB.
 
@@ -20,7 +20,9 @@ static void write_neutral_s32(u8 * data, s32 value) {
 }
 ```
 
-## The chunks
+After the file header, the bzip3-compressed file contains a series of independent blocks.
+
+## The blocks
 
 After the header, the file may contain an unlimited amount of chunks. Each chunk starts with the _new_ size - a 32-bit integer signifying the _compressed_ size of the block, and the _old_ size - a 32-bit integer signifying the _decompressed_ size. Then, a sequence of bzip3-compressed data follows. CRC32 checking is left up to libbz3.
 
@@ -33,3 +35,7 @@ Otherwise, the chunk starts with the 32-bit CRC32 checksum value, the Burrows-Wh
 - No other bit can be set in the _model_.
 
 The size of libbz3's block header can be calculated using the formula `popcnt(model) * 4 + 9`.
+
+## The frame format
+
+The bzip3 frame format is a concatenation of bzip3-compressed blocks. It's used exclusively by the `bz3_compress` and `bz3_decompress` function. Each frame start with the ASCII "BZ3v1" signature, followed by the 32-bit maximum block size in bytes and the 32-bit amount of blocks in the frame. After the 13 byte header, a sequence of independent blocks follows.

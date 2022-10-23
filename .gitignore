@@ -37,3 +37,9 @@ autom4te.cache/
 !/build-aux/ax_pthread.m4
 !/build-aux/git-version-gen
 bzip3.pc
+
+examples/hl-api
+
+examples/compress-file
+
+examples/decompress-file
