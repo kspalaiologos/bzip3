@@ -773,12 +773,12 @@ BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], u8 * buffers[], s3
 /* High level API implementations. */
 
 BZIP3_API int bz3_compress(u32 block_size, const u8 * const in, u8 * out, size_t in_size, size_t * out_size) {
-    if (block_size > in_size) block_size = in_size;
+    if (block_size > in_size) block_size = in_size + 16;
 
     struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
 
-    char * compression_buf = malloc(block_size);
+    u8 * compression_buf = malloc(block_size);
     if (!compression_buf) {
         bz3_free(state);
         return BZ3_ERR_INIT;
@@ -841,7 +841,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
 
-    char * compression_buf = malloc(block_size);
+    u8 * compression_buf = malloc(block_size);
     if (!compression_buf) {
         bz3_free(state);
         return BZ3_ERR_INIT;

@@ -56,7 +56,7 @@ dist-hook:
 
 .PHONY: format
 format: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
-	clang-format -i $^
+	clang-format -i $^ examples/*.c
 
 .PHONY: cloc
 cloc: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
