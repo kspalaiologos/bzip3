@@ -156,14 +156,14 @@ static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * REST
     return out >= out_eob ? -1 : (s32)(out - outs);
 }
 
-static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RESTRICT lut, u8 * RESTRICT out) {
+static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RESTRICT lut, u8 * RESTRICT out, const u8 * out_end) {
     const u8 * outs = out;
 
     for (s32 i = 0; i < 4; ++i) *out++ = *in++;
 
     u32 ctx = ((u32)out[-1]) | (((u32)out[-2]) << 8) | (((u32)out[-3]) << 16) | (((u32)out[-4]) << 24);
 
-    while (in < in_end) {
+    while (in < in_end && out < out_end) {
         u32 idx = (ctx >> 15 ^ ctx ^ ctx >> 3) & ((s32)(1 << LZP_DICTIONARY) - 1);
         s32 val = lut[idx];
         lut[idx] = (s32)(out - outs);
@@ -172,14 +172,16 @@ static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RES
             if (*in != 255) {
                 s32 len = LZP_MIN_MATCH;
                 while (1) {
+                    if (in == in_end) return -1;
                     len += *in;
                     if (*in++ != 254) break;
                 }
 
                 const u8 * ref = outs + val;
-                u8 * out_end = out + len;
+                u8 * oe = out + len;
+                if(oe > out_end) return -1;
 
-                while (out < out_end) *out++ = *ref++;
+                while (out < oe) *out++ = *ref++;
 
                 ctx = ((u32)out[-1]) | (((u32)out[-2]) << 8) | (((u32)out[-3]) << 16) | (((u32)out[-4]) << 24);
             } else {
@@ -207,7 +209,7 @@ static s32 lzp_decompress(const u8 * RESTRICT in, u8 * RESTRICT out, s32 n, s32 
 
     memset(lut, 0, sizeof(s32) * (1 << LZP_DICTIONARY));
 
-    return lzp_decode_block(in, in + n, lut, out);
+    return lzp_decode_block(in, in + n, lut, out, out + n);
 }
 
 /* RLE code. Unlike RLE in other compressors, we collapse all runs if they yield a net gain
@@ -272,7 +274,7 @@ static void mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen) {
             for (run = 0; (pc = in[ip++]) == 255; run += 255)
                 ;
             run += pc + 1;
-            for (; run > 0; --run) out[op++] = c;
+            for (; run > 0 && op < outlen; --run) out[op++] = c;
         } else
             out[op++] = c;
     }
@@ -683,6 +685,10 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     // Undo LZP
     if (model & 2) {
         size_src = lzp_decompress(b1, b2, lzp_size, state->lzp_lut);
+        if(size_src == -1) {
+            state->last_error = BZ3_ERR_CRC;
+            return -1;
+        }
         swap(b1, b2);
     }
 
