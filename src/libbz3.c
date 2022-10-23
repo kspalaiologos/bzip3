@@ -204,12 +204,12 @@ static s32 lzp_compress(const u8 * RESTRICT in, u8 * RESTRICT out, s32 n, s32 * 
     return lzp_encode_block(in, in + n, out, out + n, lut);
 }
 
-static s32 lzp_decompress(const u8 * RESTRICT in, u8 * RESTRICT out, s32 n, s32 * RESTRICT lut) {
+static s32 lzp_decompress(const u8 * RESTRICT in, u8 * RESTRICT out, s32 n, s32 max, s32 * RESTRICT lut) {
     if (n < 4) return -1;
 
     memset(lut, 0, sizeof(s32) * (1 << LZP_DICTIONARY));
 
-    return lzp_decode_block(in, in + n, lut, out, out + n);
+    return lzp_decode_block(in, in + n, lut, out, out + max);
 }
 
 /* RLE code. Unlike RLE in other compressors, we collapse all runs if they yield a net gain
@@ -684,7 +684,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     // Undo LZP
     if (model & 2) {
-        size_src = lzp_decompress(b1, b2, lzp_size, state->lzp_lut);
+        size_src = lzp_decompress(b1, b2, lzp_size, state->block_size, state->lzp_lut);
         if(size_src == -1) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
