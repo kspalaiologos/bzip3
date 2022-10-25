@@ -5,7 +5,7 @@
  * mkdir -p afl_in && mkdir -p afl_out
  * ./compress-file ../Makefile afl_in/a.bz3
  * afl-clang examples/fuzz.c -Iinclude src/libbz3.c -o examples/fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
- * AFL_SKIP_CPUFREQ=1 afl-fuzz -i afl_in -o afl_out -- ./decompress-fuzz @@
+ * AFL_SKIP_CPUFREQ=1 afl-fuzz -i afl_in -o afl_out -- ./fuzz @@
  *
  * If you find a crash, consider also doing the following:
  * gcc examples/fuzz.c src/libbz3.c -g3 -O3 -march=native -o examples/fuzz_asan -Iinclude "-DVERSION=\"0.0.0\""
