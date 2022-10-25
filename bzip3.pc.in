@@ -7,5 +7,5 @@ includedir=@includedir@
 Name: @PACKAGE@
 Description: A better and stronger spiritual successor to BZip2
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lbz3
+Libs: -L${libdir} -lbzip3
 Cflags: -I${includedir}
