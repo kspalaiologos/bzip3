@@ -28,6 +28,11 @@ int main(int argc, char ** argv) {
     fread(buffer, 1, size, fp);
     fclose(fp);
 
+    if(size < 64) {
+        // Too small.
+        return 0;
+    }
+
     // Decompress the file:
     size_t orig_size = *(size_t *)buffer;
     if (orig_size >= 0x10000000) {
@@ -42,5 +47,8 @@ int main(int argc, char ** argv) {
     }
 
     printf("OK, %d => %d", size, orig_size);
+
+    free(outbuf);
+    free(buffer);
     return 0;
 }
