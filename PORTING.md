@@ -1,3 +1,8 @@
+
+## General problems
+
+1. `Makefile.am:8: error: 'pkgconfig_DATA' is used but 'pkgconfigdir' is undefined` => please install pkgconfig.
+
 ## Windows
 
 Cross-compiling Windows binaries is supported:
