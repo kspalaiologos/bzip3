@@ -61,6 +61,7 @@ static void help() {
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
             "  -f, --force       force overwriting output if it already exists\n"
+            "  -v, --verbose     verbose mode (display more information)\n"
             "  -V, --version     display version information\n"
             "Extra flags:\n"
             "  -c, --stdout      force writing to standard output\n"
@@ -139,7 +140,9 @@ static void close_out_file(FILE * des) {
     }
 }
 
-static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers) {
+static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers, int verbose, char * file_name) {
+    uint64_t bytes_read = 0, bytes_written = 0;
+
     if ((mode == MODE_ENCODE && isatty(fileno(output_des))) ||
         ((mode == MODE_DECODE || mode == MODE_TEST) && isatty(fileno(input_des)))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
@@ -154,6 +157,8 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
 
             write_neutral_s32(byteswap_buf, block_size);
             xwrite(byteswap_buf, 4, 1, output_des);
+
+            bytes_written += 9;
             break;
         case MODE_DECODE:
         case MODE_TEST: {
@@ -175,6 +180,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 return 1;
             }
 
+            bytes_read += 9;
             break;
         }
     }
@@ -205,6 +211,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             s32 read_count;
             while (!feof(input_des)) {
                 read_count = xread(buffer, 1, block_size, input_des);
+                bytes_read += read_count;
 
                 s32 new_size = bz3_encode_block(state, buffer, read_count);
                 if (new_size == -1) {
@@ -217,6 +224,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 write_neutral_s32(byteswap_buf, read_count);
                 xwrite(byteswap_buf, 4, 1, output_des);
                 xwrite(buffer, new_size, 1, output_des);
+                bytes_written += 8 + new_size;
             }
             fflush(output_des);
         } else if (mode == MODE_DECODE) {
@@ -228,11 +236,13 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(buffer, 1, new_size, input_des);
+                bytes_read += 8 + new_size;
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
                 }
                 xwrite(buffer, old_size, 1, output_des);
+                bytes_written += old_size;
             }
             fflush(output_des);
         } else if (mode == MODE_TEST) {
@@ -243,6 +253,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(buffer, 1, new_size, input_des);
+                bytes_read += 8 + new_size;
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
@@ -282,6 +293,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 s32 i = 0;
                 for (; i < workers; i++) {
                     size_t read_count = xread(buffers[i], 1, block_size, input_des);
+                    bytes_read += read_count;
                     sizes[i] = old_sizes[i] = read_count;
                     if (read_count < block_size) {
                         i++;
@@ -301,6 +313,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     write_neutral_s32(byteswap_buf, old_sizes[j]);
                     xwrite(byteswap_buf, 4, 1, output_des);
                     xwrite(buffers[j], sizes[j], 1, output_des);
+                    bytes_written += 8 + sizes[j];
                 }
             }
             fflush(output_des);
@@ -313,6 +326,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(buffers[i], 1, sizes[i], input_des);
+                    bytes_read += 8 + sizes[i];
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
                 for (s32 j = 0; j < i; j++) {
@@ -323,6 +337,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 }
                 for (s32 j = 0; j < i; j++) {
                     xwrite(buffers[j], old_sizes[j], 1, output_des);
+                    bytes_written += old_sizes[j];
                 }
             }
             fflush(output_des);
@@ -335,6 +350,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(buffers[i], 1, sizes[i], input_des);
+                    bytes_read += 8 + sizes[i];
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
                 for (s32 j = 0; j < i; j++) {
@@ -352,6 +368,16 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         }
     }
 #endif
+
+    if(verbose) {
+        if(file_name) fprintf(stderr, " %s:", file_name);
+        if(mode == MODE_ENCODE)
+            fprintf(stderr, "\t%ld -> %ld bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_written * 100.0 / bytes_read, (double)bytes_written * 8.0 / bytes_read);
+        else if(mode == MODE_DECODE)
+            fprintf(stderr, "\t%ld -> %ld bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
+        else
+            fprintf(stderr, "OK, %ld bytes read.\n", bytes_read);
+    }
 
     return 0;
 }
@@ -426,15 +452,15 @@ int main(int argc, char * argv[]) {
     int force = 0;
 
     // command line arguments
-    int force_stdstreams = 0, workers = 0, batch = 0;
+    int force_stdstreams = 0, workers = 0, batch = 0, verbose = 0;
 
     // the block size
     u32 block_size = MiB(16);
 
 #ifdef PTHREAD
-    const char * short_options = "Bb:cdefhj:tVz";
+    const char * short_options = "Bb:cdefhj:tvVz";
 #else
-    const char * short_options = "Bb:cdefhtVz";
+    const char * short_options = "Bb:cdefhtvVz";
 #endif
 
     static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
@@ -444,6 +470,7 @@ int main(int argc, char * argv[]) {
                                             { "force", no_argument, 0, 'f' },
                                             { "help", no_argument, 0, 'h' },
                                             { "version", no_argument, 0, 'V' },
+                                            { "verbose", no_argument, 0, 'v' },
                                             { "block", required_argument, 0, 'b' },
                                             { "batch", no_argument, 0, 'B' },
 #ifdef PTHREAD
@@ -483,6 +510,9 @@ int main(int argc, char * argv[]) {
                 return 0;
             case 'B':
                 batch = 1;
+                break;
+            case 'v':
+                verbose = 1;
                 break;
             case 'b':
                 if (!is_numeric(optarg)) {
@@ -534,7 +564,7 @@ int main(int argc, char * argv[]) {
                     }
 
                     FILE * output_des = open_output(output_name, force);
-                    process(input_des, output_des, mode, block_size, workers);
+                    process(input_des, output_des, mode, block_size, workers, verbose, arg);
 
                     fclose(input_des);
                     close_out_file(output_des);
@@ -562,7 +592,7 @@ int main(int argc, char * argv[]) {
                     }
 
                     FILE * output_des = open_output(output_name, force);
-                    process(input_des, output_des, mode, block_size, workers);
+                    process(input_des, output_des, mode, block_size, workers, verbose, arg);
 
                     fclose(input_des);
                     close_out_file(output_des);
@@ -575,7 +605,7 @@ int main(int argc, char * argv[]) {
                     char * arg = argv[optind++];
 
                     FILE * input_des = open_input(arg);
-                    process(input_des, NULL, mode, block_size, workers);
+                    process(input_des, NULL, mode, block_size, workers, verbose, arg);
                     fclose(input_des);
                 }
                 break;
@@ -654,7 +684,7 @@ int main(int argc, char * argv[]) {
     output_des = mode != MODE_TEST ? open_output(output, force) : NULL;
     input_des = open_input(input);
 
-    int r = process(input_des, output_des, mode, block_size, workers);
+    int r = process(input_des, output_des, mode, block_size, workers, verbose, input);
 
     fclose(input_des);
     close_out_file(output_des);
