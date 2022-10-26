@@ -54,9 +54,9 @@ static void version() {
 static void help() {
     fprintf(stdout,
             "bzip3 - better and stronger spiritual successor to bzip2.\n"
-            "Usage: bzip3 [-e/-d/-t/-c/-h/-V] [-b block_size] [-j jobs] files...\n"
+            "Usage: bzip3 [-e/-z/-d/-t/-c/-h/-V] [-b block_size] [-j jobs] files...\n"
             "Operations:\n"
-            "  -e, --encode      compress data (default)\n"
+            "  -e/-z, --encode   compress data (default)\n"
             "  -d, --decode      decompress data\n"
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
@@ -432,9 +432,9 @@ int main(int argc, char * argv[]) {
     u32 block_size = MiB(16);
 
 #ifdef PTHREAD
-    const char * short_options = "Bb:cdefhj:tV";
+    const char * short_options = "Bb:cdefhj:tVz";
 #else
-    const char * short_options = "Bb:cdefhtV";
+    const char * short_options = "Bb:cdefhtVz";
 #endif
 
     static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
@@ -460,7 +460,7 @@ int main(int argc, char * argv[]) {
             case '?':
                 fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
                 return 1;
-            case 'e':
+            case 'e': case 'z':
                 mode = MODE_ENCODE;
                 break;
             case 'd':
