@@ -42,3 +42,12 @@ v1.1.7:
 * examples of bzip3 API usage, AFL fuzzing instructions.
 * `bz3_version` API function
 * more robust I/O handling and fsync (linux only) calls to ensure a correct I/O transaction.
+
+v1.1.8:
+* add the Apache-2.0 license of `libsais`.
+
+v1.2.0 (staging):
+* alias `-z` to `-e` (compatibility with bzip2).
+* version bzip3 library.
+* dynamically link library to the tool (eliminating the libbz3.c duplication in tool and library).
+* add verbose output (via `-v`).
