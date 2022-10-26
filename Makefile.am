@@ -1,7 +1,6 @@
 ACLOCAL_AMFLAGS = -I build-aux
 
 AM_CFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = -avoid-version
 
 EXTRA_DIST = LICENSE libsais-LICENSE PORTING.md README.md build-aux/git-version-gen
 
@@ -14,6 +13,7 @@ noinst_HEADERS = include/common.h \
 
 lib_LTLIBRARIES = libbzip3.la
 libbzip3_la_SOURCES = src/libbz3.c
+libbzip3_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)
