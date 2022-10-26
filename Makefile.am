@@ -17,8 +17,12 @@ libbzip3_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = bzip3
 bzip3_CFLAGS = $(AM_CFLAGS)
-bzip3_LDDADD = libbzip3.la
-bzip3_SOURCES = src/main.c $(libbzip3_la_SOURCES)
+bzip3_SOURCES = src/main.c
+if ENABLE_STATIC
+bzip3_SOURCES += $(libbzip3_la_SOURCES)
+else
+bzip3_LDADD = libbzip3.la
+endif
 
 dist_man_MANS = bzip3.1 bz3cat.1 bz3more.1 bz3less.1 bz3grep.1 bunzip3.1
 
