@@ -73,6 +73,6 @@ BZIP3 := bzip3$(EXEEXT)
 
 roundtrip: $(BZIP3)
 	rm -f LICENSE2
-	./$(BZIP3) -feb 6 LICENSE
-	./$(BZIP3) -d LICENSE.bz3 LICENSE2
+	./$(BZIP3) -v -feb 6 LICENSE
+	./$(BZIP3) -v -d LICENSE.bz3 LICENSE2
 	cmp LICENSE LICENSE2
