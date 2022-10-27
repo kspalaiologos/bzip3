@@ -33,8 +33,11 @@ Makefile
 Makefile.in
 autom4te.cache/
 /build-aux/*
+!/build-aux/ax_build_date_epoch.m4
 !/build-aux/ax_check_compile_flag.m4
 !/build-aux/ax_pthread.m4
+!/build-aux/ax_progvar.m4
+!/build-aux/ax_subst_man_date.m4
 !/build-aux/ax_transformed_package_name.m4
 !/build-aux/git-version-gen
 bzip3.pc
