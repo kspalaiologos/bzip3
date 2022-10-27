@@ -1,4 +1,4 @@
-.TH "BZ3GREP" "1"
+.TH bz3grep 1 "@MAN_DATE@" "version v@VERSION@"
 .
 .SH "NAME"
 \fBbz3grep\fR \- print lines matching a pattern in bzip3\-compressed files

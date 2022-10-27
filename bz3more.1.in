@@ -1,5 +1,5 @@
-.TH BZ3MORE 1
-
+.TH bz3more 1 "@MAN_DATE@" "version v@VERSION@"
+.
 .SH "NAME"
 \fBbz3more\fR \- view bzip3\-compressed files
 

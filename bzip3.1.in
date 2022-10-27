@@ -1,10 +1,11 @@
-.TH BZIP3 1
+.TH @TRANSFORMED_PACKAGE_NAME@ 1 "@MAN_DATE@" "version v@VERSION@"
+.
 .SH NAME
-bzip3 \- an efficient statistical file compressor and spiritual successor
+@TRANSFORMED_PACKAGE_NAME@ \- an efficient statistical file compressor and spiritual successor
 to bzip2
 
 .SH SYNOPSIS
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 .RB [ " \-BbcdehftV " ]
 [
 .I "filenames \&..."
@@ -13,16 +14,16 @@ to bzip2
 .P
 .B bz3cat
 is equivalent to
-.B bzip3 \-dc
+.B @TRANSFORMED_PACKAGE_NAME@ \-dc
 .P
 .B bunzip3
 is equivalent to
-.B bzip3 \-d
+.B @TRANSFORMED_PACKAGE_NAME@ \-d
 .SH DESCRIPTION
 Compress or decompress a file using run length encoding and Lempel Ziv
 prediction, followed by the Burrows-Wheeler transform and arithmetic
 coding.
-.B bzip3,
+.B @TRANSFORMED_PACKAGE_NAME@,
 like its ancestor
 .B bzip2,
 excels at compressing text or source code.
@@ -32,20 +33,20 @@ those of
 .B bzip2,
 but they are not identical.
 .PP
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 expects at most two filenames intertwined with flags.
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 will by default not overwrite existing files.
 If this behaviour is intended, use the \-f flag.
 
 If no file names are specified,
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 will compress from standard input to standard output, refusing
 to output binary data to a terminal. The \-e flag (encode) is implied.
 
 .B bunzip3
 (or,
-.B bzip3 \-d
+.B @TRANSFORMED_PACKAGE_NAME@ \-d
 equivalently) decompresses data from standard input to the standard
 output, refusing to read from a terminal.
 
@@ -53,9 +54,9 @@ If two files are specified, the first one is used in place of
 standard input, and the second one is used in place of standard
 output.
 
-If the \-c flag is present, bzip3 will read from the specified
+If the \-c flag is present, @TRANSFORMED_PACKAGE_NAME@ will read from the specified
 file and output data to standard output instead. Otherwise, if decoding,
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 will try to guess the decompressed filename by removing the
 .I .bz3
 extension. If not present, an error will be reported. If encoding,
@@ -67,12 +68,12 @@ extension to the input filename.
 .TP
 .B \-B --batch
 Enable batch mode. By default,
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 will error if more than two files are passed, and the two files specified
 are always treated as input and output. The batch mode makes
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 treat every file as input, so for example
-.I bzip3 -Bd *.bz3
+.I @TRANSFORMED_PACKAGE_NAME@ -Bd *.bz3
 will decompress all
 .I .bz3
 files in the current directory.
@@ -118,7 +119,7 @@ file format has constant overhead of 9 bytes per file and from
 9 to 17 bytes per block. Random data is coded so that expansion
 is generally under 0.8%.
 
-.B bzip3
+.B @TRANSFORMED_PACKAGE_NAME@
 uses 32-bit CRC to ensure that the decompressed version of a file is
 identical to the original. This guards against corruption of the
 compressed data. 
