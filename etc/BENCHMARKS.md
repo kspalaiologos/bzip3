@@ -73,6 +73,8 @@
 
 ## Benchmark on the Calgary corpus
 
+Downloaded from http://corpus.canterbury.ac.nz/resources/calgary.tar.gz
+
 Results:
 
 ```
