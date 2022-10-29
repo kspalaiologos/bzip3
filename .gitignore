@@ -49,3 +49,11 @@ examples/compress-file
 examples/decompress-file
 
 examples/fuzz
+
+bz3grep.1
+
+bz3less.1
+
+bz3more.1
+
+bzip3.1

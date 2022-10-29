@@ -496,7 +496,7 @@ BZIP3_API struct bz3_state * bz3_new(s32 block_size) {
 
     bz3_state->cm_state = malloc(sizeof(state));
 
-    bz3_state->swap_buffer = malloc(block_size + block_size / 50 + 32);
+    bz3_state->swap_buffer = malloc(bz3_bound(block_size));
     bz3_state->sais_array = malloc((block_size + 2) * sizeof(s32));
     memset(bz3_state->sais_array, 0, sizeof(s32) * (block_size + 2));
 
@@ -609,7 +609,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
-    if (data_size > state->block_size + state->block_size / 50 + 32 || data_size < 0) {
+    if (data_size > bz3_bound(state->block_size) || data_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -640,13 +640,13 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     data_size -= p * 4 + 1;
 
-    if (((model & 2) && (lzp_size > state->block_size + state->block_size / 50 + 32 || lzp_size < 0)) ||
-        ((model & 4) && (rle_size > state->block_size + state->block_size / 50 + 32 || rle_size < 0))) {
+    if (((model & 2) && (lzp_size > bz3_bound(state->block_size) || lzp_size < 0)) ||
+        ((model & 4) && (rle_size > bz3_bound(state->block_size) || rle_size < 0))) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
-    if (orig_size > state->block_size + state->block_size / 50 + 32 || orig_size < 0) {
+    if (orig_size > bz3_bound(state->block_size) || orig_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -701,7 +701,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     state->last_error = BZ3_OK;
 
-    if (size_src > state->block_size + state->block_size / 50 + 32 || size_src < 0) {
+    if (size_src > bz3_bound(state->block_size) || size_src < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -798,7 +798,7 @@ BZIP3_API int bz3_compress(u32 block_size, const u8 * const in, u8 * out, size_t
     u32 n_blocks = in_size / block_size;
     if (in_size % block_size) n_blocks++;
 
-    if (buf_max < 13 || buf_max < in_size + in_size / 50 + 32) {
+    if (buf_max < 13 || buf_max < bz3_bound(in_size)) {
         bz3_free(state);
         free(compression_buf);
         return BZ3_ERR_DATA_TOO_BIG;
