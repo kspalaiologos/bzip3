@@ -30,7 +30,7 @@ Assuming that asm.js code is desired:
 ```
 emconfigure ./configure --without-pthread --host none-none-none CC=emcc "CFLAGS=-O2 -DBZIP3_VISIBLE=\"__attribute__((used))\""
 make src/bzip3-libbz3.o
-emcc -O2 src/bzip3-libbz3.o -o libbz3.js -sWASM=0 --memory-init-file 0 -sFILESYSTEM=0 -sALLOW_MEMORY_GROWTH
+emcc -O2 src/bzip3-libbz3.o -o libbz3.js -sWASM=0 --memory-init-file 0 -sFILESYSTEM=0 -sALLOW_MEMORY_GROWTH -s 'EXPORTED_RUNTIME_METHODS=["UTF8ToString"]'
 ```
 
 asm.js code size: 118KB (v1.1.7), 34K gzipped.
