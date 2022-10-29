@@ -22,6 +22,7 @@ if ENABLE_STATIC
 bzip3_SOURCES += $(libbzip3_la_SOURCES)
 else
 bzip3_LDADD = libbzip3.la
+bzip3_LDFLAGS = -Wl,-rpath -Wl,$(DESTDIR)$(libdir)
 endif
 
 dist_man_MANS = bzip3.1 bz3cat.1 bz3more.1 bz3less.1 bz3grep.1 bunzip3.1
