@@ -372,11 +372,11 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
     if(verbose) {
         if(file_name) fprintf(stderr, " %s:", file_name);
         if(mode == MODE_ENCODE)
-            fprintf(stderr, "\t%ld -> %ld bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_written * 100.0 / bytes_read, (double)bytes_written * 8.0 / bytes_read);
+            fprintf(stderr, "\t%llu -> %llu bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_written * 100.0 / bytes_read, (double)bytes_written * 8.0 / bytes_read);
         else if(mode == MODE_DECODE)
-            fprintf(stderr, "\t%ld -> %ld bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
+            fprintf(stderr, "\t%llu -> %llu bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
         else
-            fprintf(stderr, "OK, %ld bytes read.\n", bytes_read);
+            fprintf(stderr, "OK, %llu bytes read.\n", bytes_read);
     }
 
     return 0;
