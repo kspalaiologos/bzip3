@@ -46,10 +46,13 @@ v1.1.7:
 v1.1.8:
 * add the Apache-2.0 license of `libsais`.
 
-v1.2.0 (staging):
+v1.2.0:
 * alias `-z` to `-e` (compatibility with bzip2).
 * version bzip3 library.
 * dynamically link library to the tool (eliminating the libbz3.c duplication in tool and library).
 * add verbose output (via `-v`).
 * add version information to the manual pages.
 * set `rpath` in the Makefile to solve an issue with /usr/local/lib not being present in the dynamic linker search path.
+
+v1.2.1:
+* fix a LZP decompression bug when a match occurred before block boundary.
