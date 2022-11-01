@@ -604,6 +604,39 @@ BZIP3_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     return data_size + overhead * 4 + 1;
 }
 
+static int unbwt_mergedTL(unsigned char * T, unsigned int * P, int n, int index) {
+    unsigned int bucket[256];
+
+    for (int i = 0; i < 256; ++i) {
+        bucket[i] = 0;
+    }
+
+    for (int i = 0; i < index; ++i) {
+        unsigned char c = T[i];
+        P[i] = ((bucket[c]++) << 8) | c;
+    }
+
+    for (int i = index; i < n; ++i) {
+        unsigned char c = T[i];
+        P[i + 1] = ((bucket[c]++) << 8) | c;
+    }
+
+    for (unsigned int sum = 1, i = 0; i < 256; ++i) {
+        unsigned int tmp = sum;
+        sum += bucket[i];
+        bucket[i] = tmp;
+    }
+
+    for (int p = 0, i = n - 1; i >= 0; --i) {
+        unsigned int u = P[p];
+        unsigned char c = u & 0xff;
+        T[i] = c;
+        p = (int)((u >> 8) + bucket[c]);
+    }
+
+    return 0;
+}
+
 BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_size, s32 orig_size) {
     // Read the header.
     u32 crc32 = read_neutral_s32(buffer);
@@ -677,11 +710,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     }
 
     // Undo BWT
-    if (libsais_unbwt(b1, b2, state->sais_array, size_src, NULL, bwt_idx) < 0) {
-        state->last_error = BZ3_ERR_BWT;
-        return -1;
-    }
-    swap(b1, b2);
+    unbwt_mergedTL(b1, state->sais_array, size_src, bwt_idx);
 
     // Undo LZP
     if (model & 2) {
