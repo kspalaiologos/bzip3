@@ -24,9 +24,9 @@ else
 bzip3_LDADD = libbzip3.la
 endif
 
-dist_man_MANS = bzip3.1 bz3cat.1 bz3more.1 bz3less.1 bz3grep.1 bunzip3.1
+dist_man_MANS = bzip3.1 bz3cat.1 bz3more.1 bz3less.1 bz3most.1 bz3grep.1 bunzip3.1
 
-dist_bin_SCRIPTS = bz3cat bz3more bz3less bz3grep bunzip3
+dist_bin_SCRIPTS = bz3cat bz3more bz3less bz3most bz3grep bunzip3
 
 CLEANFILES = $(bin_PROGRAMS)
 

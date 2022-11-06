@@ -63,6 +63,6 @@ AX_SUBST_TRANSFORMED_PACKAGE_NAME
 AX_SUBST_MAN_DATE
 
 AC_CONFIG_FILES([Makefile bzip3.pc])
-AC_CONFIG_FILES([bzip3.1 bz3grep.1 bz3less.1 bz3more.1])
+AC_CONFIG_FILES([bzip3.1 bz3grep.1 bz3less.1 bz3more.1 bz3most.1])
 AC_ARG_PROGRAM
 AC_OUTPUT
