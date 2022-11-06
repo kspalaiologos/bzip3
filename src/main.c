@@ -533,9 +533,6 @@ int main(int argc, char * argv[]) {
         }
     }
 
-#ifndef O_BINARY
-    #define O_BINARY 0
-#endif
 #if defined(__MSVCRT__)
     setmode(STDIN_FILENO, O_BINARY);
     setmode(STDOUT_FILENO, O_BINARY);
