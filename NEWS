@@ -56,3 +56,7 @@ v1.2.0:
 
 v1.2.1:
 * fix a LZP decompression bug when a match occurred before block boundary.
+* don't set rpath in the Makefile
+* fix build warnings from -v
+* add `most` support
+* windows binary mode fix
