@@ -61,6 +61,7 @@ static void help() {
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
             "  -f, --force       force overwriting output if it already exists\n"
+            "  -k, --keep        keep (don't delete) input files (default)\n"
             "  -v, --verbose     verbose mode (display more information)\n"
             "  -V, --version     display version information\n"
             "Extra flags:\n"
@@ -458,9 +459,9 @@ int main(int argc, char * argv[]) {
     u32 block_size = MiB(16);
 
 #ifdef PTHREAD
-    const char * short_options = "Bb:cdefhj:tvVz";
+    const char * short_options = "Bb:cdefhj:ktvVz";
 #else
-    const char * short_options = "Bb:cdefhtvVz";
+    const char * short_options = "Bb:cdefhktvVz";
 #endif
 
     static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
@@ -469,6 +470,7 @@ int main(int argc, char * argv[]) {
                                             { "stdout", no_argument, 0, 'c' },
                                             { "force", no_argument, 0, 'f' },
                                             { "help", no_argument, 0, 'h' },
+                                            { "keep", no_argument, 0, 'k' },
                                             { "version", no_argument, 0, 'V' },
                                             { "verbose", no_argument, 0, 'v' },
                                             { "block", required_argument, 0, 'b' },
@@ -501,6 +503,8 @@ int main(int argc, char * argv[]) {
                 break;
             case 'f':
                 force = 1;
+                break;
+            case 'k':
                 break;
             case 'h':
                 help();
