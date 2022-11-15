@@ -180,7 +180,7 @@ static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RES
 
                 const u8 * ref = outs + val;
                 u8 * oe = out + len;
-                if (oe > out_end) return -1;
+                if (oe > out_end) oe = out_end;
 
                 while (out < oe) *out++ = *ref++;
 
