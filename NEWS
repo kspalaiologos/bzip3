@@ -60,3 +60,8 @@ v1.2.1:
 * fix build warnings from -v
 * add `most` support
 * windows binary mode fix
+
+v1.2.2:
+* safety fixes for the LZP pass.
+* add the `-k` compatibility flag.
+* use `env` to detect the shell in bzip3 utility scripts
