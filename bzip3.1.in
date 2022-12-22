@@ -98,14 +98,18 @@ Overwrite existing files.
 .B \-h --help
 Display a help message and exit.
 .TP
+.B \-j --jobs N
+Set the amount of parallel worker threads that process one block each.
+.TP
+.B \-k --keep
+Keep (don't delete) the input files. Set by default, provided only
+for compatibility with other compressors.
+.TP
 .B \-v --verbose
 Set verbose output mode to see compression statistics.
 .TP
 .B \-V --version
 Display version information and exit.
-.TP
-.B \-j --jobs N
-Set the amount of parallel worker threads that process one block each.
 .TP
 .B \-t --test
 Verify the validity of compressed blocks.
@@ -146,7 +150,7 @@ Kamila Szewczyk, kspalaiologos@gmail.com.
 
 https://github.com/kspalaiologos/bzip3
 
-Thanks to: Ilya Grebnov, Max Strachan, Caleb Maclennan, Ilya Muravyov,
+Thanks to: Ilya Grebnov, Benjamin Strachan, Caleb Maclennan, Ilya Muravyov,
 package maintainers - Leah Neukirchen, Grigory Kirillov, Maciej Barc, 
 Robert Schutz, Petr Pisar, and others. Also everyone who sent patches,
 helped with portability problems, encouraged me to work on bzip3 and lent
