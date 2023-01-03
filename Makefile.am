@@ -72,7 +72,7 @@ CLEANFILES += LICENSE2
 BZIP3 := bzip3$(EXEEXT)
 
 roundtrip: $(BZIP3)
-	rm -f LICENSE2
-	./$(BZIP3) -v -feb 6 LICENSE
-	./$(BZIP3) -v -d LICENSE.bz3 LICENSE2
-	cmp LICENSE LICENSE2
+	rm -f $(builddir)/LICENSE2
+	./$(BZIP3) -v -feb 6 $(srcdir)/LICENSE $(builddir)/LICENSE.bz3
+	./$(BZIP3) -v -d $(builddir)/LICENSE.bz3 $(builddir)/LICENSE2
+	cmp $(srcdir)/LICENSE $(builddir)/LICENSE2
