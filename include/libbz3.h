@@ -97,7 +97,7 @@ BZIP3_API int bz3_compress(uint32_t block_size, const uint8_t * in, uint8_t * ou
 
 /**
  * @brief Decompress a block of data. This function does not support parallelism
- * by itself, consider using the low level `bz3_decode_blocks()` function instad.
+ * by itself, consider using the low level `bz3_decode_blocks()` function instead.
  * Using the low level API might provide better performance.
  * Returns a bzip3 error code; BZ3_OK when the operation is successful.
  * Make sure to set out_size to the size of the output buffer before the operation.
