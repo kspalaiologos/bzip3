@@ -5,7 +5,7 @@ AM_INIT_AUTOMAKE([foreign subdir-objects tar-ustar dist-bzip2 dist-xz dist-zip c
 AM_SILENT_RULES([yes])
 AC_CONFIG_MACRO_DIR([build-aux])
 
-AC_MSG_CHECKING([whether system or user specificed compiler flags are set])
+AC_MSG_CHECKING([whether system or user specified compiler flags are set])
 AM_CONDITIONAL([PASSED_CFLAGS], [test -n "$CFLAGS"])
 AM_COND_IF([PASSED_CFLAGS], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no])])
 
