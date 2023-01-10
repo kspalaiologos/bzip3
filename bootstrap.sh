@@ -22,3 +22,5 @@ else
 fi
 
 autoreconf --install
+
+patch configure < build-aux/libtool.patch
