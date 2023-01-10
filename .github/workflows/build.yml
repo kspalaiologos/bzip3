@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install libtool v2.4.7
       run: |
-        wget http://ftp.jaist.ac.jp/pub/GNU/libtool/libtool-2.4.7.tar.gz
+        wget -q https://ftpmirror.gnu.org/libtool/libtool-2.4.7.tar.gz
         tar xvfz libtool-2.4.7.tar.gz
         cd libtool-2.4.7
         ./configure
