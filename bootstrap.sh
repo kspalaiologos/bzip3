@@ -23,4 +23,5 @@ fi
 
 autoreconf --install
 
-patch configure < build-aux/libtool.patch || true
+(patch --quiet configure < build-aux/libtool.patch > /dev/null) || true
+rm -f configure.rej
