@@ -9,6 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install libtool v2.4.7
+      run: |
+        wget http://ftp.jaist.ac.jp/pub/GNU/libtool/libtool-2.4.7.tar.gz
+        tar xvfz libtool-2.4.6.tar.gz
+        cd libtool-2.4.6
+        ./configure
+        make
+        make install
     - name: Configure
       run: |
         ./bootstrap.sh
