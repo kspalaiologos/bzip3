@@ -150,6 +150,9 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
         return 1;
     }
 
+    // Reset errno after the isatty() call.
+    errno = 0;
+
     u8 byteswap_buf[4];
 
     switch (mode) {
@@ -213,6 +216,9 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             while (!feof(input_des)) {
                 read_count = xread(buffer, 1, block_size, input_des);
                 bytes_read += read_count;
+
+                if(read_count == 0)
+                    break;
 
                 s32 new_size = bz3_encode_block(state, buffer, read_count);
                 if (new_size == -1) {
