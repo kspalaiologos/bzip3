@@ -497,8 +497,8 @@ BZIP3_API struct bz3_state * bz3_new(s32 block_size) {
     bz3_state->cm_state = malloc(sizeof(state));
 
     bz3_state->swap_buffer = malloc(bz3_bound(block_size));
-    bz3_state->sais_array = malloc((block_size + 2) * sizeof(s32));
-    memset(bz3_state->sais_array, 0, sizeof(s32) * (block_size + 2));
+    bz3_state->sais_array = malloc((block_size + 128) * sizeof(s32));
+    memset(bz3_state->sais_array, 0, sizeof(s32) * (block_size + 128));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
