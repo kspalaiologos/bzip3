@@ -66,3 +66,7 @@ v1.2.2:
 * add the `-k` compatibility flag.
 * use `env` to detect the shell in bzip3 utility scripts
 * update libtool to v2.4.7
+
+v1.2.3:
+* fix an important regression introduced in pull request #55 regarding I/O in main.c
+* slightly enlargen the SAIS buffer beyond the documented recommended size to avoid some memory errors in libsais
