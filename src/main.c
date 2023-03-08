@@ -690,6 +690,7 @@ int main(int argc, char * argv[]) {
 
     output_des = mode != MODE_TEST ? open_output(output, force) : NULL;
     input_des = open_input(input);
+    free(output);
 
     int r = process(input_des, output_des, mode, block_size, workers, verbose, input);
 
