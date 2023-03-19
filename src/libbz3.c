@@ -61,8 +61,15 @@ static const u32 crc32Table[256] = {
 };
 
 static u32 crc32sum(u32 crc, u8 * RESTRICT buf, size_t size) {
-    while (size--) crc = crc32Table[(crc ^ *(buf++)) & 0xff] ^ (crc >> 8);
-    return crc;
+    // Test endianness. The code needs to be different for LE and BE systems.
+    u32 test = 1;
+    if (*(u8 *) &test) {
+        while (size--) crc = crc32Table[(crc ^ *(buf++)) & 0xff] ^ (crc >> 8);
+        return crc;
+    } else {
+        while (size--) crc = crc32Table[((crc >> 24) ^ *(buf++)) & 0xff] ^ (crc << 8);
+        return crc;
+    }
 }
 
 /* LZP code. These constants were manually tuned to give the best compression ratio while using relatively
