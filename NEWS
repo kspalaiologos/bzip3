@@ -70,3 +70,4 @@ v1.2.2:
 v1.2.3:
 * fix an important regression introduced in pull request #55 regarding I/O in main.c
 * slightly enlargen the SAIS buffer beyond the documented recommended size to avoid some memory errors in libsais
+* properly handle a scenario where the individual block original size is larger than the block size declared in the file header
