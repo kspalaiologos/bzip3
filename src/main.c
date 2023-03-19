@@ -141,7 +141,8 @@ static void close_out_file(FILE * des) {
     }
 }
 
-static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers, int verbose, char * file_name) {
+static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers, int verbose,
+                   char * file_name) {
     uint64_t bytes_read = 0, bytes_written = 0;
 
     if ((mode == MODE_ENCODE && isatty(fileno(output_des))) ||
@@ -217,8 +218,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 read_count = xread(buffer, 1, block_size, input_des);
                 bytes_read += read_count;
 
-                if(read_count == 0)
-                    break;
+                if (read_count == 0) break;
 
                 s32 new_size = bz3_encode_block(state, buffer, read_count);
                 if (new_size == -1) {
@@ -242,7 +242,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if(old_size > block_size + 31) {
+                if (old_size > block_size + 31) {
                     fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                     return 1;
                 }
@@ -263,7 +263,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if(old_size > block_size + 31) {
+                if (old_size > block_size + 31) {
                     fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                     return 1;
                 }
@@ -340,7 +340,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if(old_sizes[i] > block_size + 31) {
+                    if (old_sizes[i] > block_size + 31) {
                         fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                         return 1;
                     }
@@ -368,7 +368,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if(old_sizes[i] > block_size + 31) {
+                    if (old_sizes[i] > block_size + 31) {
                         fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                         return 1;
                     }
@@ -392,14 +392,16 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
     }
 #endif
 
-    if(verbose) {
-        if(file_name) fprintf(stderr, " %s:", file_name);
-        if(mode == MODE_ENCODE)
-            fprintf(stderr, "\t%"PRIu64" -> %"PRIu64" bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_written * 100.0 / bytes_read, (double)bytes_written * 8.0 / bytes_read);
-        else if(mode == MODE_DECODE)
-            fprintf(stderr, "\t%"PRIu64" -> %"PRIu64" bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written, (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
+    if (verbose) {
+        if (file_name) fprintf(stderr, " %s:", file_name);
+        if (mode == MODE_ENCODE)
+            fprintf(stderr, "\t%" PRIu64 " -> %" PRIu64 " bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written,
+                    (double)bytes_written * 100.0 / bytes_read, (double)bytes_written * 8.0 / bytes_read);
+        else if (mode == MODE_DECODE)
+            fprintf(stderr, "\t%" PRIu64 " -> %" PRIu64 " bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written,
+                    (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
         else
-            fprintf(stderr, "OK, %"PRIu64" bytes read.\n", bytes_read);
+            fprintf(stderr, "OK, %" PRIu64 " bytes read.\n", bytes_read);
     }
 
     return 0;
@@ -511,7 +513,8 @@ int main(int argc, char * argv[]) {
             case '?':
                 fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
                 return 1;
-            case 'e': case 'z':
+            case 'e':
+            case 'z':
                 mode = MODE_ENCODE;
                 break;
             case 'd':
@@ -707,8 +710,7 @@ int main(int argc, char * argv[]) {
     output_des = mode != MODE_TEST ? open_output(output, force) : NULL;
     input_des = open_input(input);
 
-    if(output != f2)
-        free(output);
+    if (output != f2) free(output);
 
     int r = process(input_des, output_des, mode, block_size, workers, verbose, input);
 

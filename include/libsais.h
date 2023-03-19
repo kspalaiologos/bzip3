@@ -22,7 +22,7 @@ Please see the file LICENSE for full copyright information.
 The stability patches that fix undefined behaviour in unbwt routines:
 
    Copyright (c) 2022 Kamila Szewczyk <kspalaiologos@gmail.com>
-   
+
    Licensed under the same license as the original software.
 
 --*/

@@ -28,7 +28,7 @@ int main(int argc, char ** argv) {
     fread(buffer, 1, size, fp);
     fclose(fp);
 
-    if(size < 64) {
+    if (size < 64) {
         // Too small.
         return 0;
     }

@@ -59,11 +59,11 @@ dist-hook:
 # Begin developer convenience targets
 
 .PHONY: format
-format: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
+format: $(bzip3_SOURCES) $(libbzip3_la_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
 	clang-format -i $^ examples/*.c
 
 .PHONY: cloc
-cloc: $(bzip3_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
+cloc: $(bzip3_SOURCES) $(libbzip3_la_SOURCES) $(include_HEADERS) $(noinst_HEADERS)
 	cloc $^
 
 CLEANFILES += LICENSE2
