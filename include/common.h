@@ -57,10 +57,10 @@ static void write_neutral_s32(u8 * data, s32 value) {
 
 #if defined(__has_builtin)
     #if __has_builtin(__builtin_prefetch)
-        #define HAS_BUILTIN_PREFECTCH
+        #define HAS_BUILTIN_PREFETCH
     #endif
 #elif defined(__GNUC__) && (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4))
-    #define HAS_BUILTIN_PREFECTCH
+    #define HAS_BUILTIN_PREFETCH
 #endif
 
 #if defined(__has_builtin)
@@ -71,7 +71,7 @@ static void write_neutral_s32(u8 * data, s32 value) {
     #define HAS_BUILTIN_BSWAP16
 #endif
 
-#if defined(HAS_BUILTIN_PREFECTCH)
+#if defined(HAS_BUILTIN_PREFETCH)
     #define prefetch(address) __builtin_prefetch((const void *)(address), 0, 0)
     #define prefetchw(address) __builtin_prefetch((const void *)(address), 1, 0)
 #elif defined(_M_IX86) || defined(_M_AMD64) || defined(__x86_64__) || defined(i386) || defined(__i386__) || \
