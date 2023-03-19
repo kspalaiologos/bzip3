@@ -76,4 +76,4 @@ roundtrip: $(BZIP3)
 	./$(BZIP3) -v -feb 6 $(srcdir)/LICENSE $(builddir)/LICENSE.bz3
 	./$(BZIP3) -v -d $(builddir)/LICENSE.bz3 $(builddir)/LICENSE2
 	cmp $(srcdir)/LICENSE $(builddir)/LICENSE2
-	command -v md5sum >/dev/null 2>&1 && md5sum $(builddir)/LICENSE.bz3
+	-command -v md5sum >/dev/null 2>&1 && md5sum $(builddir)/LICENSE.bz3
