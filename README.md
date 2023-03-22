@@ -103,6 +103,16 @@ That is not to say this program is inherently unreliable. Indeed, I very much ho
 
 **Bzip3's performance is _heavily_ dependent on the compiler. x64 Linux clang13 builds usually can go as high as 17MiB/s compression and 23MiB/s decompression _per thread_. Windows and 32-bit builds might be considerably slower.**
 
+Bzip3 has been tested on the following architectures:
+- x86
+- x86_64
+- armv6
+- armv7
+- aarch64
+- ppc64le
+- mips
+- mips64
+
 ## Corpus benchmarks
 
 ![visualisation of the benchmarks](etc/benchmark.png)
