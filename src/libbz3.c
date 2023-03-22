@@ -858,7 +858,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
 
-    u8 * compression_buf = malloc(block_size);
+    u8 * compression_buf = malloc(bz3_bound(block_size));
     if (!compression_buf) {
         bz3_free(state);
         return BZ3_ERR_INIT;
