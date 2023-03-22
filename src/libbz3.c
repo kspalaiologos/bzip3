@@ -620,7 +620,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     }
 
     if (bwt_idx == -1) {
-        if (data_size - 8 > 64) {
+        if (data_size - 8 > 64 || data_size < 8) {
             state->last_error = BZ3_ERR_MALFORMED_HEADER;
             return -1;
         }
