@@ -257,28 +257,33 @@ static s32 mrlec(u8 * in, s32 inlen, u8 * out) {
     return op;
 }
 
-static void mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen) {
+static int mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen, s32 maxin) {
     s32 op = 0, ip = 0;
 
     s32 c, pc = -1;
     s32 t[256] = { 0 };
     s32 run = 0;
 
+    if(maxin < 32)
+        return 1;
+
     for (s32 i = 0; i < 32; ++i) {
         c = in[ip++];
         for (s32 j = 0; j < 8; ++j) t[i * 8 + j] = (c >> j) & 1;
     }
 
-    while (op < outlen) {
+    while (op < outlen && ip < maxin) {
         c = in[ip++];
         if (t[c]) {
-            for (run = 0; (pc = in[ip++]) == 255; run += 255)
+            for (run = 0; (pc = in[ip++]) == 255 && ip < maxin; run += 255)
                 ;
             run += pc + 1;
             for (; run > 0 && op < outlen; --run) out[op++] = c;
         } else
             out[op++] = c;
     }
+
+    return op != outlen;
 }
 
 /* The entropy coder. Uses an arithmetic coder implementation outlined in Matt Mahoney's DCE. */
@@ -694,7 +699,11 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     }
 
     if (model & 4) {
-        mrled(b1, b2, orig_size);
+        int err = mrled(b1, b2, orig_size, size_src);
+        if(err) {
+            state->last_error = BZ3_ERR_CRC;
+            return -1;
+        }
         size_src = orig_size;
         swap(b1, b2);
     }
