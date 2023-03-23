@@ -9,7 +9,7 @@
 
 int main(int argc, char ** argv) {
     if (argc != 3) {
-        printf("Usage: %s <input file> <output file>");
+        printf("Usage: %s <input file> <output file>", argv[0]);
         return 1;
     }
 
