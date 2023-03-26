@@ -80,6 +80,13 @@ static u32 crc32sum(u32 crc, u8 * RESTRICT buf, size_t size) {
 
 #define MATCH 0xf2
 
+static u32 lzp_upcast(u8 * ptr) {
+    // val = *(u32 *)ptr; - written this way to avoid UB
+    u32 val;
+    memcpy(&val, ptr, sizeof(val));
+    return val;
+}
+
 static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * RESTRICT out, u8 * out_end,
                             s32 * RESTRICT lut) {
     const u8 * ins = in;
@@ -101,11 +108,11 @@ static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * REST
             const u8 * RESTRICT ref = ins + val;
             if (memcmp(in + LZP_MIN_MATCH - 4, ref + LZP_MIN_MATCH - 4, sizeof(u32)) == 0 &&
                 memcmp(in, ref, sizeof(u32)) == 0) {
-                if (heur > in && *(u32 *)heur != *(u32 *)(ref + (heur - in))) goto not_found;
+                if (heur > in && lzp_upcast(heur) != lzp_upcast(ref + (heur - in))) goto not_found;
 
                 s32 len = 4;
                 for (; in + len < in_end - LZP_MIN_MATCH - 32; len += sizeof(u32)) {
-                    if (*(u32 *)(in + len) != *(u32 *)(ref + len)) break;
+                    if (lzp_upcast(in + len) != lzp_upcast(ref + len)) break;
                 }
 
                 if (len < LZP_MIN_MATCH) {
