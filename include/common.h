@@ -22,6 +22,7 @@
 
 #define KiB(x) ((x)*1024)
 #define MiB(x) ((x)*1024 * 1024)
+#define BWT_BOUND(x) ((x) + 128)
 
 #include <inttypes.h>
 #include <stdint.h>

@@ -502,8 +502,8 @@ BZIP3_API struct bz3_state * bz3_new(s32 block_size) {
     bz3_state->cm_state = malloc(sizeof(state));
 
     bz3_state->swap_buffer = malloc(bz3_bound(block_size));
-    bz3_state->sais_array = malloc((block_size + 128) * sizeof(s32));
-    memset(bz3_state->sais_array, 0, sizeof(s32) * (block_size + 128));
+    bz3_state->sais_array = malloc(BWT_BOUND(block_size) * sizeof(s32));
+    memset(bz3_state->sais_array, 0, sizeof(s32) * BWT_BOUND(block_size));
 
     bz3_state->lzp_lut = calloc(1 << LZP_DICTIONARY, sizeof(s32));
 
@@ -682,6 +682,8 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     }
 
     // Undo BWT
+    memset(state->sais_array, 0, sizeof(s32) * BWT_BOUND(state->block_size));
+    memset(b2, 0, size_src);
     if (libsais_unbwt(b1, b2, state->sais_array, size_src, NULL, bwt_idx) < 0) {
         state->last_error = BZ3_ERR_BWT;
         return -1;
