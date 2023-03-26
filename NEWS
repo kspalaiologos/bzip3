@@ -73,3 +73,7 @@ v1.2.3:
 * properly handle a scenario where the individual block original size is larger than the block size declared in the file header
 * further security fixes: strict check for size_src overflow of badly bounded b1, store mode: checking for truncation
   mRLE: decoding bounds, bz3_bound in bz3_decompress
+
+v1.2.4:
+* resolve alignment issues on SPARC/s390x.
+* fix the security issues arising from libsais.
