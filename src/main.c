@@ -76,6 +76,8 @@ static void help() {
 }
 
 static void xwrite(const void * data, size_t size, size_t len, FILE * des) {
+    if (len == 0 || size == 0)
+        return;
     if (fwrite(data, size, len, des) != len) {
         fprintf(stderr, "Write error: %s\n", strerror(errno));
         exit(1);
