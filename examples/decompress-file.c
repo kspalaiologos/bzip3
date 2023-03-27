@@ -1,5 +1,5 @@
 
-/* Decompress a file SEQUENTIALLY (i.e. *not* in parallel) using bzip3 high level API. */
+/* Decompress a file produced by compress-file SEQUENTIALLY (i.e. *not* in parallel) using bzip3 high level API. */
 /* This is just a demonstration of bzip3 library usage, it does not contain all the necessary error checks and will not
  * support cross-endian encoding/decoding. It *WILL* segfault if the input file does not exist,
  * malloc returns a NULL pointer, etc... - you are expected to handle these corner cases in your code. */
