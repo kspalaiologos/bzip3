@@ -112,6 +112,8 @@ Bzip3 has been tested on the following architectures:
 - ppc64le
 - mips
 - mips64
+- sparc
+- s390x
 
 ## Corpus benchmarks
 
