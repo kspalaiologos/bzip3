@@ -74,6 +74,6 @@ v1.2.3:
 * further security fixes: strict check for size_src overflow of badly bounded b1, store mode: checking for truncation
   mRLE: decoding bounds, bz3_bound in bz3_decompress
 
-v1.2.4:
+v1.3.0:
 * resolve alignment issues on SPARC/s390x.
 * fix the security issues arising from libsais.
