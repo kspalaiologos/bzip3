@@ -77,3 +77,4 @@ v1.2.3:
 v1.3.0:
 * resolve alignment issues on SPARC/s390x.
 * fix the security issues arising from libsais.
+* due to these changes, updating is strongly encouraged.
