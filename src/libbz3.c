@@ -80,7 +80,7 @@ static u32 crc32sum(u32 crc, u8 * RESTRICT buf, size_t size) {
 
 #define MATCH 0xf2
 
-static u32 lzp_upcast(u8 * ptr) {
+static u32 lzp_upcast(const u8 * ptr) {
     // val = *(u32 *)ptr; - written this way to avoid UB
     u32 val;
     memcpy(&val, ptr, sizeof(val));
