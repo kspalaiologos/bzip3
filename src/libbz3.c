@@ -80,7 +80,7 @@ static u32 crc32sum(u32 crc, u8 * RESTRICT buf, size_t size) {
 
 #define MATCH 0xf2
 
-static u32 lzp_upcast(u8 * ptr) {
+static u32 lzp_upcast(const u8 * ptr) {
     // val = *(u32 *)ptr; - written this way to avoid UB
     u32 val;
     memcpy(&val, ptr, sizeof(val));
@@ -186,7 +186,7 @@ static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RES
                 }
 
                 const u8 * ref = outs + val;
-                u8 * oe = out + len;
+                const u8 * oe = out + len;
                 if (oe > out_end) oe = out_end;
 
                 while (out < oe) *out++ = *ref++;
