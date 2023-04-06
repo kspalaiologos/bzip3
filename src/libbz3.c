@@ -282,7 +282,7 @@ static int mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen, s32 maxin) {
     while (op < outlen && ip < maxin) {
         c = in[ip++];
         if (t[c]) {
-            for (run = 0; (pc = in[ip++]) == 255 && ip < maxin; run += 255)
+            for (run = 0; ip < maxin && (pc = in[ip++]) == 255; run += 255)
                 ;
             run += pc + 1;
             for (; run > 0 && op < outlen; --run) out[op++] = c;
