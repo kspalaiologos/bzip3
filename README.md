@@ -89,6 +89,8 @@ The results follow:
 * lrzip + lzma - 64'774'202 bytes.
 * lrzip + bzip2 - 75'685'065 bytes.
 
+For further benchmarks against Turbo-Range-Coder and BSC, check [powturbo's benchmark](https://github.com/powturbo/Turbo-Range-Coder) of bzip3, bzip2, bsc and others.
+
 ## Disclaimers
 
 **I TAKE NO RESPONSIBILITY FOR ANY LOSS OF DATA ARISING FROM THE USE OF THIS PROGRAM/LIBRARY, HOWSOEVER CAUSED.**
