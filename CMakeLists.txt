@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(
   bzip3
@@ -12,7 +12,11 @@ set(CMAKE_C_STANDARD 99)
 option(BUILD_SHARED_LIBS "Build libbz3 as a shared library" ON)
 option(BZIP3_BUILD_APPS "Build bzip3 applications" ON)
 option(BZIP3_ENABLE_PTHREAD "Enable use of pthread library" ON)
+option(BZIP3_ENABLE_ARCH_NATIVE "Enable CPU-specific optimizations" ON)
+option(BZIP3_ENABLE_STATIC_EXE "Enable static builds of the executable" OFF)
 
+include(CheckCCompilerFlag)
+include(CheckSymbolExists)
 include(GNUInstallDirs)
 
 set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
@@ -46,7 +50,19 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 if(BZIP3_ENABLE_PTHREAD)
-  target_compile_definitions(bz3 PRIVATE PTHREAD)
+  target_compile_definitions(bz3 PUBLIC PTHREAD)
+endif()
+if(BZIP3_ENABLE_ARCH_NATIVE)
+  check_c_compiler_flag(-march=native CC_SUPPORT_MARCH_NATIVE_FLAG)
+  check_c_compiler_flag(-mtune=native CC_SUPPORT_MTUNE_NATIVE_FLAG)
+  if(CC_SUPPORT_MARCH_NATIVE_FLAG AND CC_SUPPORT_MTUNE_NATIVE_FLAG)
+    target_link_options(bz3 PUBLIC -march=native -mtune=native)
+  else()
+    message(
+      FATAL_ERROR
+        "Compiler does not support native optimizations, disable `BZIP3_ENABLE_ARCH_NATIVE`"
+    )
+  endif()
 endif()
 set_target_properties(
   bz3
@@ -68,15 +84,26 @@ install(
 if(BZIP3_BUILD_APPS)
   add_executable(bzip3)
   target_sources(bzip3 PRIVATE src/main.c)
-  include(CheckIncludeFile)
-  check_include_file(getopt.h HAVE_GETOPT_H)
-  include(CheckFunctionExists)
-  check_function_exists(getopt_long HAVE_GETOPT_LONG)
+  check_symbol_exists(getopt_long "getopt.h" HAVE_GETOPT_LONG)
   if(HAVE_GETOPT_LONG)
     target_compile_definitions(bzip3 PRIVATE HAVE_GETOPT_LONG)
   endif()
-  if(BZIP3_ENABLE_PTHREAD)
-    target_compile_definitions(bzip3 PRIVATE PTHREAD)
+  if(BZIP3_ENABLE_STATIC_EXE)
+    if(BUILD_SHARED_LIBS)
+      message(
+        FATAL_ERROR
+          "libbz3 is not built as a static library, disable `BUILD_SHARED_LIBS`"
+      )
+    endif()
+    check_c_compiler_flag(-static CC_SUPPORT_STATIC_FLAG)
+    if(CC_SUPPORT_STATIC_FLAG)
+      target_link_options(bzip3 PRIVATE -static)
+    else()
+      message(
+        FATAL_ERROR
+          "Compiler does not support static linking, disable `BZIP3_ENABLE_STATIC_EXE`"
+      )
+    endif()
   endif()
   target_link_libraries(bzip3 PRIVATE bz3)
   install(TARGETS bzip3 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
