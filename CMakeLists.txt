@@ -70,6 +70,9 @@ set_target_properties(
              SOVERSION "0.0.0"
              PUBLIC_HEADER include/libbz3.h
              VERSION "0")
+if(BUILD_SHARED_LIBS)
+  set_target_properties(bz3 PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 install(
   TARGETS bz3
   EXPORT ${CMAKE_PROJECT_NAME}-config
