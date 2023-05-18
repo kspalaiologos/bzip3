@@ -76,7 +76,7 @@ jobs:
       name: Run in the container
       with:
         arch: ${{ matrix.arch }}
-        distro: stretch
+        distro: bullseye
         shell: /bin/sh
         dockerRunArgs: |
           --volume "${PWD}:/bzip3"
