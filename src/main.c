@@ -244,7 +244,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if (old_size > block_size + 31) {
+                if (old_size > block_size || new_size > block_size + 31) {
                     fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                     return 1;
                 }
@@ -265,7 +265,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if (old_size > block_size + 31) {
+                if (old_size > block_size || new_size > block_size + 31) {
                     fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                     return 1;
                 }
@@ -342,7 +342,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (old_sizes[i] > block_size + 31) {
+                    if (old_sizes[i] > block_size || sizes[i] > block_size + 31) {
                         fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                         return 1;
                     }
@@ -370,7 +370,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (old_sizes[i] > block_size + 31) {
+                    if (old_sizes[i] > block_size || sizes[i] > block_size + 31) {
                         fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                         return 1;
                     }
