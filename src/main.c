@@ -1,7 +1,7 @@
 
 /*
  * BZip3 - A spiritual successor to BZip2.
- * Copyright (C) 2022 Kamila Szewczyk
+ * Copyright (C) 2022-2023 Kamila Szewczyk
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the Free
@@ -47,7 +47,7 @@
 static void version() {
     fprintf(stdout, "bzip3 " VERSION
                     "\n"
-                    "Copyright (C) by Kamila Szewczyk, 2022.\n"
+                    "Copyright (C) by Kamila Szewczyk, 2022-2023.\n"
                     "License: GNU Lesser GPL version 3 <https://www.gnu.org/licenses/lgpl-3.0.en.html>\n");
 }
 
