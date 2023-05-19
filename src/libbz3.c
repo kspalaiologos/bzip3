@@ -832,10 +832,11 @@ BZIP3_API int bz3_compress(u32 block_size, const u8 * const in, u8 * out, size_t
     *out_size += 13;
 
     // Compress and write the blocks.
+    size_t in_offset = 0;
     for (u32 i = 0; i < n_blocks; i++) {
         s32 size = block_size;
         if (i == n_blocks - 1) size = in_size % block_size;
-        memcpy(compression_buf, in, size);
+        memcpy(compression_buf, in + in_offset, size);
         s32 out_size_block = bz3_encode_block(state, compression_buf, size);
         if (bz3_last_error(state) != BZ3_OK) {
             s8 last_error = state->last_error;
@@ -847,6 +848,7 @@ BZIP3_API int bz3_compress(u32 block_size, const u8 * const in, u8 * out, size_t
         write_neutral_s32(out + *out_size, out_size_block);
         write_neutral_s32(out + *out_size + 4, size);
         *out_size += out_size_block + 8;
+        in_offset += size;
     }
 
     bz3_free(state);
