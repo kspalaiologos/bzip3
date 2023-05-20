@@ -43,6 +43,7 @@
 #define MODE_DECODE 0
 #define MODE_ENCODE 1
 #define MODE_TEST 2
+#define MODE_RECOVER 3
 
 static void version() {
     fprintf(stdout, "bzip3 " VERSION
@@ -58,6 +59,7 @@ static void help() {
             "Operations:\n"
             "  -e/-z, --encode   compress data (default)\n"
             "  -d, --decode      decompress data\n"
+			"  -r, --recover     attempt at recovering corrupted data\n"
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
             "  -f, --force       force overwriting output if it already exists\n"
@@ -148,7 +150,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
     uint64_t bytes_read = 0, bytes_written = 0;
 
     if ((mode == MODE_ENCODE && isatty(fileno(output_des))) ||
-        ((mode == MODE_DECODE || mode == MODE_TEST) && isatty(fileno(input_des)))) {
+        ((mode == MODE_DECODE || mode == MODE_TEST || mode == MODE_RECOVER) && isatty(fileno(input_des)))) {
         fprintf(stderr, "Refusing to read/write binary data from/to the terminal.\n");
         return 1;
     }
@@ -167,6 +169,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
 
             bytes_written += 9;
             break;
+		case MODE_RECOVER:
         case MODE_DECODE:
         case MODE_TEST: {
             char signature[5];
@@ -184,7 +187,12 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 fprintf(stderr,
                         "The input file is corrupted. Reason: Invalid block "
                         "size in the header.\n");
-                return 1;
+				if(mode == MODE_RECOVER) {
+					fprintf(stderr, "Recovery mode: Proceeding.\n");
+					block_size = MiB(511);
+				} else {
+					return 1;
+				}
             }
 
             bytes_read += 9;
@@ -258,6 +266,27 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 bytes_written += old_size;
             }
             fflush(output_des);
+        } else if (mode == MODE_RECOVER) {
+            s32 new_size, old_size;
+            while (!feof(input_des)) {
+                if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des)) continue;
+
+                new_size = read_neutral_s32(byteswap_buf);
+                xread_noeof(&byteswap_buf, 1, 4, input_des);
+                old_size = read_neutral_s32(byteswap_buf);
+                if (old_size > bz3_bound(block_size) || new_size > bz3_bound(block_size)) {
+                    fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
+                    return 1;
+                }
+                xread_noeof(buffer, 1, new_size, input_des);
+                bytes_read += 8 + new_size;
+                if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
+                    fprintf(stderr, "Writing invalid block: %s\n", bz3_strerror(state));
+                }
+                xwrite(buffer, old_size, 1, output_des);
+                bytes_written += old_size;
+            }
+            fflush(output_des);
         } else if (mode == MODE_TEST) {
             s32 new_size, old_size;
             while (!feof(input_des)) {
@@ -279,7 +308,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             }
         }
 
-        if (bz3_last_error(state) != BZ3_OK) {
+        if (bz3_last_error(state) != BZ3_OK && mode != MODE_RECOVER) {
             fprintf(stderr, "Failed to read data: %s\n", bz3_strerror(state));
             return 1;
         }
@@ -355,6 +384,33 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     if (bz3_last_error(states[j]) != BZ3_OK) {
                         fprintf(stderr, "Failed to decode data: %s\n", bz3_strerror(states[j]));
                         return 1;
+                    }
+                }
+                for (s32 j = 0; j < i; j++) {
+                    xwrite(buffers[j], old_sizes[j], 1, output_des);
+                    bytes_written += old_sizes[j];
+                }
+            }
+            fflush(output_des);
+        } else if (mode == MODE_DECODE) {
+            while (!feof(input_des)) {
+                s32 i = 0;
+                for (; i < workers; i++) {
+                    if (!xread_eofcheck(&byteswap_buf, 1, 4, input_des)) break;
+                    sizes[i] = read_neutral_s32(byteswap_buf);
+                    xread_noeof(&byteswap_buf, 1, 4, input_des);
+                    old_sizes[i] = read_neutral_s32(byteswap_buf);
+                    if (old_sizes[i] > bz3_bound(block_size) || sizes[i] > bz3_bound(block_size)) {
+                        fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
+                        return 1;
+                    }
+                    xread_noeof(buffers[i], 1, sizes[i], input_des);
+                    bytes_read += 8 + sizes[i];
+                }
+                bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
+                for (s32 j = 0; j < i; j++) {
+                    if (bz3_last_error(states[j]) != BZ3_OK) {
+                        fprintf(stderr, "Writing invalid block: %s\n", bz3_strerror(states[j]));
                     }
                 }
                 for (s32 j = 0; j < i; j++) {
@@ -488,9 +544,9 @@ int main(int argc, char * argv[]) {
     u32 block_size = MiB(16);
 
 #ifdef PTHREAD
-    const char * short_options = "Bb:cdefhj:ktvVz";
+    const char * short_options = "Bb:cdefhj:krtvVz";
 #else
-    const char * short_options = "Bb:cdefhktvVz";
+    const char * short_options = "Bb:cdefhkrtvVz";
 #endif
 
     static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
@@ -498,6 +554,7 @@ int main(int argc, char * argv[]) {
                                             { "test", no_argument, 0, 't' },
                                             { "stdout", no_argument, 0, 'c' },
                                             { "force", no_argument, 0, 'f' },
+											{ "recover", no_argument, 0, 'r' },
                                             { "help", no_argument, 0, 'h' },
                                             { "keep", no_argument, 0, 'k' },
                                             { "version", no_argument, 0, 'V' },
@@ -524,6 +581,9 @@ int main(int argc, char * argv[]) {
                 break;
             case 'd':
                 mode = MODE_DECODE;
+                break;
+			case 'r':
+                mode = MODE_RECOVER;
                 break;
             case 't':
                 mode = MODE_TEST;
@@ -602,6 +662,7 @@ int main(int argc, char * argv[]) {
                     if (!force_stdstreams) free(output_name);
                 }
                 break;
+			case MODE_RECOVER:
             case MODE_DECODE:
                 /* Decode each of the files. */
                 while (optind < argc) {
@@ -686,7 +747,7 @@ int main(int argc, char * argv[]) {
                 input = f1;
                 output = f2;
             }
-        } else if (mode == MODE_DECODE) {
+        } else if (mode == MODE_DECODE || mode == MODE_RECOVER) {
             if (f2 == NULL) {
                 // decode from f1 to stdout.
                 input = f1;
