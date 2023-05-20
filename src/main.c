@@ -271,6 +271,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 }
                 xread_noeof(buffer, 1, new_size, input_des);
                 bytes_read += 8 + new_size;
+                bytes_written += old_size;
                 if (bz3_decode_block(state, buffer, new_size, old_size) == -1) {
                     fprintf(stderr, "Failed to decode a block: %s\n", bz3_strerror(state));
                     return 1;
@@ -376,6 +377,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     }
                     xread_noeof(buffers[i], 1, sizes[i], input_des);
                     bytes_read += 8 + sizes[i];
+                    bytes_written += old_sizes[i];
                 }
                 bz3_decode_blocks(states, buffers, sizes, old_sizes, i);
                 for (s32 j = 0; j < i; j++) {
@@ -403,7 +405,8 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             fprintf(stderr, "\t%" PRIu64 " -> %" PRIu64 " bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written,
                     (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
         else
-            fprintf(stderr, "OK, %" PRIu64 " bytes read.\n", bytes_read);
+            fprintf(stderr, "\tOK, %" PRIu64 " -> %" PRIu64 " bytes, %.2f%%, %.2f bpb\n", bytes_read, bytes_written,
+                    (double)bytes_read * 100.0 / bytes_written, (double)bytes_read * 8.0 / bytes_written);
     }
 
     return 0;
