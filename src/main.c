@@ -207,7 +207,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
             return 1;
         }
 
-        u8 * buffer = malloc(block_size + block_size / 50 + 32);
+        u8 * buffer = malloc(bz3_bound(block_size));
 
         if (!buffer) {
             fprintf(stderr, "Failed to allocate memory.\n");
@@ -244,7 +244,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if (old_size > block_size || new_size > block_size + 31) {
+                if (old_size > bz3_bound(block_size) || new_size > bz3_bound(block_size)) {
                     fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                     return 1;
                 }
@@ -265,7 +265,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 new_size = read_neutral_s32(byteswap_buf);
                 xread_noeof(&byteswap_buf, 1, 4, input_des);
                 old_size = read_neutral_s32(byteswap_buf);
-                if (old_size > block_size || new_size > block_size + 31) {
+                if (old_size > bz3_bound(block_size) || new_size > bz3_bound(block_size)) {
                     fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                     return 1;
                 }
@@ -343,7 +343,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (old_sizes[i] > block_size || sizes[i] > block_size + 31) {
+                    if (old_sizes[i] > bz3_bound(block_size) || sizes[i] > bz3_bound(block_size)) {
                         fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                         return 1;
                     }
@@ -371,7 +371,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                     sizes[i] = read_neutral_s32(byteswap_buf);
                     xread_noeof(&byteswap_buf, 1, 4, input_des);
                     old_sizes[i] = read_neutral_s32(byteswap_buf);
-                    if (old_sizes[i] > block_size || sizes[i] > block_size + 31) {
+                    if (old_sizes[i] > bz3_bound(block_size) || sizes[i] > bz3_bound(block_size)) {
                         fprintf(stderr, "Failed to decode a block: Inconsistent headers.\n");
                         return 1;
                     }
