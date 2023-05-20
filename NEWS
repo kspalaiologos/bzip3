@@ -78,3 +78,10 @@ v1.3.0:
 * resolve alignment issues on SPARC/s390x.
 * fix the security issues arising from libsais.
 * due to these changes, updating is strongly encouraged.
+
+v1.3.1:
+* Update the CI pipeline to Debian Bullseye.
+* Fix a minor issue with side effects in RLE decoding.
+* Explicitly disable `-march=native` for releases.
+* Fix a bug in the tool reported by Adam Borowski regarding -t/-d input buffer checks.
+* Fix an issue with the current input offset not being taken into account in bz3_compress.
