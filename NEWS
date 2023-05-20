@@ -80,6 +80,7 @@ v1.3.0:
 * due to these changes, updating is strongly encouraged.
 
 v1.3.1:
+* Verbose mode in the tool now prints the extra statistics also during testing, not just encoding or decoding.
 * Update the CI pipeline to Debian Bullseye.
 * Fix a minor issue with side effects in RLE decoding.
 * Explicitly disable `-march=native` for releases.
