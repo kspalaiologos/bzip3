@@ -392,7 +392,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 }
             }
             fflush(output_des);
-        } else if (mode == MODE_DECODE) {
+        } else if (mode == MODE_RECOVER) {
             while (!feof(input_des)) {
                 s32 i = 0;
                 for (; i < workers; i++) {
