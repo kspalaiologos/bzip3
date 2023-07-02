@@ -119,3 +119,13 @@ jobs:
           cd /bzip3
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
           make && make roundtrip
+
+  cmake:
+    name: Build with CMake
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: CMake
+      run: cmake -B build
+    - name: Make
+      run: make -C build
