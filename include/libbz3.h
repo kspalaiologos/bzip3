@@ -17,8 +17,8 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LIBBZ3_H
-#define _LIBBZ3_H
+#ifndef LIBBZ3_H
+#define LIBBZ3_H
 
 #include <stddef.h>
 #include <stdint.h>
