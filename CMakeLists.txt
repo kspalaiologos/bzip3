@@ -51,6 +51,7 @@ target_include_directories(
   INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 if(BZIP3_ENABLE_PTHREAD)
   target_compile_definitions(bz3 PUBLIC PTHREAD)
+  target_link_libraries(bz3 Threads::Threads)
 endif()
 if(BZIP3_ENABLE_ARCH_NATIVE)
   check_c_compiler_flag(-march=native CC_SUPPORT_MARCH_NATIVE_FLAG)
