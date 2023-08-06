@@ -86,3 +86,14 @@ v1.3.1:
 * Explicitly disable `-march=native` for releases.
 * Fix a bug in the tool reported by Adam Borowski regarding -t/-d input buffer checks.
 * Fix an issue with the current input offset not being taken into account in bz3_compress.
+
+v1.3.2:
+* Add the `-r` option ("recovery"). If a file fails to decompress fully (e.g. due to a CRC error), ignore it and write the
+  file regardless.
+* Add preliminary CMake support.
+* Fix the include guard macro name to work with pedantic compilers.
+* Fix the shift direction in the crc32 check function. Because of a programming mistake, v1.3.0 and v1.3.1
+  introduced a breaking change to the CRC calculation code. The change has been reverted in this release.
+  While the archives created with these versions of bzip3 will fail to regularly decompress due to a checksum
+  error, using the recovery option as `bzip3 -rd` to decompress will
+  restore their original contents.
