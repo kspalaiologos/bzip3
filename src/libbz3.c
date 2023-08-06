@@ -61,7 +61,7 @@ static const u32 crc32Table[256] = {
 };
 
 static u32 crc32sum(u32 crc, u8 * RESTRICT buf, size_t size) {
-    while (size--) crc = crc32Table[((crc >> 24) ^ *(buf++)) & 0xff] ^ (crc << 8);
+    while (size--) crc = crc32Table[((u8)crc ^ *(buf++)) & 0xff] ^ (crc >> 8);
     return crc;
 }
 

@@ -77,3 +77,7 @@ roundtrip: $(BZIP3)
 	./$(BZIP3) -v -d $(builddir)/LICENSE.bz3 $(builddir)/LICENSE2
 	cmp $(srcdir)/LICENSE $(builddir)/LICENSE2
 	-command -v md5sum >/dev/null 2>&1 && md5sum $(builddir)/LICENSE.bz3
+
+.PHONY: test
+test: $(BZIP3)
+	./$(BZIP3) -d < $(srcdir)/examples/shakespeare.txt.bz3 | cmp - $(srcdir)/examples/shakespeare.txt

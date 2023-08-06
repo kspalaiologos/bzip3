@@ -48,12 +48,18 @@ jobs:
         name: bzip3-${{ github.sha }}
     - name: Extract source package
       run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Fetch examples
+      run: |
+        mkdir examples
+        cd examples
+        wget https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt \
+             https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt.bz3
     - name: Configure
       run: ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
     - name: Make
       run: make
     - name: Check
-      run: make roundtrip
+      run: make roundtrip test
 
   build-archs:
     name: Build Matrix for non-x86 architectures (Debian Stretch)
@@ -72,6 +78,12 @@ jobs:
         name: bzip3-${{ github.sha }}
     - name: Extract source package
       run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Fetch examples
+      run: |
+        mkdir examples
+        cd examples
+        wget https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt \
+             https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt.bz3
     - uses: uraimo/run-on-arch-action@v2
       name: Run in the container
       with:
@@ -86,7 +98,7 @@ jobs:
         run: |
           cd /bzip3
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
-          make && make roundtrip
+          make && make roundtrip test
   build-archs-ubuntu:
     name: Build Matrix for non-x86 architectures (Ubuntu Latest)
     needs: [ dist ]
@@ -104,6 +116,12 @@ jobs:
         name: bzip3-${{ github.sha }}
     - name: Extract source package
       run: tar --strip-components=1 -xf bzip3-${{ github.sha}}.tar.gz
+    - name: Fetch examples
+      run: |
+        mkdir examples
+        cd examples
+        wget https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt \
+             https://github.com/kspalaiologos/bzip3/raw/${{ github.sha }}/examples/shakespeare.txt.bz3
     - uses: uraimo/run-on-arch-action@v2
       name: Run in the container
       with:
@@ -118,7 +136,7 @@ jobs:
         run: |
           cd /bzip3
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }} --disable-arch-native --disable-link-time-optimization
-          make && make roundtrip
+          make && make roundtrip test
 
   cmake:
     name: Build with CMake
