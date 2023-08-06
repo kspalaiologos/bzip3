@@ -12,7 +12,7 @@ set(CMAKE_C_STANDARD 99)
 option(BUILD_SHARED_LIBS "Build libbz3 as a shared library" ON)
 option(BZIP3_BUILD_APPS "Build bzip3 applications" ON)
 option(BZIP3_ENABLE_PTHREAD "Enable use of pthread library" ON)
-option(BZIP3_ENABLE_ARCH_NATIVE "Enable CPU-specific optimizations" ON)
+option(BZIP3_ENABLE_ARCH_NATIVE "Enable CPU-specific optimizations" OFF)
 option(BZIP3_ENABLE_STATIC_EXE "Enable static builds of the executable" OFF)
 
 include(CheckCCompilerFlag)
