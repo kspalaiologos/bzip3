@@ -41,7 +41,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "c" {
+extern "C" {
 #endif
 
 #define BZ3_OK 0
