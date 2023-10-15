@@ -40,6 +40,10 @@
     #define BZIP3_API BZIP3_VISIBLE
 #endif
 
+#ifdef __cplusplus
+extern "c" {
+#endif
+
 #define BZ3_OK 0
 #define BZ3_ERR_OUT_OF_BOUNDS -1
 #define BZ3_ERR_BWT -2
@@ -140,5 +144,9 @@ BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[
  */
 BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
                                  int32_t orig_sizes[], int32_t n);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif
