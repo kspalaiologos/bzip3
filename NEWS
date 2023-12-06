@@ -97,3 +97,8 @@ v1.3.2:
   While the archives created with these versions of bzip3 will fail to regularly decompress due to a checksum
   error, using the recovery option as `bzip3 -rd` to decompress will
   restore their original contents.
+
+v1.4.0:
+* Wrap up all the changes from v1.3; bump up the minor version release.
+* Various changes for CMake; bundle CMake files with the autotools dist tarball.
+* Support for linking with C++.
