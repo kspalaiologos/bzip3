@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS = -I build-aux
 
 AM_CFLAGS = -I$(top_srcdir)/include
 
-EXTRA_DIST = LICENSE libsais-LICENSE PORTING.md README.md build-aux/git-version-gen
+EXTRA_DIST = LICENSE libsais-LICENSE PORTING.md README.md build-aux/git-version-gen CMakeLists.txt
 
 pkgconfig_DATA = bzip3.pc
 
