@@ -20,7 +20,7 @@ $ sudo make install
 
 Alternatively, you might be able to install bzip3 using your system's package manager:
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/bzip3.svg)](https://repology.org/project/bzip3/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/bzip3.svg?columns=3)](https://repology.org/project/bzip3/versions)
 
 On macOS, you can use [Homebrew](https://brew.sh) to easily install:
 
