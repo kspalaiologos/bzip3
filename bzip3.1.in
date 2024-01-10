@@ -101,6 +101,10 @@ Display a help message and exit.
 .B \-j --jobs N
 Set the amount of parallel worker threads that process one block each.
 .TP
+.B \--rm
+Remove the input files after successful compression or decompression. This is
+silently ignored if output is stdout.
+.TP
 .B \-k --keep
 Keep (don't delete) the input files. Set by default, provided only
 for compatibility with other compressors.

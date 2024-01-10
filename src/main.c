@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,6 +64,7 @@ static void help() {
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
             "  -f, --force       force overwriting output if it already exists\n"
+            "      --rm          remove input files after successful (de)compression\n"
             "  -k, --keep        keep (don't delete) input files (default)\n"
             "  -v, --verbose     verbose mode (display more information)\n"
             "  -V, --version     display version information\n"
@@ -141,6 +143,19 @@ static void close_out_file(FILE * des) {
             fprintf(stderr, "Error: Failed on fclose: %s\n", strerror(errno));
             exit(1);
         }
+    }
+}
+
+static void remove_in_file(char * file_name, FILE * output_des) {
+    if (file_name == NULL) {
+        return;
+    }
+    if (output_des == stdout) {
+        return;
+    }
+    if (remove(file_name)) {
+        fprintf(stderr, "Error: failed to remove input file `%s': %s\n", file_name, strerror(errno));
+        exit(1);
     }
 }
 
@@ -537,7 +552,7 @@ int main(int argc, char * argv[]) {
     int force = 0;
 
     // command line arguments
-    int force_stdstreams = 0, workers = 0, batch = 0, verbose = 0;
+    int force_stdstreams = 0, workers = 0, batch = 0, verbose = 0, remove_input_file = 0;
 
     // the block size
     u32 block_size = MiB(16);
@@ -548,6 +563,8 @@ int main(int argc, char * argv[]) {
     const char * short_options = "Bb:cdefhkrtvVz";
 #endif
 
+    enum { RM_OPTION = CHAR_MAX + 1 };
+
     static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
                                             { "decode", no_argument, 0, 'd' },
                                             { "test", no_argument, 0, 't' },
@@ -555,6 +572,7 @@ int main(int argc, char * argv[]) {
                                             { "force", no_argument, 0, 'f' },
                                             { "recover", no_argument, 0, 'r' },
                                             { "help", no_argument, 0, 'h' },
+                                            { "rm", no_argument, 0, RM_OPTION },
                                             { "keep", no_argument, 0, 'k' },
                                             { "version", no_argument, 0, 'V' },
                                             { "verbose", no_argument, 0, 'v' },
@@ -592,6 +610,9 @@ int main(int argc, char * argv[]) {
                 break;
             case 'f':
                 force = 1;
+                break;
+            case RM_OPTION:
+                remove_input_file = 1;
                 break;
             case 'k':
                 break;
@@ -659,6 +680,9 @@ int main(int argc, char * argv[]) {
                     fclose(input_des);
                     close_out_file(output_des);
                     if (!force_stdstreams) free(output_name);
+                    if (remove_input_file) {
+                        remove_in_file(arg, output_des);
+                    }
                 }
                 break;
             case MODE_RECOVER:
@@ -688,6 +712,9 @@ int main(int argc, char * argv[]) {
                     fclose(input_des);
                     close_out_file(output_des);
                     if (!force_stdstreams) free(output_name);
+                    if (remove_input_file) {
+                        remove_in_file(arg, output_des);
+                    }
                 }
                 break;
             case MODE_TEST:
@@ -784,6 +811,9 @@ int main(int argc, char * argv[]) {
     if (fclose(stdout)) {
         fprintf(stderr, "Error: Failed on fclose(stdout): %s\n", strerror(errno));
         return 1;
+    }
+    if (remove_input_file) {
+        remove_in_file(input, output_des);
     }
 
     return r;
