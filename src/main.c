@@ -59,7 +59,7 @@ static void help() {
             "Operations:\n"
             "  -e/-z, --encode   compress data (default)\n"
             "  -d, --decode      decompress data\n"
-			"  -r, --recover     attempt at recovering corrupted data\n"
+            "  -r, --recover     attempt at recovering corrupted data\n"
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
             "  -f, --force       force overwriting output if it already exists\n"
@@ -78,8 +78,7 @@ static void help() {
 }
 
 static void xwrite(const void * data, size_t size, size_t len, FILE * des) {
-    if (len == 0 || size == 0)
-        return;
+    if (len == 0 || size == 0) return;
     if (fwrite(data, size, len, des) != len) {
         fprintf(stderr, "Write error: %s\n", strerror(errno));
         exit(1);
@@ -169,7 +168,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
 
             bytes_written += 9;
             break;
-		case MODE_RECOVER:
+        case MODE_RECOVER:
         case MODE_DECODE:
         case MODE_TEST: {
             char signature[5];
@@ -187,12 +186,12 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 fprintf(stderr,
                         "The input file is corrupted. Reason: Invalid block "
                         "size in the header.\n");
-				if(mode == MODE_RECOVER) {
-					fprintf(stderr, "Recovery mode: Proceeding.\n");
-					block_size = MiB(511);
-				} else {
-					return 1;
-				}
+                if (mode == MODE_RECOVER) {
+                    fprintf(stderr, "Recovery mode: Proceeding.\n");
+                    block_size = MiB(511);
+                } else {
+                    return 1;
+                }
             }
 
             bytes_read += 9;
@@ -554,7 +553,7 @@ int main(int argc, char * argv[]) {
                                             { "test", no_argument, 0, 't' },
                                             { "stdout", no_argument, 0, 'c' },
                                             { "force", no_argument, 0, 'f' },
-											{ "recover", no_argument, 0, 'r' },
+                                            { "recover", no_argument, 0, 'r' },
                                             { "help", no_argument, 0, 'h' },
                                             { "keep", no_argument, 0, 'k' },
                                             { "version", no_argument, 0, 'V' },
@@ -582,7 +581,7 @@ int main(int argc, char * argv[]) {
             case 'd':
                 mode = MODE_DECODE;
                 break;
-			case 'r':
+            case 'r':
                 mode = MODE_RECOVER;
                 break;
             case 't':
@@ -662,7 +661,7 @@ int main(int argc, char * argv[]) {
                     if (!force_stdstreams) free(output_name);
                 }
                 break;
-			case MODE_RECOVER:
+            case MODE_RECOVER:
             case MODE_DECODE:
                 /* Decode each of the files. */
                 while (optind < argc) {
