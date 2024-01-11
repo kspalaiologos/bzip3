@@ -271,8 +271,7 @@ static int mrled(u8 * RESTRICT in, u8 * RESTRICT out, s32 outlen, s32 maxin) {
     s32 t[256] = { 0 };
     s32 run = 0;
 
-    if(maxin < 32)
-        return 1;
+    if (maxin < 32) return 1;
 
     for (s32 i = 0; i < 32; ++i) {
         c = in[ip++];
@@ -709,7 +708,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     if (model & 4) {
         int err = mrled(b1, b2, orig_size, size_src);
-        if(err) {
+        if (err) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
         }

@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,10 +60,11 @@ static void help() {
             "Operations:\n"
             "  -e/-z, --encode   compress data (default)\n"
             "  -d, --decode      decompress data\n"
-			"  -r, --recover     attempt at recovering corrupted data\n"
+            "  -r, --recover     attempt at recovering corrupted data\n"
             "  -t, --test        verify validity of compressed data\n"
             "  -h, --help        display an usage overview\n"
             "  -f, --force       force overwriting output if it already exists\n"
+            "      --rm          remove input files after successful (de)compression\n"
             "  -k, --keep        keep (don't delete) input files (default)\n"
             "  -v, --verbose     verbose mode (display more information)\n"
             "  -V, --version     display version information\n"
@@ -78,8 +80,7 @@ static void help() {
 }
 
 static void xwrite(const void * data, size_t size, size_t len, FILE * des) {
-    if (len == 0 || size == 0)
-        return;
+    if (len == 0 || size == 0) return;
     if (fwrite(data, size, len, des) != len) {
         fprintf(stderr, "Write error: %s\n", strerror(errno));
         exit(1);
@@ -145,6 +146,19 @@ static void close_out_file(FILE * des) {
     }
 }
 
+static void remove_in_file(char * file_name, FILE * output_des) {
+    if (file_name == NULL) {
+        return;
+    }
+    if (output_des == stdout) {
+        return;
+    }
+    if (remove(file_name)) {
+        fprintf(stderr, "Error: failed to remove input file `%s': %s\n", file_name, strerror(errno));
+        exit(1);
+    }
+}
+
 static int process(FILE * input_des, FILE * output_des, int mode, int block_size, int workers, int verbose,
                    char * file_name) {
     uint64_t bytes_read = 0, bytes_written = 0;
@@ -169,7 +183,7 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
 
             bytes_written += 9;
             break;
-		case MODE_RECOVER:
+        case MODE_RECOVER:
         case MODE_DECODE:
         case MODE_TEST: {
             char signature[5];
@@ -187,12 +201,12 @@ static int process(FILE * input_des, FILE * output_des, int mode, int block_size
                 fprintf(stderr,
                         "The input file is corrupted. Reason: Invalid block "
                         "size in the header.\n");
-				if(mode == MODE_RECOVER) {
-					fprintf(stderr, "Recovery mode: Proceeding.\n");
-					block_size = MiB(511);
-				} else {
-					return 1;
-				}
+                if (mode == MODE_RECOVER) {
+                    fprintf(stderr, "Recovery mode: Proceeding.\n");
+                    block_size = MiB(511);
+                } else {
+                    return 1;
+                }
             }
 
             bytes_read += 9;
@@ -538,7 +552,7 @@ int main(int argc, char * argv[]) {
     int force = 0;
 
     // command line arguments
-    int force_stdstreams = 0, workers = 0, batch = 0, verbose = 0;
+    int force_stdstreams = 0, workers = 0, batch = 0, verbose = 0, remove_input_file = 0;
 
     // the block size
     u32 block_size = MiB(16);
@@ -549,13 +563,16 @@ int main(int argc, char * argv[]) {
     const char * short_options = "Bb:cdefhkrtvVz";
 #endif
 
+    enum { RM_OPTION = CHAR_MAX + 1 };
+
     static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
                                             { "decode", no_argument, 0, 'd' },
                                             { "test", no_argument, 0, 't' },
                                             { "stdout", no_argument, 0, 'c' },
                                             { "force", no_argument, 0, 'f' },
-											{ "recover", no_argument, 0, 'r' },
+                                            { "recover", no_argument, 0, 'r' },
                                             { "help", no_argument, 0, 'h' },
+                                            { "rm", no_argument, 0, RM_OPTION },
                                             { "keep", no_argument, 0, 'k' },
                                             { "version", no_argument, 0, 'V' },
                                             { "verbose", no_argument, 0, 'v' },
@@ -582,7 +599,7 @@ int main(int argc, char * argv[]) {
             case 'd':
                 mode = MODE_DECODE;
                 break;
-			case 'r':
+            case 'r':
                 mode = MODE_RECOVER;
                 break;
             case 't':
@@ -593,6 +610,9 @@ int main(int argc, char * argv[]) {
                 break;
             case 'f':
                 force = 1;
+                break;
+            case RM_OPTION:
+                remove_input_file = 1;
                 break;
             case 'k':
                 break;
@@ -660,9 +680,12 @@ int main(int argc, char * argv[]) {
                     fclose(input_des);
                     close_out_file(output_des);
                     if (!force_stdstreams) free(output_name);
+                    if (remove_input_file) {
+                        remove_in_file(arg, output_des);
+                    }
                 }
                 break;
-			case MODE_RECOVER:
+            case MODE_RECOVER:
             case MODE_DECODE:
                 /* Decode each of the files. */
                 while (optind < argc) {
@@ -689,6 +712,9 @@ int main(int argc, char * argv[]) {
                     fclose(input_des);
                     close_out_file(output_des);
                     if (!force_stdstreams) free(output_name);
+                    if (remove_input_file) {
+                        remove_in_file(arg, output_des);
+                    }
                 }
                 break;
             case MODE_TEST:
@@ -785,6 +811,9 @@ int main(int argc, char * argv[]) {
     if (fclose(stdout)) {
         fprintf(stderr, "Error: Failed on fclose(stdout): %s\n", strerror(errno));
         return 1;
+    }
+    if (remove_input_file) {
+        remove_in_file(input, output_des);
     }
 
     return r;
