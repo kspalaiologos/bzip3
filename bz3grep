@@ -33,14 +33,7 @@ grep_args=""
 hyphen=0
 silent=0
 
-prog=${0##*/}
-
-# handle being called 'zegrep' or 'zfgrep'
-case $prog in
-    *egrep*) prog=zegrep; grep_args='-E';;
-    *fgrep*) prog=zfgrep; grep_args='-F';;
-    *)       prog=zstdgrep;;
-esac
+prog=bz3grep
 
 # skip all options and pass them on to grep taking care of options
 # with arguments, and if -e was supplied
