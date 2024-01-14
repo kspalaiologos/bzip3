@@ -135,6 +135,8 @@ A breakdown of components and their licenses follows:
 - (runtime) `bz3grep`: Copyright 2003, Thomas Klausner; BSD-2-clause
 - (runtime) `include/getopt-shim.h`: Copyright 2005-2014, Rich Felker; Expat
 
+`bzip3` as a whole is licensed under LGPLv3 only. It is not dual-licensed under LGPLv3 and Apache 2.0.
+
 ## Thanks
 
 - Ilya Grebnov for his `libsais` library used for BWT construction in BZip3 and the LZP encoder which I had used as a reference implementation to improve myself.
