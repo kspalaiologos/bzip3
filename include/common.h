@@ -1,7 +1,7 @@
 
 /*
  * BZip3 - A spiritual successor to BZip2.
- * Copyright (C) 2022-2023 Kamila Szewczyk
+ * Copyright (C) 2022-2024 Kamila Szewczyk
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the Free
