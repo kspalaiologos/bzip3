@@ -569,14 +569,14 @@ BZIP3_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     s32 lzp_size, rle_size;
 
     rle_size = mrlec(b1, data_size, b2);
-    if (rle_size < data_size + 64) {
+    if (rle_size < data_size) {
         swap(b1, b2);
         data_size = rle_size;
         model |= 4;
     }
 
     lzp_size = lzp_compress(b1, b2, data_size, state->lzp_lut);
-    if (lzp_size > 0 && lzp_size < data_size + 64) {
+    if (lzp_size > 0 && lzp_size < data_size) {
         swap(b1, b2);
         data_size = lzp_size;
         model |= 2;
