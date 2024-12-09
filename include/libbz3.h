@@ -119,7 +119,7 @@ BZIP3_API int32_t bz3_encode_block(struct bz3_state * state, uint8_t * buffer, i
 
 /**
  * @brief Decode a single block.
- * `buffer' must be able to hold at least `orig_size' bytes. The size must not exceed the block size
+ * `buffer' must be able to hold at least `bz3_bound(orig_size)' bytes. The size must not exceed the block size
  * associated with the state.
  * @param size The size of the compressed data in `buffer'
  * @param orig_size The original size of the data before compression.
