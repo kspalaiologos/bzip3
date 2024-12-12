@@ -1,5 +1,7 @@
 # BZip3 Format Specification
 
+Version 1
+
 ## Headers
 
 The File and Frame formats share a similar structure, differing only in whether they include a
@@ -173,3 +175,7 @@ The `model` byte in regular blocks indicates which compression features were use
 
 - `0x02`: LZP (Longest Previous Pattern) compression
 - `0x04`: RLE (Run-Length Encoding) compression
+
+## External Resources
+
+- [BZip3 Pattern for ImHex](https://github.com/WerWolv/ImHex-Patterns/pull/329)
