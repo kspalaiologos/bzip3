@@ -150,7 +150,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
  *    - Everything is freed after compression completes
  * 
  * 2. bz3_decompress():
- *    - Allocates additional temporary compression buffer (bz3_decode_bound(block_size) bytes)
+ *    - Allocates additional temporary compression buffer (bz3_decode_block_bound(block_size) bytes)
  *      in addition to the memory amount returned by this method call.
  *    - Everything is freed after compression completes
  * 
