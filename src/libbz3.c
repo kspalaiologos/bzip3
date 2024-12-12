@@ -915,3 +915,28 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     bz3_free(state);
     return BZ3_OK;
 }
+
+BZIP3_API size_t bz3_memory_needed(int32_t block_size) {
+    if (block_size < KiB(65) || block_size > MiB(511)) {
+        return 0;
+    }
+
+    size_t total_size = 0;
+
+    // This is based on bz3_new.
+    // Core state structure
+    total_size += sizeof(struct bz3_state);
+
+    // cm_state
+    total_size += sizeof(state);
+
+    // Swap buffer (needs to handle expanded size) (swap_buffer)
+    total_size += bz3_bound(block_size);
+
+    // SAIS array
+    total_size += BWT_BOUND(block_size) * sizeof(int32_t);
+
+    // LZP lookup table (lzp_lut)
+    total_size += (1 << LZP_DICTIONARY) * sizeof(int32_t);
+    return total_size;
+}

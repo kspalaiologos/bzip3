@@ -108,6 +108,60 @@ BZIP3_API int bz3_compress(uint32_t block_size, const uint8_t * in, uint8_t * ou
  */
 BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, size_t * out_size);
 
+/**
+ * @brief Calculate the total memory required for compression with the given block size.
+ * This includes all internal buffers and state structures. This calculates the amount of bytes
+ * that will be allocated by a call to `bz3_new()`.
+ * 
+ * @details Memory allocation and usage patterns:
+ * 
+ * bz3_new():
+ *    - Allocates all memory upfront:
+ *      - Core state structure (sizeof(struct bz3_state))
+ *      - Swap buffer (bz3_bound(block_size) bytes)
+ *      - SAIS array (BWT_BOUND(block_size) * sizeof(int32_t) bytes)
+ *      - LZP lookup table ((1 << LZP_DICTIONARY) * sizeof(int32_t) bytes)
+ *      - Compression state (sizeof(state))
+ *    - All memory remains allocated until bz3_free()
+ * 
+ * Additional memory may be used depending on API used from here.
+ * 
+ * # Low Level APIs
+ * 
+ * 1. bz3_encode_block() / bz3_decode_block():
+ *    - Uses pre-allocated memory from bz3_new()
+ *    - No additional memory allocation
+ *    - Peak memory usage of physical RAM varies with compression stages:
+ *      - LZP: Uses LZP lookup table + swap buffer
+ *      - BWT: Uses SAIS array + swap buffer
+ *      - Entropy coding: Uses compression state (cm_state) + swap buffer
+ * 
+ * Using the higher level API, `bz3_compress`, expect an additional allocation
+ * of `bz3_bound(block_size)`.
+ * 
+ * In the parallel version `bz3_encode_blocks`, each thread gets its own state,
+ * so memory usage is `n_threads * bz3_compress_memory_needed()`.
+ * 
+ * # High Level APIs
+ * 
+ * 1. bz3_compress():
+ *    - Allocates additional temporary compression buffer (bz3_bound(block_size) bytes)
+ *      in addition to the memory amount returned by this method call.
+ *    - Everything is freed after compression completes
+ * 
+ * 2. bz3_decompress():
+ *    - Allocates additional temporary compression buffer (bz3_decode_bound(block_size) bytes)
+ *      in addition to the memory amount returned by this method call.
+ *    - Everything is freed after compression completes
+ * 
+ * Memory remains constant during operation - no dynamic reallocation occurs
+ * during compression or decompression after initial setup.
+ * 
+ * @param block_size The block size to be used for compression
+ * @return The total number of bytes required for compression, or 0 if block_size is invalid
+ */
+BZIP3_API size_t bz3_memory_needed(int32_t block_size);
+
 /* ** LOW LEVEL APIs ** */
 
 /**
