@@ -127,8 +127,8 @@ and `bz3_decode_block` APIs.
 ```c
 // Main block structure
 struct Chunk {
-    u32 compressedSize;   // Size of compressed block
-    u32 origSize;         // Original uncompressed size
+    u32_le compressedSize;   // Size of compressed block
+    u32_le origSize;         // Original uncompressed size
         
     if (compressedSize < 64) {
         SmallBlock block;
@@ -144,8 +144,8 @@ For blocks smaller than 64 bytes, no compression is attempted. The data is store
 
 ```c
 struct SmallBlock {
-    u32 crc32;           // CRC32 checksum
-    u32 literal;         // Always 0xFFFFFFFF for small blocks. This is basically an invalid `bwtIndex`
+    u32_le crc32;           // CRC32 checksum
+    u32_le literal;         // Always 0xFFFFFFFF for small blocks. This is basically an invalid `bwtIndex`
     u8 data[parent.compressedSize - 8]; // Uncompressed data
 };
 ```
@@ -156,14 +156,14 @@ Larger blocks use a more complex format that supports multiple compression featu
 
 ```c
 struct Block {
-    u32 crc32;            // CRC32 checksum of uncompressed data
-    u32 bwtIndex;         // Burrows-Wheeler transform index
+    u32_le crc32;            // CRC32 checksum of uncompressed data
+    u32_le bwtIndex;         // Burrows-Wheeler transform index
     u8  model;            // Compression model flags
     
     if ((model & 0x02) != 0)     
-        u32 lzpSize;      // Size after LZP compression
+        u32_le lzpSize;      // Size after LZP compression
     if ((model & 0x04) != 0)     
-        u32 rleSize;      // Size after RLE compression
+        u32_le rleSize;      // Size after RLE compression
         
     u8 data[parent.compressedSize - (popcnt(model) * 4 + 9)];
 };
