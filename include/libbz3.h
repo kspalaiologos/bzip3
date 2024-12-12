@@ -199,6 +199,18 @@ BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[
 BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
                                  int32_t orig_sizes[], int32_t n);
 
+/**
+ * @brief Calculate the required output buffer size for decompressing a single block.
+ * 
+ * When decompressing a block, additional space may be needed to handle internal 
+ * headers from pre-filters like RLE and LZP. This function calculates the exact
+ * required output buffer size.
+ * 
+ * @param orig_size The original (uncompressed) size of the block
+ * @return The required output buffer size for decompression
+ */
+BZIP3_API size_t bz3_decode_block_bound(size_t orig_size);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

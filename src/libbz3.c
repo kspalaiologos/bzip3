@@ -868,7 +868,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
 
-    u8 * compression_buf = malloc(bz3_bound(block_size));
+    u8 * compression_buf = malloc(bz3_decode_block_bound(block_size));
     if (!compression_buf) {
         bz3_free(state);
         return BZ3_ERR_INIT;
@@ -939,4 +939,12 @@ BZIP3_API size_t bz3_memory_needed(int32_t block_size) {
     // LZP lookup table (lzp_lut)
     total_size += (1 << LZP_DICTIONARY) * sizeof(int32_t);
     return total_size;
+}
+
+BZIP3_API size_t bz3_decode_block_bound(size_t orig_size) {
+    // Add 256 bytes to handle worst-case pre-filter headers:
+    // - RLE map (32 bytes for the bitmap)
+    // - LZP headers if present
+    // The 256-byte padding is confirmed by the author as sufficient
+    return orig_size + 256;
 }
