@@ -122,7 +122,7 @@ typedef struct {
     
     currentBlockSize = compressedSize; // Store for use in SMALL_BLOCK
     
-    if(compressedSize < 64) {
+    if(origSize < 64) {
         SMALL_BLOCK content;
     } else {
         BLOCK_HEADER header;
