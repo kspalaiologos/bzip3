@@ -90,7 +90,7 @@ BZIP3_API size_t bz3_bound(size_t input_size);
 /* ** HIGH LEVEL APIs ** */
 
 /**
- * @brief Compress a block of data. This function does not support parallelism
+ * @brief Compress a frame. This function does not support parallelism
  * by itself, consider using the low level `bz3_encode_blocks()` function instead.
  * Using the low level API might provide better performance.
  * Returns a bzip3 error code; BZ3_OK when the operation is successful.
@@ -100,7 +100,7 @@ BZIP3_API size_t bz3_bound(size_t input_size);
 BZIP3_API int bz3_compress(uint32_t block_size, const uint8_t * in, uint8_t * out, size_t in_size, size_t * out_size);
 
 /**
- * @brief Decompress a block of data. This function does not support parallelism
+ * @brief Decompress a frame. This function does not support parallelism
  * by itself, consider using the low level `bz3_decode_blocks()` function instead.
  * Using the low level API might provide better performance.
  * Returns a bzip3 error code; BZ3_OK when the operation is successful.
