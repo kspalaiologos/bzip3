@@ -33,7 +33,18 @@
  * 
  * AFL_SKIP_CPUFREQ=1 afl-fuzz -i afl_in -o afl_out -- ./fuzz @@
  *
- * 6. Found a crash?
+ * 6. Wanna go faster? Multithread.
+ * 
+ * alacritty -e bash -c "afl-fuzz -i afl_in -o afl_out -M fuzzer01 -- ./fuzz @@; exec bash" &
+ * alacritty -e bash -c "afl-fuzz -i afl_in -o afl_out -S fuzzer02 -- ./fuzz @@; exec bash" &
+ * alacritty -e bash -c "afl-fuzz -i afl_in -o afl_out -S fuzzer03 -- ./fuzz @@; exec bash" &
+ * alacritty -e bash -c "afl-fuzz -i afl_in -o afl_out -S fuzzer04 -- ./fuzz @@; exec bash" &
+ * 
+ * etc. Replace `alacritty` with your terminal.
+ * 
+ * And check progress with `afl-whatsup afl_out`.
+ * 
+ * 7. Found a crash?
  * 
  * If you find a crash, consider also doing the following:
  * 
