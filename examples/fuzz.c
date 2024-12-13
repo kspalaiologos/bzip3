@@ -50,7 +50,8 @@
  * 
  * clang fuzz.c ../src/libbz3.c -g3 -O3 -march=native -o fuzz_asan -I../include "-DVERSION=\"0.0.0\"" -fsanitize=undefined -fsanitize=address
  *
- * And run fuzz_asan on the crashing test case. Attach the test case /and/ the output of fuzz_asan to the bug report.
+ * And run fuzz_asan on the crashing test case (you can find it in one of the `afl_out/crashes/` folders).
+ * Attach the test case /and/ the output of fuzz_asan to the bug report.
  */
 
 
