@@ -133,7 +133,7 @@ int Popcount(byte b) {
 }
 
 // Main parsing structure
-uint32 frameCount;
+uint32 orig_size;
 FRAME_HEADER frameHeader;
 
 // Read blocks until end of file
