@@ -48,10 +48,17 @@
  * 
  * If you find a crash, consider also doing the following:
  * 
- * clang fuzz.c ../src/libbz3.c -g3 -O3 -march=native -o fuzz_asan -I../include "-DVERSION=\"0.0.0\"" -fsanitize=undefined -fsanitize=address
+ *      clang fuzz.c ../src/libbz3.c -g3 -O3 -march=native -o fuzz_asan -I../include "-DVERSION=\"0.0.0\"" -fsanitize=undefined -fsanitize=address
  *
  * And run fuzz_asan on the crashing test case (you can find it in one of the `afl_out/crashes/` folders).
  * Attach the test case /and/ the output of fuzz_asan to the bug report.
+ * 
+ * If no error occurs, it could be that there was a memory corruption `between` the runs.
+ * In which case, you want to run AFL with address sanitizer. Use `export AFL_USE_ASAN=1` to enable
+ * addres sanitizer; then run AFL.
+ * 
+ * export AFL_USE_ASAN=1
+ * afl-clang-fast fuzz.c -I../include ../src/libbz3.c -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
  */
 
 
