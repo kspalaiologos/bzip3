@@ -651,13 +651,13 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     data_size -= p * 4 + 1;
 
-    if (((model & 2) && (lzp_size > bz3_decode_block_bound(state->block_size) || lzp_size < 0)) ||
-        ((model & 4) && (rle_size > bz3_decode_block_bound(state->block_size) || rle_size < 0))) {
+    if (((model & 2) && (lzp_size > bz3_bound(state->block_size) || lzp_size < 0)) ||
+        ((model & 4) && (rle_size > bz3_bound(state->block_size) || rle_size < 0))) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
-    if (orig_size > bz3_decode_block_bound(state->block_size) || orig_size < 0) {
+    if (orig_size > bz3_bound(state->block_size) || orig_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -698,7 +698,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     // Undo LZP
     if (model & 2) {
-        size_src = lzp_decompress(b1, b2, lzp_size, bz3_decode_block_bound(state->block_size), state->lzp_lut);
+        size_src = lzp_decompress(b1, b2, lzp_size, bz3_bound(state->block_size), state->lzp_lut);
         if (size_src == -1) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
@@ -868,7 +868,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     struct bz3_state * state = bz3_new(block_size);
     if (!state) return BZ3_ERR_INIT;
 
-    u8 * compression_buf = malloc(bz3_decode_block_bound(block_size));
+    u8 * compression_buf = malloc(bz3_bound(block_size));
     if (!compression_buf) {
         bz3_free(state);
         return BZ3_ERR_INIT;
@@ -939,14 +939,4 @@ BZIP3_API size_t bz3_memory_needed(int32_t block_size) {
     // LZP lookup table (lzp_lut)
     total_size += (1 << LZP_DICTIONARY) * sizeof(int32_t);
     return total_size;
-}
-
-BZIP3_API size_t bz3_decode_block_bound(size_t orig_size) {
-    // Block may temporarily exceed the `orig_size` due to
-    // - RLE not being effective (encoded data pre commit 187b3228c73d4f35916ecb5950f18861ddc853ac)
-    // - LZP not being effective (encoded data pre commit 187b3228c73d4f35916ecb5950f18861ddc853ac)
-    // - Burrows Wheeler Transform (added bytes if RLE/LZP didn't save enough space)
-    // - Arithmetic Coding (on added bytes if prior steps failed)
-    // The 256-byte padding is claimed by the author as sufficient
-    return orig_size + 256;
 }

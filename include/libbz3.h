@@ -150,7 +150,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
  *    - Everything is freed after compression completes
  * 
  * 2. bz3_decompress():
- *    - Allocates additional temporary compression buffer (bz3_decode_block_bound(block_size) bytes)
+ *    - Allocates additional temporary compression buffer (bz3_bound(block_size) bytes)
  *      in addition to the memory amount returned by this method call.
  *    - Everything is freed after compression completes
  * 
@@ -198,18 +198,6 @@ BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[
  */
 BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
                                  int32_t orig_sizes[], int32_t n);
-
-/**
- * @brief Calculate the required output buffer size for decompressing a single block.
- * 
- * When decompressing a block, additional space may be needed to handle internal 
- * headers from pre-filters like RLE and LZP. This function calculates the exact
- * required output buffer size.
- * 
- * @param orig_size The original (uncompressed) size of the block
- * @return The required output buffer size for decompression
- */
-BZIP3_API size_t bz3_decode_block_bound(size_t orig_size);
 
 #ifdef __cplusplus
 } /* extern "C" */
