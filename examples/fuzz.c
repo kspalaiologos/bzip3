@@ -42,7 +42,7 @@
  * 
  * etc. Replace `alacritty` with your terminal.
  * 
- * And check progress with `afl-whatsup afl_out`.
+ * And check progress with `afl-whatsup afl_out` (updates periodically).
  * 
  * 7. Found a crash?
  * 
