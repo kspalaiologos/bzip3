@@ -942,9 +942,11 @@ BZIP3_API size_t bz3_memory_needed(int32_t block_size) {
 }
 
 BZIP3_API size_t bz3_decode_block_bound(size_t orig_size) {
-    // Add 256 bytes to handle worst-case pre-filter headers:
-    // - RLE map (32 bytes for the bitmap)
-    // - LZP headers if present
-    // The 256-byte padding is confirmed by the author as sufficient
+    // Block may temporarily exceed the `orig_size` due to
+    // - RLE not being effective (encoded data pre commit 187b3228c73d4f35916ecb5950f18861ddc853ac)
+    // - LZP not being effective (encoded data pre commit 187b3228c73d4f35916ecb5950f18861ddc853ac)
+    // - Burrows Wheeler Transform (added bytes if RLE/LZP didn't save enough space)
+    // - Arithmetic Coding (on added bytes if prior steps failed)
+    // The 256-byte padding is claimed by the author as sufficient
     return orig_size + 256;
 }
