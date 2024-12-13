@@ -12,7 +12,7 @@ block count field.
 ```
 +----------------+------------------+--------------------+
 | Header         | Chunk 1          | Chunk 2            |
-| (13 bytes)     | (variable size)  | (variable size)    |
+| (9 bytes)      | (variable size)  | (variable size)    |
 +----------------+------------------+--------------------+
 ```
 
@@ -23,7 +23,7 @@ This is created by the CLI tool.
 ```
 +----------------+------------------+--------------------+
 | Header         | Chunk 1          | Chunk 2            |
-| (9 bytes)      | (variable size)  | (variable size)    |
+| (13 bytes)     | (variable size)  | (variable size)    |
 +----------------+------------------+--------------------+
 ```
 
@@ -35,7 +35,7 @@ This is created/read by `bz3_compress` and `bz3_decompress`.
 | -------------- | ------ | ------------------------------- | ----------- | ------------ |
 | Signature      | u8[5]  | Fixed "BZ3v1" ASCII string      | ✓           | ✓            |
 | Max Block Size | u32_le | Maximum decompressed block size | ✓           | ✓            |
-| Block Count    | u32_le | Number of blocks in the stream  | ✓           | ✗            |
+| Block Count    | u32_le | Number of blocks in the stream  | ✗           | ✓            |
 
 ### Validation Rules
 
@@ -43,7 +43,7 @@ This is created/read by `bz3_compress` and `bz3_decompress`.
 2. **Max Block Size**:
    - Minimum: 65KiB (66,560 bytes)
    - Maximum: 511MiB (535,822,336 bytes)
-3. **Block Count** (File Format only):
+3. **Block Count** (Frame Format only):
    - Must match the actual number of blocks in the stream
    - Should be greater than 0
 
@@ -52,11 +52,10 @@ This is created/read by `bz3_compress` and `bz3_decompress`.
 ```c
 typedef struct {
     uint32_t max_block_size;
-    uint32_t block_count;    // File Format only
-    bool is_file_format;
+    uint32_t block_count; // Frame Format only
 } bzip3_header_t;
 
-bool read_bzip3_header(FILE* fp, bzip3_header_t* header) {
+bool read_bzip3_header(FILE* fp, bzip3_header_t* header, bool is_frame_format) {
     char signature[6] = {0};
     
     // Read signature
@@ -77,8 +76,8 @@ bool read_bzip3_header(FILE* fp, bzip3_header_t* header) {
         header->max_block_size > 535822336)
         return false;
     
-    // Read block count if File Format
-    if (header->is_file_format) {
+    // Read block count if Frame Format
+    if (is_frame_format) {
         uint8_t count_bytes[4];
         if (fread(count_bytes, 1, 4, fp) != 4)
             return false;
