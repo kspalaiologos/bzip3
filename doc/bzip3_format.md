@@ -129,7 +129,7 @@ struct Chunk {
     u32_le compressedSize;   // Size of compressed block
     u32_le origSize;         // Original uncompressed size
         
-    if (compressedSize < 64) {
+    if (origSize < 64) {
         SmallBlock block;
     } else {
         Block block;
