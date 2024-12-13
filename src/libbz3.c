@@ -620,7 +620,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
-    if (data_size > bz3_bound(state->block_size) || data_size < 0) {
+    if (data_size > bz3_decode_block_bound(state->block_size) || data_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -651,13 +651,13 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     data_size -= p * 4 + 1;
 
-    if (((model & 2) && (lzp_size > bz3_bound(state->block_size) || lzp_size < 0)) ||
-        ((model & 4) && (rle_size > bz3_bound(state->block_size) || rle_size < 0))) {
+    if (((model & 2) && (lzp_size > bz3_decode_block_bound(state->block_size) || lzp_size < 0)) ||
+        ((model & 4) && (rle_size > bz3_decode_block_bound(state->block_size) || rle_size < 0))) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
-    if (orig_size > bz3_bound(state->block_size) || orig_size < 0) {
+    if (orig_size > bz3_decode_block_bound(state->block_size) || orig_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
@@ -698,7 +698,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
     // Undo LZP
     if (model & 2) {
-        size_src = lzp_decompress(b1, b2, lzp_size, bz3_bound(state->block_size), state->lzp_lut);
+        size_src = lzp_decompress(b1, b2, lzp_size, bz3_decode_block_bound(state->block_size), state->lzp_lut);
         if (size_src == -1) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
