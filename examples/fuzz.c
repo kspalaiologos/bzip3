@@ -53,6 +53,96 @@
  * And run fuzz_asan on the crashing test case. Attach the test case /and/ the output of fuzz_asan to the bug report.
  */
 
+
+/*
+
+This hex editor template can be used to help debug a breaking file.
+Would provide for ImHex, but ImHex terminates if template is borked.
+
+//------------------------------------------------
+//--- 010 Editor v15.0.1 Binary Template
+//
+//      File: bzip3.bt
+//   Authors: Sewer56
+//   Version: 1.0.1
+//   Purpose: Parse bzip3 fuzzer data
+//  Category: Archive
+// File Mask: *.bz3
+//  ID Bytes: 42 5A 33 76 31 // "BZ3v1"
+//------------------------------------------------
+
+// Colors for different sections
+#define COLOR_HEADER     0xA0FFA0 // Frame header
+#define COLOR_BLOCKHEAD  0xFFB0B0 // Block headers
+#define COLOR_DATA       0xB0B0FF // Compressed data
+
+local uint32 currentBlockSize; // Store block size globally
+
+// Frame header structure
+typedef struct {
+    char signature[5];     // "BZ3v1"
+    uint32 blockSize;      // Maximum block size
+    uint32 block_count;
+} FRAME_HEADER <bgcolor=COLOR_HEADER>;
+
+// Regular block header (for blocks >= 64 bytes)
+typedef struct {
+    uint32 crc32;         // CRC32 checksum of uncompressed data
+    uint32 bwtIndex;      // Burrows-Wheeler transform index
+    uint8  model;         // Compression model flags:
+                         // bit 1 (0x02): LZP was used
+                         // bit 2 (0x04): RLE was used
+    
+    // Optional size fields based on compression flags
+    if(model & 0x02)     
+        uint32 lzpSize;   // Size after LZP compression
+    if(model & 0x04)     
+        uint32 rleSize;   // Size after RLE compression
+} BLOCK_HEADER <bgcolor=COLOR_BLOCKHEAD>;
+
+// Small block header (for blocks < 64 bytes)
+typedef struct {
+    uint32 crc32;        // CRC32 checksum
+    uint32 literal;      // Always 0xFFFFFFFF for small blocks
+    uint8 data[currentBlockSize - 8]; // Uncompressed data
+} SMALL_BLOCK <bgcolor=COLOR_BLOCKHEAD>;
+
+// Main block structure
+typedef struct {
+    uint32 compressedSize;  // Size of compressed block
+    uint32 origSize;        // Original uncompressed size
+    
+    currentBlockSize = compressedSize; // Store for use in SMALL_BLOCK
+    
+    if(compressedSize < 64) {
+        SMALL_BLOCK content;
+    } else {
+        BLOCK_HEADER header;
+        uchar data[compressedSize - (Popcount(header.model) * 4 + 9)];
+    }
+} BLOCK <bgcolor=COLOR_DATA>;
+
+// Helper function for bit counting (used for header size calculation)
+int Popcount(byte b) {
+    local int count = 0;
+    while(b) {
+        count += b & 1;
+        b >>= 1;
+    }
+    return count;
+}
+
+// Main parsing structure
+uint32 frameCount;
+FRAME_HEADER frameHeader;
+
+// Read blocks until end of file
+while(!FEof()) {
+    BLOCK block;
+}
+
+*/
+
 #include <libbz3.h>
 #include <stdio.h>
 #include <stdlib.h>
