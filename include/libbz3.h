@@ -185,10 +185,10 @@ BZIP3_API int32_t bz3_encode_block(struct bz3_state * state, uint8_t * buffer, i
  * The size must not exceed the block size associated with the state.
  * 
  * @param buffer_size The size of the buffer at 'buffer'
- * @param size The size of the compressed data in 'buffer'
+ * @param compressed_size The size of the compressed data in 'buffer'
  * @param orig_size The original size of the data before compression.
  */
-BZIP3_API int32_t bz3_decode_block(struct bz3_state * state, uint8_t * buffer, size_t buffer_size, int32_t size, int32_t orig_size);
+BZIP3_API int32_t bz3_decode_block(struct bz3_state * state, uint8_t * buffer, size_t buffer_size, int32_t compressed_size, int32_t orig_size);
 
 /**
  * @brief Encode `n' blocks, all in parallel.

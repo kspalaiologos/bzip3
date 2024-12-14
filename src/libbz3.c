@@ -645,9 +645,9 @@ BZIP3_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_s
     return data_size + overhead * 4 + 1;
 }
 
-BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buffer_size, s32 data_size, s32 orig_size) {
-    // Need minimum bytes for initial header
-    if (buffer_size < 9) {
+BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buffer_size, s32 compressed_size, s32 orig_size) {
+    // Need minimum bytes for initial header, and compressed_size needs to fit within claimed buffer size.
+    if (buffer_size < 9 || buffer_size < compressed_size) {
         state->last_error = BZ3_ERR_DATA_SIZE_TOO_SMALL;
         return -1;
     }
@@ -656,31 +656,31 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buf
     u32 crc32 = read_neutral_s32(buffer);
     s32 bwt_idx = read_neutral_s32(buffer + 4);
 
-    if (data_size > bz3_bound(state->block_size) || data_size < 0) {
+    if (compressed_size > bz3_bound(state->block_size) || compressed_size < 0) {
         state->last_error = BZ3_ERR_MALFORMED_HEADER;
         return -1;
     }
 
     if (bwt_idx == -1) {
-        if (data_size - 8 > 64 || data_size < 8) {
+        if (compressed_size - 8 > 64 || compressed_size < 8) {
             state->last_error = BZ3_ERR_MALFORMED_HEADER;
             return -1;
         }
 
         // Ensure there's enough space for the raw copied data.
-        if (data_size - 8 > buffer_size) {
+        if (compressed_size - 8 > buffer_size) {
             state->last_error = BZ3_ERR_DATA_SIZE_TOO_SMALL;
             return -1;
         }
 
-        memmove(buffer, buffer + 8, data_size - 8);
+        memmove(buffer, buffer + 8, compressed_size - 8);
 
-        if (crc32sum(1, buffer, data_size - 8) != crc32) {
+        if (crc32sum(1, buffer, compressed_size - 8) != crc32) {
             state->last_error = BZ3_ERR_CRC;
             return -1;
         }
 
-        return data_size - 8;
+        return compressed_size - 8;
     }
 
     s8 model = buffer[8];
@@ -697,7 +697,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buf
     if (model & 4) rle_size = read_neutral_s32(buffer + 9 + 4 * p++);
     p += 2;
 
-    data_size -= p * 4 + 1;
+    compressed_size -= p * 4 + 1;
 
     if (((model & 2) && (lzp_size > bz3_bound(state->block_size) || lzp_size < 0)) ||
         ((model & 4) && (rle_size > bz3_bound(state->block_size) || rle_size < 0))) {
@@ -734,7 +734,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buf
     begin(state->cm_state);
     state->cm_state->in_queue = b1 + p * 4 + 1;
     state->cm_state->input_ptr = 0;
-    state->cm_state->input_max = data_size;
+    state->cm_state->input_max = compressed_size;
 
     decode_bytes(state->cm_state, b2, size_before_bwt);
     swap(b1, b2);
