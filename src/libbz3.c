@@ -105,13 +105,14 @@ static u32 lzp_upcast(const u8 * ptr) {
  * @param rle_size Size after RLE decompression (-1 if RLE not used) 
  * @return 1 if buffer size is sufficient, 0 otherwise
  */
-static int bz3_check_buffer_size(size_t buffer_size, s32 lzp_size, s32 rle_size) {
+static int bz3_check_buffer_size(size_t buffer_size, s32 lzp_size, s32 rle_size, s32 orig_size) {
     // Handle -1 cases to avoid implicit conversion issues
     size_t effective_lzp_size = lzp_size < 0 ? 0 : (size_t)lzp_size;
     size_t effective_rle_size = rle_size < 0 ? 0 : (size_t)rle_size;
+    size_t effective_orig_size = orig_size < 0 ? 0 : (size_t)orig_size;
 
     // Check if buffer can hold intermediate results
-    return (effective_lzp_size <= buffer_size) && (effective_rle_size <= buffer_size);
+    return (effective_lzp_size <= buffer_size) && (effective_rle_size <= buffer_size) && (effective_orig_size <= buffer_size);
 }
 
 static s32 lzp_encode_block(const u8 * RESTRICT in, const u8 * in_end, u8 * RESTRICT out, u8 * out_end,
@@ -646,7 +647,7 @@ BZIP3_API s32 bz3_encode_block(struct bz3_state * state, u8 * buffer, s32 data_s
 
 BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buffer_size, s32 data_size, s32 orig_size) {
     // Need minimum bytes for initial header
-    if (data_size < 9) {
+    if (buffer_size < 9) {
         state->last_error = BZ3_ERR_DATA_SIZE_TOO_SMALL;
         return -1;
     }
@@ -722,7 +723,7 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buf
     // Note(sewer): It's technically valid within the spec to create a bzip3 block
     // where the size after LZP/RLE is larger than the original input. Some earlier encoders
     // even (mistakenly?) were able to do this.
-    if (!bz3_check_buffer_size(buffer_size, lzp_size, rle_size)) {
+    if (!bz3_check_buffer_size(buffer_size, lzp_size, rle_size, orig_size)) {
         state->last_error = BZ3_ERR_DATA_SIZE_TOO_SMALL;
         return -1;
     }
@@ -761,10 +762,18 @@ BZIP3_API s32 bz3_decode_block(struct bz3_state * state, u8 * buffer, size_t buf
             state->last_error = BZ3_ERR_CRC;
             return -1;
         }
+        // SAFETY(sewer): An attacker formed bzip3 data which decompresses as valid lzp.
+        // The headers above were set to ones that pass validation (size within bounds), but the 
+        // data itself tries to escape buffer_size. Don't allow it to.
+        if (size_src > buffer_size) {
+            state->last_error = BZ3_ERR_DATA_SIZE_TOO_SMALL;    
+            return -1;
+        }
         swap(b1, b2);
     }
 
     if (model & 4) { 
+        // SAFETY: mrled is capped at orig_size, which is in bounds.
         int err = mrled(b1, b2, orig_size, size_src);
         if (err) {
             state->last_error = BZ3_ERR_CRC;
@@ -1032,5 +1041,5 @@ BZIP3_API int bz3_orig_size_sufficient_for_decode(const u8 * block, size_t block
         header_size += 4;
     }
     if (model & 4) rle_size = read_neutral_s32(block + header_size);
-    return bz3_check_buffer_size((size_t)orig_size, lzp_size, rle_size);
+    return bz3_check_buffer_size((size_t)orig_size, lzp_size, rle_size, orig_size);
 }
