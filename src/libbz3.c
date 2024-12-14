@@ -96,15 +96,15 @@ static u32 lzp_upcast(const u8 * ptr) {
 /**
  * @brief Check if the buffer size is sufficient for decoding a bz3 block
  * 
- * Data passed to the BWT+BCM step can be one of the following:
+ * Data passed to the last step can be one of the following:
  * - original data
  * - original data + LZP
  * - original data + RLE
  * - original data + RLE + LZP
  *
  * We must ensure `buffer_size` is large enough to store the data at every step 
- * when walking backwards from undoing BWT+BCM. The required size may be stored in 
- * either `lzp_size`, `rle_size` OR `orig_size`.
+ * when walking backwards. The required size may be stored in  either `lzp_size`,
+ * `rle_size` OR `orig_size`.
  *
  * @param buffer_size Size of the output buffer
  * @param lzp_size Size after LZP decompression (-1 if LZP not used)
