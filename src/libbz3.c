@@ -986,7 +986,7 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     return BZ3_OK;
 }
 
-BZIP3_API size_t bz3_memory_needed(int32_t block_size) {
+BZIP3_API size_t bz3_min_memory_needed(int32_t block_size) {
     if (block_size < KiB(65) || block_size > MiB(511)) {
         return 0;
     }
