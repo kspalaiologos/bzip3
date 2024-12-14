@@ -18,11 +18,17 @@
  */
 
 #include "libbz3.h"
-
 #include <stdlib.h>
 #include <string.h>
-
 #include "libsais.h"
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define LIKELY(x)   __builtin_expect(!!(x), 1)
+    #define UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+    #define LIKELY(x)   (x)
+    #define UNLIKELY(x) (x)
+#endif
 
 /* CRC32 implementation. Since CRC32 generally takes less than 1% of the runtime on real-world data (e.g. the
    Silesia corpus), I decided against using hardware CRC32. This implementation is simple, fast, fool-proof and
@@ -201,21 +207,23 @@ static s32 lzp_decode_block(const u8 * RESTRICT in, const u8 * in_end, s32 * RES
 
     while (in < in_end && out < out_end) {
         u32 idx = (ctx >> 15 ^ ctx ^ ctx >> 3) & ((s32)(1 << LZP_DICTIONARY) - 1);
-        s32 val = lut[idx];
+        s32 val = lut[idx]; // SAFETY: guaranteed to be in-bounds by & mask. 
         lut[idx] = (s32)(out - outs);
         if (*in == MATCH && val > 0) {
             in++;
+            // SAFETY: 'in' is advanced here, but it may have been at last index in the case of untrusted bad data.
+            if (UNLIKELY(in == in_end)) return -1;
             if (*in != 255) {
                 s32 len = LZP_MIN_MATCH;
                 while (1) {
-                    if (in == in_end) return -1;
+                    if (UNLIKELY(in == in_end)) return -1;
                     len += *in;
                     if (*in++ != 254) break;
                 }
 
                 const u8 * ref = outs + val;
                 const u8 * oe = out + len;
-                if (oe > out_end) oe = out_end;
+                if (UNLIKELY(oe > out_end)) oe = out_end;
 
                 while (out < oe) *out++ = *ref++;
 
