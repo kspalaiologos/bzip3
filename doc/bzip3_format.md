@@ -172,8 +172,8 @@ struct Block {
 
 The `model` byte in regular blocks indicates which compression features were used:
 
-- `0x02`: LZP (Longest Previous Pattern) compression
-- `0x04`: RLE (Run-Length Encoding) compression
+- `0x02`: LZP (Lempel Ziv Prediction) filter
+- `0x04`: RLE (Run-Length Encoding) filter
 
 ## External Resources
 
