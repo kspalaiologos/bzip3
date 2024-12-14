@@ -52,6 +52,7 @@ extern "C" {
 #define BZ3_ERR_TRUNCATED_DATA -5
 #define BZ3_ERR_DATA_TOO_BIG -6
 #define BZ3_ERR_INIT -7
+#define BZ3_ERR_ORIG_SIZE_TOO_SMALL -8
 
 struct bz3_state;
 
@@ -173,12 +174,21 @@ BZIP3_API int32_t bz3_encode_block(struct bz3_state * state, uint8_t * buffer, i
 
 /**
  * @brief Decode a single block.
- * `buffer' must be able to hold at least `bz3_bound(orig_size)' bytes. The size must not exceed the block size
- * associated with the state.
+ * 
+ * `buffer' must be able to hold at least `bz3_bound(orig_size)' bytes
+ * in order to ensure decompression will succeed for all possible bzip3 blocks.
+ * 
+ * In most (but not all) cases, `orig_size` should usually be sufficient.
+ * If it is not sufficient, you must allocate a buffer of size `bz3_bound(orig_size)` temporarily. 
+ * 
+ * If `buffer_size` is too small, `BZ3_ERR_ORIG_SIZE_TOO_SMALL` will be returned.
+ * The size must not exceed the block size associated with the state.
+ * 
+ * @param buffer_size The size of the buffer at `buffer'
  * @param size The size of the compressed data in `buffer'
  * @param orig_size The original size of the data before compression.
  */
-BZIP3_API int32_t bz3_decode_block(struct bz3_state * state, uint8_t * buffer, int32_t size, int32_t orig_size);
+BZIP3_API int32_t bz3_decode_block(struct bz3_state * state, uint8_t * buffer, size_t buffer_size, int32_t size, int32_t orig_size);
 
 /**
  * @brief Encode `n' blocks, all in parallel.
@@ -196,7 +206,7 @@ BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[
  * @brief Decode `n' blocks, all in parallel.
  * Same specifics as `bz3_encode_blocks', but doesn't overwrite `sizes'.
  */
-BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], int32_t sizes[],
+BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], size_t buffer_sizes[], int32_t sizes[],
                                  int32_t orig_sizes[], int32_t n);
 
 #ifdef __cplusplus
