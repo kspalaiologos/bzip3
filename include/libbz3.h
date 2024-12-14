@@ -52,7 +52,7 @@ extern "C" {
 #define BZ3_ERR_TRUNCATED_DATA -5
 #define BZ3_ERR_DATA_TOO_BIG -6
 #define BZ3_ERR_INIT -7
-#define BZ3_ERR_ORIG_SIZE_TOO_SMALL -8
+#define BZ3_ERR_DATA_SIZE_TOO_SMALL -8
 
 struct bz3_state;
 
@@ -181,7 +181,7 @@ BZIP3_API int32_t bz3_encode_block(struct bz3_state * state, uint8_t * buffer, i
  * In most (but not all) cases, `orig_size` should usually be sufficient.
  * If it is not sufficient, you must allocate a buffer of size `bz3_bound(orig_size)` temporarily. 
  * 
- * If `buffer_size` is too small, `BZ3_ERR_ORIG_SIZE_TOO_SMALL` will be returned.
+ * If `buffer_size` is too small, `BZ3_ERR_DATA_SIZE_TOO_SMALL` will be returned.
  * The size must not exceed the block size associated with the state.
  * 
  * @param buffer_size The size of the buffer at `buffer'
@@ -208,6 +208,29 @@ BZIP3_API void bz3_encode_blocks(struct bz3_state * states[], uint8_t * buffers[
  */
 BZIP3_API void bz3_decode_blocks(struct bz3_state * states[], uint8_t * buffers[], size_t buffer_sizes[], int32_t sizes[],
                                  int32_t orig_sizes[], int32_t n);
+
+/**
+ * @brief Check if using original file size as buffer size is sufficient for decompressing
+ * a block at `block` pointer.
+ * 
+ * @param block Pointer to the compressed block data
+ * @param block_size Size of the block buffer in bytes (must be at least 13 bytes for header)
+ * @param orig_size Size of the original uncompressed data 
+ * @return 1 if original size is sufficient, 0 if insufficient, -1 on header error (insufficient buffer size)
+ * 
+ * @remarks
+ * 
+ *      This function is useful for external APIs using the low level block encoding API,
+ *      `bz3_encode_block`. You would normally call this directly after `bz3_encode_block`
+ *      on the block that has been output.
+ *      
+ *      The purpose of this function is to prevent encoding blocks that would require an additional
+ *      malloc at decompress time.
+ *      The goal is to prevent erroring with `BZ3_ERR_DATA_SIZE_TOO_SMALL`, thus
+ *      in turn 
+ */
+BZIP3_API int bz3_orig_size_sufficient_for_decode(const uint8_t * block, size_t block_size, int32_t orig_size);
+
 
 #ifdef __cplusplus
 } /* extern "C" */
