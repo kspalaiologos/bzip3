@@ -1,4 +1,4 @@
-/* A tiny utility for fuzzing bzip3.
+/* A tiny utility for fuzzing bzip3 frame decompression.
  *
  * Prerequisites:
  * 
@@ -15,7 +15,7 @@
  * 
  * 2. Build binary (to compress test data).
  * 
- * afl-clang fuzz.c -I../include ../src/libbz3.c -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
+ * afl-clang fuzz-decompress.c -I../include -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
  * 
  * 3. Make a fuzzer input file.
  * 
@@ -27,7 +27,7 @@
  * 
  * 4. Build binary (for fuzzing).
  * 
- * afl-clang-fast fuzz.c -I../include ../src/libbz3.c -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
+ * afl-clang-fast fuzz-decompress.c -I../include -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
  * 
  * 5. Run the fuzzer.
  * 
@@ -48,7 +48,7 @@
  * 
  * If you find a crash, consider also doing the following:
  * 
- *      clang fuzz.c ../src/libbz3.c -g3 -O3 -march=native -o fuzz_asan -I../include "-DVERSION=\"0.0.0\"" -fsanitize=undefined -fsanitize=address
+ *      clang fuzz-decompress.c -g3 -O3 -march=native -o fuzz_asan -I../include "-DVERSION=\"0.0.0\"" -fsanitize=undefined -fsanitize=address
  *
  * And run fuzz_asan on the crashing test case (you can find it in one of the `afl_out/crashes/` folders).
  * Attach the test case /and/ the output of fuzz_asan to the bug report.
@@ -58,25 +58,21 @@
  * addres sanitizer; then run AFL.
  * 
  * export AFL_USE_ASAN=1
- * afl-clang-fast fuzz.c -I../include ../src/libbz3.c -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
+ * afl-clang-fast fuzz-decompress.c -I../include -o fuzz -g3 "-DVERSION=\"0.0.0\"" -O3 -march=native
  */
 
 
 /*
-
 This hex editor template can be used to help debug a breaking file.
 Would provide for ImHex, but ImHex terminates if template is borked.
 
 //------------------------------------------------
 //--- 010 Editor v15.0.1 Binary Template
 //
-//      File: bzip3.bt
+//      File: bzip3-fuzz-decompress.bt
 //   Authors: Sewer56
-//   Version: 1.0.1
+//   Version: 1.0.0
 //   Purpose: Parse bzip3 fuzzer data
-//  Category: Archive
-// File Mask: *.bz3
-//  ID Bytes: 42 5A 33 76 31 // "BZ3v1"
 //------------------------------------------------
 
 // Colors for different sections
@@ -151,7 +147,8 @@ while(!FEof()) {
 
 */
 
-#include <libbz3.h>
+#include "../include/libbz3.h"
+#include "../src/libbz3.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
