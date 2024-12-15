@@ -49,6 +49,8 @@ examples/compress-file
 examples/decompress-file
 
 examples/fuzz
+examples/afl_in
+examples/afl_out
 
 bz3grep.1
 
