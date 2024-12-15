@@ -803,8 +803,8 @@ int main(int argc, char * argv[]) {
 
     FILE *input_des = NULL, *output_des = NULL;
 
-    output_des = mode != MODE_TEST ? open_output(output, force) : NULL;
     input_des = open_input(input);
+    output_des = mode != MODE_TEST ? open_output(output, force) : NULL;
 
     if (output != f2) free(output);
 
