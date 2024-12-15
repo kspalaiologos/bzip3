@@ -102,3 +102,18 @@ v1.4.0:
 * Wrap up all the changes from v1.3; bump up the minor version release.
 * Various changes for CMake; bundle CMake files with the autotools dist tarball.
 * Support for linking with C++.
+
+v1.5.0:
+* Add `--rm` option that removes the original files after successful operation.
+* `bz3grep`: display the correct program name on invalid invocation.
+* Improve the docstrings regarding the use of `bz3_bound` with block decompression.
+* Tighter LZP/RLE bounds in the decoder => slightly improved compression with no
+  observable format change.
+* Improve the documentation and available tooling for fuzzing.
+* Rewritten the file format documentation.
+* Add the `bz3_min_memory_needed` API.
+* BREAKING: Change the signature of `bz3_decode_block` and `bz3_encode_block`.
+  Refer to the documentation for the new usage. This version is not ABI-compatible
+  with the previous versions of the package.
+* Fix: the file `$dir.bz3` being created when invoked as `bzip3 -e $dir` where
+  `$dir` is a directory.
