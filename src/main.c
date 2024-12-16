@@ -27,12 +27,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#ifdef HAVE_GETOPT_LONG
-    #include <getopt.h>
-#else
-    #include "getopt-shim.h"
-#endif
-
 #if defined __MSVCRT__
     #include <fcntl.h>
     #include <io.h>
@@ -40,6 +34,7 @@
 
 #include "common.h"
 #include "libbz3.h"
+#include "yarg.h"
 
 #define MODE_DECODE 0
 #define MODE_ENCODE 1
@@ -561,91 +556,68 @@ int main(int argc, char * argv[]) {
     // the block size
     u32 block_size = MiB(16);
 
-#ifdef PTHREAD
-    const char * short_options = "Bb:cdefhj:krtvVz";
-#else
-    const char * short_options = "Bb:cdefhkrtvVz";
-#endif
-
     enum { RM_OPTION = CHAR_MAX + 1 };
 
-    static struct option long_options[] = { { "encode", no_argument, 0, 'e' },
-                                            { "decode", no_argument, 0, 'd' },
-                                            { "test", no_argument, 0, 't' },
-                                            { "stdout", no_argument, 0, 'c' },
-                                            { "force", no_argument, 0, 'f' },
-                                            { "recover", no_argument, 0, 'r' },
-                                            { "help", no_argument, 0, 'h' },
-                                            { "rm", no_argument, 0, RM_OPTION },
-                                            { "keep", no_argument, 0, 'k' },
-                                            { "version", no_argument, 0, 'V' },
-                                            { "verbose", no_argument, 0, 'v' },
-                                            { "block", required_argument, 0, 'b' },
-                                            { "batch", no_argument, 0, 'B' },
+    yarg_options opt[] = {
+        {       'e', no_argument,       "encode" },
+        {       'z', no_argument,       "encode" }, /* alias */
+        {       'd', no_argument,       "decode" },
+        {       't', no_argument,       "test" },
+        {       'c', no_argument,       "stdout" },
+        {       'f', no_argument,       "force" },
+        {       'r', no_argument,       "recover" },
+        {       'h', no_argument,       "help" },
+        { RM_OPTION, no_argument,       "rm" },
+        {       'k', no_argument,       "keep" },
+        {       'V', no_argument,       "version" },
+        {       'v', no_argument,       "verbose" },
+        {       'b', required_argument, "block" },
+        {       'B', no_argument,       "batch" },
 #ifdef PTHREAD
-                                            { "jobs", required_argument, 0, 'j' },
+        {       'j', required_argument, "jobs" },
 #endif
-                                            { 0, 0, 0, 0 } };
-
-    while (1) {
-        int option_index = 0;
-        int c = getopt_long(argc, argv, short_options, long_options, &option_index);
-        if (c == -1) break;
-
-        switch (c) {
-            case '?':
-                fprintf(stderr, "Try 'bzip3 --help' for more information.\n");
-                return 1;
-            case 'e':
-            case 'z':
-                mode = MODE_ENCODE;
-                break;
-            case 'd':
-                mode = MODE_DECODE;
-                break;
-            case 'r':
-                mode = MODE_RECOVER;
-                break;
-            case 't':
-                mode = MODE_TEST;
-                break;
-            case 'c':
-                force_stdstreams = 1;
-                break;
-            case 'f':
-                force = 1;
-                break;
-            case RM_OPTION:
-                remove_input_file = 1;
-                break;
-            case 'k':
-                break;
-            case 'h':
-                help();
-                return 0;
-            case 'V':
-                version();
-                return 0;
-            case 'B':
-                batch = 1;
-                break;
-            case 'v':
-                verbose = 1;
-                break;
+        {         0, no_argument,       NULL }
+    };
+    yarg_settings settings = {
+        .dash_dash = true,
+        .style = YARG_STYLE_UNIX,
+    };
+    yarg_result * res = yarg_parse(argc, argv, opt, settings);
+    if (res->error) {
+        fputs(res->error, stderr);
+        fputs("Try 'bzip3 --help' for more information.\n", stderr);
+        return 1;
+    }
+    // `res' is not freed later on as it has the approximate lifetime
+    // equal to the lifetime of the program overall.
+    for (int i = 0; i < res->argc; i++) {
+        switch(res->args[i].opt) {
+            case 'e': case 'z': mode = MODE_ENCODE; break;
+            case 'd': mode = MODE_DECODE; break;
+            case 'r': mode = MODE_RECOVER; break;
+            case 't': mode = MODE_TEST; break;
+            case 'c': force_stdstreams = 1; break;
+            case 'f': force = 1; break;
+            case RM_OPTION: remove_input_file = 1; break;
+            case 'k': break;
+            case 'h': help(); return 0;
+            case 'V': version(); return 0;
+            case 'B': batch = 1; break;
+            case 'v': verbose = 1; break;
             case 'b':
-                if (!is_numeric(optarg)) {
-                    fprintf(stderr, "bzip3: invalid block size: %s\n", optarg);
+                if (!is_numeric(res->args[i].arg)) {
+                    fprintf(stderr, "bzip3: invalid block size: %s\n", res->args[i].arg);
                     return 1;
                 }
-                block_size = MiB(atoi(optarg));
+                block_size = MiB(atoi(res->args[i].arg));
                 break;
 #ifdef PTHREAD
             case 'j':
-                if (!is_numeric(optarg)) {
-                    fprintf(stderr, "bzip3: invalid amount of jobs: %s\n", optarg);
+                if (!is_numeric(res->args[i].arg)) {
+                    fprintf(stderr, "bzip3: invalid amount of jobs: %s\n", res->args[i].arg);
                     return 1;
                 }
-                workers = atoi(optarg);
+                workers = atoi(res->args[i].arg);
                 break;
 #endif
         }
@@ -665,8 +637,8 @@ int main(int argc, char * argv[]) {
         switch (mode) {
             case MODE_ENCODE:
                 /* Encode each of the files. */
-                while (optind < argc) {
-                    char * arg = argv[optind++];
+                for (int i = 0; i < res->pos_argc; i++) {
+                    char * arg = res->pos_args[i];
 
                     FILE * input_des = open_input(arg);
                     char * output_name;
@@ -692,8 +664,8 @@ int main(int argc, char * argv[]) {
             case MODE_RECOVER:
             case MODE_DECODE:
                 /* Decode each of the files. */
-                while (optind < argc) {
-                    char * arg = argv[optind++];
+                for (int i = 0; i < res->pos_argc; i++) {
+                    char * arg = res->pos_args[i];
 
                     FILE * input_des = open_input(arg);
                     char * output_name;
@@ -723,8 +695,8 @@ int main(int argc, char * argv[]) {
                 break;
             case MODE_TEST:
                 /* Test each of the files. */
-                while (optind < argc) {
-                    char * arg = argv[optind++];
+                for (int i = 0; i < res->pos_argc; i++) {
+                    char * arg = res->pos_args[i];
 
                     FILE * input_des = open_input(arg);
                     process(input_des, NULL, mode, block_size, workers, verbose, arg);
@@ -741,9 +713,8 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
-    while (optind < argc) {
-        // Positional argument. Likely a file name.
-        char * arg = argv[optind++];
+    for (int i = 0; i < res->pos_argc; i++) {
+        char * arg = res->pos_args[i];
 
         if (f1 != NULL && f2 != NULL) {
             fprintf(stderr, "Error: too many files specified.\n");
@@ -819,6 +790,5 @@ int main(int argc, char * argv[]) {
     if (remove_input_file) {
         remove_in_file(input, output_des);
     }
-
     return r;
 }

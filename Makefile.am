@@ -9,7 +9,7 @@ pkgconfig_DATA = bzip3.pc
 include_HEADERS = include/libbz3.h
 noinst_HEADERS = include/common.h \
 						 include/libsais.h \
-						 include/getopt-shim.h
+						 include/yarg.h
 
 lib_LTLIBRARIES = libbzip3.la
 libbzip3_la_SOURCES = src/libbz3.c

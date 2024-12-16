@@ -133,7 +133,6 @@ A breakdown of components and their licenses follows:
 - (compile-time) `build-aux/ax_check_compile_flag.m4`: Copyright 2008, Guido U. Draheim (guidod@gmx.de), 2011, Maarten Bosmans (mkbosmans@gmail.com); FSFAP
 - (compile-time) `build-aux/git-version-gen`: Copyright 2007-2012, Free Software Foundation, Inc; GPLv3
 - (runtime) `bz3grep`: Copyright 2003, Thomas Klausner; BSD-2-clause
-- (runtime) `include/getopt-shim.h`: Copyright 2005-2014, Rich Felker; Expat
 
 `bzip3` as a whole is licensed under LGPLv3 only. It is not dual-licensed under LGPLv3 and Apache 2.0.
 

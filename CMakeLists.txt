@@ -88,10 +88,6 @@ install(
 if(BZIP3_BUILD_APPS)
   add_executable(bzip3)
   target_sources(bzip3 PRIVATE src/main.c)
-  check_symbol_exists(getopt_long "getopt.h" HAVE_GETOPT_LONG)
-  if(HAVE_GETOPT_LONG)
-    target_compile_definitions(bzip3 PRIVATE HAVE_GETOPT_LONG)
-  endif()
   if(BZIP3_ENABLE_STATIC_EXE)
     if(BUILD_SHARED_LIBS)
       message(
