@@ -87,7 +87,7 @@ static void yarg_parse_unix(int argc, char * argv[], yarg_options opt[],
           if (opt[j].long_opt && !strncmp(opt[j].long_opt, long_opt, len))
             { o = &opt[j]; break; }
         if (!o) {
-          asprintf(&res->error, "--%.*s -- unknown option\n", len, long_opt);
+          yarg_asprintf(&res->error, "--%.*s -- unknown option\n", len, long_opt);
           return;
         }
         if (o->type == required_argument) {
@@ -96,7 +96,7 @@ static void yarg_parse_unix(int argc, char * argv[], yarg_options opt[],
           } else if (argv[i + 1] && argv[i + 1][0] != '-') {
             i++;
           } else {
-            asprintf(&res->error, "--%s -- missing argument\n", o->long_opt);
+            yarg_asprintf(&res->error, "--%s -- missing argument\n", o->long_opt);
             return;
           }
         } else if (o->type == optional_argument) {
@@ -113,7 +113,7 @@ static void yarg_parse_unix(int argc, char * argv[], yarg_options opt[],
             if (opt[k].opt == c)
               { o = &opt[k]; break; }
           if (!o) {
-            asprintf(&res->error, "-%c -- unknown option\n", c);
+            yarg_asprintf(&res->error, "-%c -- unknown option\n", c);
             return;
           }
           if (o->type == required_argument) {
@@ -122,7 +122,7 @@ static void yarg_parse_unix(int argc, char * argv[], yarg_options opt[],
             } else if (argv[i + 1] && argv[i + 1][0] != '-') {
               i++;
             } else {
-              asprintf(&res->error, "-%c -- missing argument\n", c);
+              yarg_asprintf(&res->error, "-%c -- missing argument\n", c);
               return;
             }
             no_args++;
@@ -177,7 +177,7 @@ static void yarg_parse_unix(int argc, char * argv[], yarg_options opt[],
             if (opt[k].opt == c)
               { o = &opt[k]; break; }
           if (!o) {
-            asprintf(&res->error, "-%c -- unknown option\n", c);
+            yarg_asprintf(&res->error, "-%c -- unknown option\n", c);
             return;
           }
           res->args[res->argc].opt = c;
@@ -213,7 +213,7 @@ static void yarg_parse_unix_short(int argc, char * argv[], yarg_options opt[],
         if (opt[j].long_opt && !strncmp(opt[j].long_opt, long_opt, len))
           { o = &opt[j]; break; }
       if (!o) {
-        asprintf(&res->error, "%c%.*s -- unknown option\n", opt_char, len, long_opt);
+        yarg_asprintf(&res->error, "%c%.*s -- unknown option\n", opt_char, len, long_opt);
         return;
       }
       if (o->type == required_argument) {
@@ -222,7 +222,7 @@ static void yarg_parse_unix_short(int argc, char * argv[], yarg_options opt[],
         } else if (argv[i + 1] && argv[i + 1][0] != opt_char) {
           i++;
         } else {
-          asprintf(&res->error, "%c%s -- missing argument\n", opt_char, o->long_opt);
+          yarg_asprintf(&res->error, "%c%s -- missing argument\n", opt_char, o->long_opt);
           return;
         }
       } else if (o->type == optional_argument) {
