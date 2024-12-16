@@ -117,3 +117,7 @@ v1.5.0:
   with the previous versions of the package.
 * Fix: the file `$dir.bz3` being created when invoked as `bzip3 -e $dir` where
   `$dir` is a directory.
+
+v1.5.1:
+* Replace getopt-based parsing with `yarg`.
+* Change the soname to indicate a difference in the ABI.
