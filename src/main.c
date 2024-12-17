@@ -583,6 +583,10 @@ int main(int argc, char * argv[]) {
         .style = YARG_STYLE_UNIX,
     };
     yarg_result * res = yarg_parse(argc, argv, opt, settings);
+    if (!res) {
+        fprintf(stderr, "bzip3: out of memory.\n");
+        return 1;
+    }
     if (res->error) {
         fputs(res->error, stderr);
         fputs("Try 'bzip3 --help' for more information.\n", stderr);
