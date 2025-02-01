@@ -51,17 +51,22 @@ zstd -T12 -16 all.tar  4162.94s user 16.40s system 1056% cpu 687M memory 6:35.62
 
 The results follow:
 
-* LZMA (xz) - 2'056'645'240 bytes
-* bzip2 - 3'441'163'911 bytes
-* bzip3 -b 256 - 1'001'957'587 bytes
-* bzip3 -b 511 - 546'456'978 bytes
-* Zstandard - 3'076'143'660 bytes
+| Method           | Compressed size (bytes) |
+| ---------------- | -----------------------:|
+| LZMA (xz)        |           2'056'645'240 |
+| bzip2            |           3'441'163'911 |
+| bzip3 -b 256     |           1'001'957'587 |
+| bzip3 -b 511     |             546'456'978 |
+| Zstandard        |           3'076'143'660 |
 
 Finally, wall clock time decompression times (WD Blue HDD):
-* LZMA (xz) - 4min 40s
-* bzip2 - 9min 22s
-* bzip3 (parallel) - 4min 6s
-* Zstandard - 3min 51s
+
+| Method           | Decompression time |
+| ---------------- | ------------------:|
+| LZMA (xz)        |           4min 40s |
+| bzip2            |           9min 22s |
+| bzip3 (parallel) |           4min 06s |
+| Zstandard        |           3min 51s |
 
 Then, I used `lrzip` to perform long-range deduplication on the original `.tar` file:
 
@@ -85,9 +90,11 @@ Finally, I compressed the resulting `none.tar.lrz` file using bzip3:
 
 The results follow:
 
-* lrzip + bzip3 - 60'672'608 bytes.
-* lrzip + lzma - 64'774'202 bytes.
-* lrzip + bzip2 - 75'685'065 bytes.
+| Method           | Compressed size (bytes) |
+| ---------------- | -----------------------:|
+| lrzip + bzip3    |              60'672'608 |
+| lrzip + lzma     |              64'774'202 |
+| lrzip + bzip2    |              75'685'065 |
 
 For further benchmarks against Turbo-Range-Coder and BSC, check [powturbo's benchmark](https://github.com/powturbo/Turbo-Range-Coder) of bzip3, bzip2, bsc and others.
 
