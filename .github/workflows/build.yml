@@ -24,7 +24,7 @@ jobs:
     - name: Make source package
       run: make VERSION=${{ github.sha }} dist
     - name: Upload source package artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: bzip3-${{ github.sha }}
         path: bzip3-${{ github.sha }}.tar.gz
