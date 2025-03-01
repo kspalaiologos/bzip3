@@ -637,7 +637,7 @@ int main(int argc, char * argv[]) {
         return 1;
     }
 
-    if (batch) {
+    if (batch && res->pos_argc) {
         switch (mode) {
             case MODE_ENCODE:
                 /* Encode each of the files. */
