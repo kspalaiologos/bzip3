@@ -121,3 +121,8 @@ v1.5.0:
 v1.5.1:
 * Replace getopt-based parsing with `yarg`.
 * Change the soname to indicate a difference in the ABI.
+
+v1.5.2:
+* batch mode: fall back to stdin input with no auxiliary arguments.
+* bz3_compress (API): better bound estimation
+* yarg: oom handling; stop relying on (GNU) asprintf, use the baked in variant.
