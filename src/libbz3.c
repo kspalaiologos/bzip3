@@ -991,6 +991,8 @@ BZIP3_API int bz3_decompress(const uint8_t * in, uint8_t * out, size_t in_size, 
     }
 
     bz3_free(state);
+    free(compression_buf);
+
     return BZ3_OK;
 }
 
