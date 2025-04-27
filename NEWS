@@ -126,3 +126,5 @@ v1.5.2:
 * batch mode: fall back to stdin input with no auxiliary arguments.
 * bz3_compress (API): better bound estimation
 * yarg: oom handling; stop relying on (GNU) asprintf, use the baked in variant.
+* pkg-config: Add License variable
+* bz3_decompress (API): fix a memory leak
