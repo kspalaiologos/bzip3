@@ -49,23 +49,25 @@ typedef struct {
 
 static const char yarg_oom[] = "Out of memory";
 static int yarg_asprintf(char ** strp, const char * fmt, ...) {
+  if (fmt == yarg_oom)
+    goto use_yarg_oom;
   va_list ap;
   va_start(ap, fmt);
   int len = vsnprintf(NULL, 0, fmt, ap);
   va_end(ap);
-  if (len < 0) {
-    memcpy(*strp, yarg_oom, sizeof(yarg_oom));
-    return sizeof(yarg_oom);
-  }
+  if (len < 0)
+    goto use_yarg_oom;
   *strp = (char *) malloc(len + 1);
-  if (!*strp) {
-    memcpy(*strp, yarg_oom, sizeof(yarg_oom));
-    return sizeof(yarg_oom);
-  }
+  if (!*strp)
+    goto use_yarg_oom;
   va_start(ap, fmt);
   len = vsnprintf(*strp, len + 1, fmt, ap);
   va_end(ap);
   return len;
+
+use_yarg_oom:
+    *strp = (char *)yarg_oom;
+    return sizeof(yarg_oom);
 }
 
 static char * yarg_strdup(const char * str) {
