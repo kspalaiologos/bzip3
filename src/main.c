@@ -650,6 +650,10 @@ int main(int argc, char * argv[]) {
                         output_name = NULL;
                     else {
                         output_name = malloc(strlen(arg) + 5);
+                        if (!output_name) {
+                            fprintf(stderr, "Failed to allocate memory.\n");
+                            return 1;
+                        }
                         strcpy(output_name, arg);
                         strcat(output_name, ".bz3");
                     }
@@ -677,6 +681,10 @@ int main(int argc, char * argv[]) {
                         output_name = NULL;
                     else {
                         output_name = malloc(strlen(arg) + 1);
+                        if (!output_name) {
+                            fprintf(stderr, "Failed to allocate memory.\n");
+                            return 1;
+                        }
                         strcpy(output_name, arg);
                         if (strlen(output_name) > 4 && !strcmp(output_name + strlen(output_name) - 4, ".bz3"))
                             output_name[strlen(output_name) - 4] = 0;
@@ -744,6 +752,10 @@ int main(int argc, char * argv[]) {
                     output = NULL;
                 else {
                     output = malloc(strlen(f1) + 5);
+                    if (!output) {
+                        fprintf(stderr, "Failed to allocate memory.\n");
+                        return 1;
+                    }
                     strcpy(output, f1);
                     strcat(output, ".bz3");
                 }
@@ -760,6 +772,10 @@ int main(int argc, char * argv[]) {
                     output = NULL;
                 else {
                     output = malloc(strlen(f1) + 1);
+                    if (!output) {
+                        fprintf(stderr, "Failed to allocate memory.\n");
+                        return 1;
+                    }
                     strcpy(output, f1);
                     if (strlen(output) > 4 && !strcmp(output + strlen(output) - 4, ".bz3"))
                         output[strlen(output) - 4] = 0;
