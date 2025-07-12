@@ -150,7 +150,7 @@ since that maximises the compression achieved.  Compression and
 decompression speed are virtually unaffected by block size.
 
 .SH AUTHOR
-Kamila Szewczyk, kspalaiologos@gmail.com.
+Kamila Szewczyk, k@iczelia.net.
 
 https://github.com/kspalaiologos/bzip3
 
