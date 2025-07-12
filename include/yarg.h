@@ -1,4 +1,4 @@
-/* Written by Kamila Szewczyk (kspalaiologos@gmail.com) */
+/* Written by Kamila Szewczyk (k@iczelia.net) */
 
 #ifndef _YARG_H
 #define _YARG_H
