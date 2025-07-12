@@ -134,7 +134,7 @@ Check etc/BENCHMARKS.md for more results.
 
 A breakdown of components and their licenses follows:
 
-- (runtime) The codebase as a whole: Copyright 2022-2023, Kamila Szewczyk (kspalaiologos@gmail.com); LGPL (LICENSE)
+- (runtime) The codebase as a whole: Copyright 2022-2023, Kamila Szewczyk (k@iczelia.net); LGPL (LICENSE)
 - (runtime) The Burrows-Wheeler transform (libsais) and LZP code: 2021-2022, Ilya Grebnov (ilya.grebnov@gmail.com); Apache 2.0 (3rdparty/libsais-LICENSE)
 - (compile-time) `build-aux`: Copyright 2011, Daniel Richard G (skunk@iSKUNK.ORG), 2019, Marc Stevens (marc.stevens@cwi.nl), 2008, Steven G. Johnson (stevenj@alum.mit.edu); GPL-3+ with AutoConf exception
 - (compile-time) `build-aux/ax_check_compile_flag.m4`: Copyright 2008, Guido U. Draheim (guidod@gmx.de), 2011, Maarten Bosmans (mkbosmans@gmail.com); FSFAP
